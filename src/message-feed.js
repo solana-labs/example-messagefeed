@@ -1,9 +1,6 @@
 /* @flow */
-import path from 'path';
-import fs from 'mz/fs';
 import {
   Account,
-  BpfLoader,
   Connection,
   SystemProgram,
   PublicKey,
@@ -13,15 +10,11 @@ import {
 import * as BufferLayout from 'buffer-layout';
 
 import {newSystemAccountWithAirdrop} from './util/new-system-account-with-airdrop';
+import {sleep} from './util/sleep';
 
 export type Messages = {
   publicKey: PublicKey,
   text: string,
-};
-
-export type MessageFeedMeta = {
-  programId: PublicKey,
-  firstMessage: PublicKey,
 };
 
 type MessageData = {
@@ -29,49 +22,6 @@ type MessageData = {
   programId: PublicKey,
   text: string,
 };
-
-/**
- * Load a new instance of the Message Feed program
- */
-async function loadMessageFeedProgram(
-  connection: Connection,
-): Promise<PublicKey> {
-  const elfFile = path.join(
-    __dirname,
-    '..',
-    'dist',
-    'program',
-    'messagefeed.so',
-  );
-  console.log(`Reading ${elfFile}...`);
-  const elfData = await fs.readFile(elfFile);
-
-  console.log('Loading program...');
-  const loaderAccount = await newSystemAccountWithAirdrop(connection, 100000);
-  return BpfLoader.load(connection, loaderAccount, elfData);
-}
-
-/**
- * Creates a new Message Feed.
- */
-export async function createMessageFeed(
-  connection: Connection,
-): Promise<MessageFeedMeta> {
-  const programId = await loadMessageFeedProgram(connection);
-  console.log('Message feed program:', programId.toString());
-
-  console.log('Posting first message...');
-  const firstMessage = await postMessageWithProgramId(
-    connection,
-    programId,
-    'First post!',
-  );
-  console.log('First message public key:', firstMessage.toString());
-  return {
-    programId,
-    firstMessage,
-  };
-}
 
 /**
  * Read the contents of a message
@@ -147,7 +97,7 @@ export async function postMessage(
   );
 }
 
-async function postMessageWithProgramId(
+export async function postMessageWithProgramId(
   connection,
   programId: PublicKey,
   text: string,
@@ -192,4 +142,22 @@ async function postMessageWithProgramId(
   );
 
   return messageAccount.publicKey;
+}
+
+export async function getFirstMessage(configUrl: string): Promise<PublicKey> {
+  for (;;) {
+    try {
+      console.log(`Fetching ${configUrl}`);
+      const response = await fetch(configUrl);
+      const config = await response.json();
+
+      if (!config.loading) {
+        return new PublicKey(config.firstMessage);
+      }
+      console.log(`Waiting for message feed program to finish loading...`);
+    } catch (err) {
+      console.error(`${err}`);
+    }
+    await sleep(2000);
+  }
 }

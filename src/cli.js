@@ -1,29 +1,9 @@
 /* @flow */
-import {Connection, PublicKey} from '@solana/web3.js';
-import fetch from 'node-fetch';
+import {Connection} from '@solana/web3.js';
 
-import {sleep} from './util/sleep';
 import {url} from '../url';
-import {refreshMessageFeed, postMessage} from './message-feed';
+import {getFirstMessage, refreshMessageFeed, postMessage} from './message-feed';
 import type {Messages} from './message-feed';
-
-async function getFirstMessage(configUrl: string): Promise<PublicKey> {
-  for (;;) {
-    try {
-      console.log(`Fetching ${configUrl}`);
-      const response = await fetch(configUrl);
-      const config = await response.json();
-
-      if (!config.loading) {
-        return new PublicKey(config.firstMessage);
-      }
-      console.log(`Waiting for message feed program to finish loading...`);
-    } catch (err) {
-      console.error(`${err}`);
-    }
-    await sleep(2000);
-  }
-}
 
 async function main() {
   const text = process.argv.splice(2).join(' ');

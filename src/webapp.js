@@ -12,6 +12,11 @@ import InputBase from '@material-ui/core/InputBase';
 import Toolbar from '@material-ui/core/Toolbar';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Snackbar from '@material-ui/core/Snackbar';
+import {Connection} from '@solana/web3.js';
+
+import {sleep} from './util/sleep';
+import {url} from '../url';
+import {getFirstMessage, refreshMessageFeed, postMessage} from './message-feed';
 
 const styles = theme => ({
   root: {
@@ -74,25 +79,69 @@ class App extends React.Component {
     super(props);
 
     this.state = {
-      busy: false,
+      busy: true,
       snackMessage: '',
       newMessage: '',
+      messages: [],
     };
+    this.load();
   }
+
+  async load() {
+    let configUrl = window.location.origin;
+    if (window.location.hostname === 'localhost') {
+      configUrl = 'http://localhost:8081';
+    }
+    configUrl += '/config.json';
+
+    let firstMessage = null;
+    while (firstMessage === null) {
+      try {
+        firstMessage = await getFirstMessage(configUrl);
+      } catch (err) {
+        console.error(`Failed to load: ${err}`);
+        await sleep(1000);
+      }
+    }
+
+    // TODO: get `url` from server...
+    console.log('Cluster RPC URL:', url);
+    this.connection = new Connection(url);
+
+    this.setState({busy: false});
+    this.periodicRefresh(firstMessage);
+  }
+
+  periodicRefresh = async firstMessage => {
+    if (!this.state.busy) {
+      this.setState({busy: true});
+      try {
+        const {messages} = this.state;
+        await refreshMessageFeed(this.connection, messages, firstMessage);
+        this.setState({messages});
+      } catch (err) {
+        console.error(`periodicRefresh error: ${err}`);
+      }
+      this.setState({busy: false});
+    }
+    setTimeout(this.periodicRefresh, 1000);
+  };
+
   render() {
     const {classes} = this.props;
 
-    const messages = [];
-    for (let i = 0; i < 25; i++) {
-      messages.push(
-        <div key={i}>
-          <br />
-          <Paper className={classes.message}>
-            <Typography>message {i}</Typography>
-          </Paper>
-        </div>,
-      );
-    }
+    const messages = this.state.messages
+      .map((message, i) => {
+        return (
+          <div key={i}>
+            <br />
+            <Paper className={classes.message}>
+              <Typography>{message.text}</Typography>
+            </Paper>
+          </div>
+        );
+      })
+      .reverse();
 
     return (
       <div className={classes.root}>
@@ -153,19 +202,45 @@ class App extends React.Component {
     );
   }
 
+  async postMessage() {
+    if (this.state.newMessage.length === 0) {
+      return;
+    }
+
+    this.setState({busy: true});
+    const {messages, newMessage} = this.state;
+    try {
+      await postMessage(
+        this.connection,
+        newMessage,
+        messages[messages.length - 1].publicKey,
+      );
+      await refreshMessageFeed(this.connection, messages);
+      this.setState({
+        busy: false,
+        snackMessage: 'Message posted',
+        newMessage: '',
+      });
+    } catch (err) {
+      console.error(`Failed to post message: ${err}`);
+      this.setState({
+        busy: false,
+        snackMessage: 'An error occured when posting the message',
+      });
+    }
+  }
+
   onInputKeyDown = e => {
-    if (e.keyCode == 13) {
-      if (this.state.busy) {
-        this.setState({
-          snackMessage: 'Unable to post message, please retry when not busy',
-        });
-      } else {
-        this.setState({
-          snackMessage: 'Message posted',
-          newMessage: '',
-          busy: true,
-        });
-      }
+    if (e.keyCode !== 13) {
+      return;
+    }
+
+    if (this.state.busy) {
+      this.setState({
+        snackMessage: 'Unable to post message, please retry when not busy',
+      });
+    } else {
+      this.postMessage();
     }
   };
 
