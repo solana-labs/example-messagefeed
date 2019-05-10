@@ -38,4 +38,3 @@ deploy:
     strategy: git
     on:
       repo: solana-labs/example-messagefeed
-      tags: true
