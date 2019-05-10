@@ -144,7 +144,7 @@ export async function postMessageWithProgramId(
   return messageAccount.publicKey;
 }
 
-export async function getFirstMessage(configUrl: string): Promise<PublicKey> {
+export async function getFirstMessage(configUrl: string): Promise<Object> {
   for (;;) {
     try {
       console.log(`Fetching ${configUrl}`);
@@ -152,7 +152,10 @@ export async function getFirstMessage(configUrl: string): Promise<PublicKey> {
       const config = await response.json();
 
       if (!config.loading) {
-        return new PublicKey(config.firstMessage);
+        return {
+          url: config.url,
+          firstMessage: new PublicKey(config.firstMessage),
+        };
       }
       console.log(`Waiting for message feed program to finish loading...`);
     } catch (err) {

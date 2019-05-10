@@ -1,14 +1,13 @@
 /* @flow */
 import {Connection} from '@solana/web3.js';
 
-import {url} from '../url';
 import {getFirstMessage, refreshMessageFeed, postMessage} from './message-feed';
 import type {Messages} from './message-feed';
 
 async function main() {
   const text = process.argv.splice(2).join(' ');
 
-  const firstMessage = await getFirstMessage(
+  const {firstMessage, url} = await getFirstMessage(
     'http://localhost:8081/config.json',
   );
 

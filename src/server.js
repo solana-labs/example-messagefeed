@@ -96,6 +96,7 @@ app.get('/config.json', async (req, res) => {
     .send(
       JSON.stringify({
         loading,
+        url,
         firstMessage: messageFeedMeta
           ? messageFeedMeta.firstMessage.toString()
           : null,

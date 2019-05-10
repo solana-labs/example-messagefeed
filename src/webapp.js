@@ -15,7 +15,6 @@ import Snackbar from '@material-ui/core/Snackbar';
 import {Connection} from '@solana/web3.js';
 
 import {sleep} from './util/sleep';
-import {url} from '../url';
 import {getFirstMessage, refreshMessageFeed, postMessage} from './message-feed';
 
 const styles = theme => ({
@@ -94,22 +93,21 @@ class App extends React.Component {
     }
     configUrl += '/config.json';
 
-    let firstMessage = null;
-    while (firstMessage === null) {
+    for (;;) {
       try {
-        firstMessage = await getFirstMessage(configUrl);
+        const {firstMessage, url} = await getFirstMessage(configUrl);
+
+        console.log('Cluster RPC URL:', url);
+        this.connection = new Connection(url);
+
+        this.setState({busy: false});
+        this.periodicRefresh(firstMessage);
+        return;
       } catch (err) {
         console.error(`Failed to load: ${err}`);
         await sleep(1000);
       }
     }
-
-    // TODO: get `url` from server...
-    console.log('Cluster RPC URL:', url);
-    this.connection = new Connection(url);
-
-    this.setState({busy: false});
-    this.periodicRefresh(firstMessage);
   }
 
   periodicRefresh = async firstMessage => {
