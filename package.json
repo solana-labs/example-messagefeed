@@ -14,8 +14,8 @@
     "build": "webpack --mode=production",
     "builddev": "webpack --mode=development",
     "dev": "webpack-dev-server --config ./webpack.config.js --mode development",
-    "build:bpf": "V=1 make -C program-bpf-c",
-    "clean:bpf": "make -C program-bpf-c clean",
+    "build:bpf-c": "V=1 make -C program-bpf-c",
+    "clean:bpf-c": "make -C program-bpf-c clean",
     "localnet:up": "set -x; solana-localnet down beta; set -e; solana-localnet up beta",
     "localnet:deploy": "./program-native/deploy.sh",
     "localnet:down": "solana-localnet down beta",
@@ -30,6 +30,7 @@
     "prettier": "^1.14.3"
   },
   "dependencies": {
+    "@material-ui/core": "^3.9.3",
     "@solana/web3.js": "0.15.4",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
@@ -60,8 +61,8 @@
     "mz": "^2.7.0",
     "node-fetch": "^2.2.0",
     "react": "^16.5.2",
-    "react-bootstrap": "^0.32.4",
     "react-dom": "^16.5.2",
+    "react-idle-timer": "^4.2.5",
     "readline-promise": "^1.0.3",
     "superstruct": "^0.6.0",
     "watch": "^1.0.2",

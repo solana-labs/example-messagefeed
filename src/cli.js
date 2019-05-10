@@ -29,7 +29,7 @@ async function main() {
   const text = process.argv.splice(2).join(' ');
 
   const firstMessage = await getFirstMessage(
-    'http://localhost:8080/config.json',
+    'http://localhost:8081/config.json',
   );
 
   console.log('Cluster RPC URL:', url);

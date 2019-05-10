@@ -6,7 +6,7 @@ import {url} from '../url';
 import {createMessageFeed} from './message-feed';
 import type {MessageFeedMeta} from './message-feed';
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8081;
 
 let messageFeedMeta: MessageFeedMeta | null = null;
 let loading = false;

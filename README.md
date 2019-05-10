@@ -44,7 +44,7 @@ $ V=1 make -C program-bpf-c
 ```
 or
 ```
-$ npm run build:bpf
+$ npm run build:bpf-c
 ```
 
 Compiled files can be found in `dist/program`. Compiler settings are configured in the [Solana SDK](https://github.com/solana-labs/solana/tree/master/sdk/bpf/bpf.mk)
