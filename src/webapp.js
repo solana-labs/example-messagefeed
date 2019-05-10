@@ -11,6 +11,7 @@ import PropTypes from 'prop-types';
 import InputBase from '@material-ui/core/InputBase';
 import Toolbar from '@material-ui/core/Toolbar';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Snackbar from '@material-ui/core/Snackbar';
 
 const styles = theme => ({
   root: {
@@ -66,23 +67,17 @@ const styles = theme => ({
       width: 200,
     },
   },
-  sectionDesktop: {
-    display: 'none',
-    [theme.breakpoints.up('md')]: {
-      display: 'flex',
-    },
-  },
-  sectionMobile: {
-    display: 'flex',
-    [theme.breakpoints.up('md')]: {
-      display: 'none',
-    },
-  },
 });
 
 class App extends React.Component {
   constructor(props) {
     super(props);
+
+    this.state = {
+      busy: false,
+      snackMessage: '',
+      newMessage: '',
+    };
   }
   render() {
     const {classes} = this.props;
@@ -114,14 +109,21 @@ class App extends React.Component {
             <div className={classes.newmessage}>
               <InputBase
                 placeholder="Say something nice…"
+                value={this.state.newMessage}
                 classes={{
                   root: classes.inputRoot,
                   input: classes.inputInput,
                 }}
+                onKeyDown={this.onInputKeyDown}
+                onChange={this.onInputChange}
               />
             </div>
             <div className={classes.grow} />
-            <CircularProgress className={classes.progress} color="disabled" />
+            {this.state.busy ? (
+              <CircularProgress className={classes.progress} color="inherit" />
+            ) : (
+              ''
+            )}
           </Toolbar>
         </AppBar>
         <IdleTimer
@@ -134,9 +136,46 @@ class App extends React.Component {
         <Grid item xs>
           {messages}
         </Grid>
+        <Snackbar
+          open={this.state.snackMessage !== ''}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          autoHideDuration={4000}
+          onClose={this.onSnackClose}
+          ContentProps={{
+            'aria-describedby': 'message-id',
+          }}
+          message={<span id="message-id">{this.state.snackMessage}</span>}
+        />
       </div>
     );
   }
+
+  onInputKeyDown = e => {
+    if (e.keyCode == 13) {
+      if (this.state.busy) {
+        this.setState({
+          snackMessage: 'Unable to post message, please retry when not busy',
+        });
+      } else {
+        this.setState({
+          snackMessage: 'Message posted',
+          newMessage: '',
+          busy: true,
+        });
+      }
+    }
+  };
+
+  onInputChange = e => {
+    this.setState({newMessage: e.target.value});
+  };
+
+  onSnackClose = () => {
+    this.setState({snackMessage: ''});
+  };
 
   onActive = () => {
     console.log('user is active');
