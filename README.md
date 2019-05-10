@@ -21,13 +21,13 @@ The example connects to a local Solana network by default.
 
 To start a local Solana network run:
 ```bash
-$ npx solana-localnet update
+$ npm run localnet:update
 $ npm run localnet:up
 ```
 
 Solana network logs are available with:
 ```bash
-$ npx solana-localnet logs -f
+$ npm run localnet:logs
 ```
 
 For more details on working with a local network, see the [full instructions](https://github.com/solana-labs/solana-web3.js#local-network).
@@ -71,4 +71,9 @@ $ npm run start -- "This is a message"
 ```
 
 ### Run the WebApp Front End
-*TODO*
+After building the program and starting the web server, start the webapp
+locally by running:
+```sh
+$ npm run dev
+```
+then go to http://localhost:8080/ in your browser.
