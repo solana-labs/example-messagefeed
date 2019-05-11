@@ -1,0 +1,4 @@
+
+
+[dependencies.compiler_builtins]
+path = "../node_modules/@solana/web3.js/bpf-sdk/rust-bpf-sysroot/src/compiler-builtins"

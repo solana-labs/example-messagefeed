@@ -1,0 +1,20 @@
+
+# Note: This crate must be built using build.sh
+
+[package]
+name = "messagefeed"
+version = "0.15.0"
+description = "Message feed program written in Rust"
+authors = ["Solana Maintainers <maintainers@solana.com>"]
+repository = "https://github.com/solana-labs/solana"
+license = "Apache-2.0"
+homepage = "https://solana.com/"
+
+[workspace]
+members = []
+
+[lib]
+name = "messagefeed"
+crate-type = ["cdylib"]
+
+
