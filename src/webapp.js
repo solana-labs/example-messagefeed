@@ -220,7 +220,7 @@ class App extends React.Component {
             vertical: 'bottom',
             horizontal: 'left',
           }}
-          autoHideDuration={4000}
+          autoHideDuration={6000}
           onClose={this.onSnackClose}
           ContentProps={{
             'aria-describedby': 'message-id',
