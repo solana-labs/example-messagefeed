@@ -16,6 +16,8 @@
     "dev": "webpack-dev-server --config ./webpack.config.js --mode development",
     "build:bpf-c": "V=1 make -C program-bpf-c",
     "clean:bpf-c": "make -C program-bpf-c clean",
+    "build:bpf-rust": "./program-bpf-rust/build.sh",
+    "clean:bpf-rust": "./program-bpf-c/clean.sh",
     "localnet:update": "solana-localnet update beta",
     "localnet:up": "set -x; solana-localnet down beta; set -e; solana-localnet up beta",
     "localnet:deploy": "./program-native/deploy.sh",
