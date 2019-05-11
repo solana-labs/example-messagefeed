@@ -5,6 +5,9 @@ import IdleTimer from 'react-idle-timer';
 import InputBase from '@material-ui/core/InputBase';
 import Paper from '@material-ui/core/Paper';
 import PauseIcon from '@material-ui/icons/Pause';
+import MenuIcon from '@material-ui/icons/Menu';
+import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
 import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -83,6 +86,7 @@ class App extends React.Component {
       newMessage: '',
       periodicRefreshActive: false,
       snackMessage: '',
+      transactionSignature: null,
     };
     this.load();
   }
@@ -96,10 +100,24 @@ class App extends React.Component {
 
     for (;;) {
       try {
-        const {firstMessage, url} = await getFirstMessage(configUrl);
+        const {firstMessage, url, programId} = await getFirstMessage(configUrl);
 
-        console.log('Cluster RPC URL:', url);
+        console.log(`Cluster RPC URL: ${url}`);
+        console.log(`Message feed program: ${programId}`);
+
         this.connection = new Connection(url);
+        this.connectionUrl = url;
+        this.programId = programId;
+
+        const matches = this.connectionUrl.match(
+          'https://api.(.*)testnet.solana.com',
+        );
+        if (matches) {
+          const testnet = matches[1];
+          this.blockExplorerUrl = `http://${testnet}testnet.solana.com`;
+        } else {
+          this.blockExplorerUrl = 'http://localhost:3000';
+        }
 
         this.setState({busy: false});
         this.periodicRefresh(firstMessage);
@@ -148,6 +166,15 @@ class App extends React.Component {
       <div className={classes.root}>
         <AppBar position="static">
           <Toolbar>
+            <IconButton
+              disabled={this.state.busy}
+              onClick={this.onBlockExplorerTransactionsByProgram}
+              className={classes.menuButton}
+              color="inherit"
+              aria-label="Block explorer"
+            >
+              <MenuIcon />
+            </IconButton>
             <Typography
               className={classes.title}
               variant="h6"
@@ -199,6 +226,19 @@ class App extends React.Component {
             'aria-describedby': 'message-id',
           }}
           message={<span id="message-id">{this.state.snackMessage}</span>}
+          action={
+            this.state.transactionSignature ? (
+              <Button
+                color="secondary"
+                size="small"
+                onClick={this.onBlockExplorerLatestTransaction}
+              >
+                Transaction Details
+              </Button>
+            ) : (
+              ''
+            )
+          }
         />
       </div>
     );
@@ -212,7 +252,7 @@ class App extends React.Component {
     this.setState({busy: true});
     const {messages, newMessage} = this.state;
     try {
-      await postMessage(
+      const transactionSignature = await postMessage(
         this.connection,
         newMessage,
         messages[messages.length - 1].publicKey,
@@ -221,6 +261,7 @@ class App extends React.Component {
       this.setState({
         busy: false,
         snackMessage: 'Message posted',
+        transactionSignature,
         newMessage: '',
       });
     } catch (err) {
@@ -251,7 +292,10 @@ class App extends React.Component {
   };
 
   onSnackClose = () => {
-    this.setState({snackMessage: ''});
+    this.setState({
+      snackMessage: '',
+      transactionSignature: null,
+    });
   };
 
   onActive = () => {
@@ -263,6 +307,19 @@ class App extends React.Component {
   onIdle = () => {
     console.log('user is idle');
     this.setState({idle: true});
+  };
+
+  onBlockExplorerTransactionsByProgram = () => {
+    if (!this.blockExplorerUrl) return;
+    window.open(`${this.blockExplorerUrl}/txns-by-prgid/${this.programId}`);
+  };
+
+  onBlockExplorerLatestTransaction = () => {
+    if (!this.blockExplorerUrl) return;
+    if (this.state.transactionSignature === null) return;
+    window.open(
+      `${this.blockExplorerUrl}/txn/${this.state.transactionSignature}`,
+    );
   };
 }
 App.propTypes = {

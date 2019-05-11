@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'mz/fs';
-import {BpfLoader, Connection, PublicKey} from '@solana/web3.js';
+import {Account, BpfLoader, Connection, PublicKey} from '@solana/web3.js';
 
 import {url} from '../url';
 import {newSystemAccountWithAirdrop} from './util/new-system-account-with-airdrop';
@@ -47,13 +47,16 @@ async function createMessageFeed(
 ): Promise<MessageFeedMeta> {
   const programId = await loadMessageFeedProgram(connection);
   console.log('Message feed program:', programId.toString());
-
   console.log('Posting first message...');
-  const firstMessage = await postMessageWithProgramId(
+
+  const firstMessageAccount = new Account();
+  await postMessageWithProgramId(
     connection,
     programId,
+    firstMessageAccount,
     'First post! 💫',
   );
+  const firstMessage = firstMessageAccount.publicKey;
   console.log('First message public key:', firstMessage.toString());
   return {
     programId,
@@ -99,6 +102,9 @@ app.get('/config.json', async (req, res) => {
         url,
         firstMessage: messageFeedMeta
           ? messageFeedMeta.firstMessage.toString()
+          : null,
+        programId: messageFeedMeta
+          ? messageFeedMeta.programId.toString()
           : null,
       }),
     )

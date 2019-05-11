@@ -5,6 +5,7 @@ import {
   SystemProgram,
   PublicKey,
   Transaction,
+  TransactionSignature,
   sendAndConfirmTransaction,
 } from '@solana/web3.js';
 import * as BufferLayout from 'buffer-layout';
@@ -88,11 +89,13 @@ export async function postMessage(
   connection: Connection,
   text: string,
   previousMessage: PublicKey,
-): Promise<PublicKey> {
+): Promise<TransactionSignature> {
   const messageData = await readMessage(connection, previousMessage);
+  const messageAccount = new Account();
   return postMessageWithProgramId(
     connection,
     messageData.programId,
+    messageAccount,
     text,
     previousMessage,
   );
@@ -101,15 +104,13 @@ export async function postMessage(
 export async function postMessageWithProgramId(
   connection,
   programId: PublicKey,
+  messageAccount: Account,
   text: string,
   previousMessagePublicKey: PublicKey | null,
-): Promise<PublicKey> {
+): Promise<TransactionSignature> {
   const fee = 10; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
   const payerAccount = await newSystemAccountWithAirdrop(connection, 1 + fee);
-
-  const messageAccount = new Account();
   const transaction = new Transaction();
-
   const textBuffer = Buffer.from(text);
 
   // The first instruction of the transaction allocates an account for the
@@ -135,14 +136,12 @@ export async function postMessageWithProgramId(
     programId,
     data: textBuffer,
   });
-  await sendAndConfirmTransaction(
+  return sendAndConfirmTransaction(
     connection,
     transaction,
     payerAccount,
     messageAccount,
   );
-
-  return messageAccount.publicKey;
 }
 
 export async function getFirstMessage(configUrl: string): Promise<Object> {
@@ -156,6 +155,7 @@ export async function getFirstMessage(configUrl: string): Promise<Object> {
         return {
           url: config.url,
           firstMessage: new PublicKey(config.firstMessage),
+          programId: config.programId,
         };
       }
       console.log(`Waiting for message feed program to finish loading...`);
