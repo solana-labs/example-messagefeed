@@ -257,7 +257,7 @@ class App extends React.Component {
         newMessage,
         messages[messages.length - 1].publicKey,
       );
-      await refreshMessageFeed(this.connection, messages);
+      await this.periodicRefresh();
       this.setState({
         busy: false,
         snackMessage: 'Message posted',
