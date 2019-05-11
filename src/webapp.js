@@ -4,6 +4,7 @@ import Grid from '@material-ui/core/Grid';
 import IdleTimer from 'react-idle-timer';
 import InputBase from '@material-ui/core/InputBase';
 import Paper from '@material-ui/core/Paper';
+import PauseIcon from '@material-ui/icons/Pause';
 import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -80,9 +81,10 @@ class App extends React.Component {
 
     this.state = {
       busy: true,
-      snackMessage: '',
-      newMessage: '',
+      idle: false,
       messages: [],
+      newMessage: '',
+      snackMessage: '',
     };
     this.load();
   }
@@ -123,7 +125,9 @@ class App extends React.Component {
       }
       this.setState({busy: false});
     }
-    setTimeout(this.periodicRefresh, 1000);
+    if (!this.state.idle) {
+      setTimeout(this.periodicRefresh, 1000);
+    }
   };
 
   render() {
@@ -167,7 +171,8 @@ class App extends React.Component {
               />
             </div>
             <div className={classes.grow} />
-            {this.state.busy ? (
+            {this.state.idle ? <PauseIcon /> : ''}
+            {this.state.busy && !this.state.idle ? (
               <CircularProgress className={classes.progress} color="inherit" />
             ) : (
               ''
@@ -253,10 +258,13 @@ class App extends React.Component {
 
   onActive = () => {
     console.log('user is active');
+    this.setState({idle: false});
+    this.periodicRefresh();
   };
 
   onIdle = () => {
     console.log('user is idle');
+    this.setState({idle: true});
   };
 }
 App.propTypes = {
