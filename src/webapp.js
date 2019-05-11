@@ -168,13 +168,13 @@ class App extends React.Component {
                 onChange={this.onInputChange}
               />
             </div>
-            <div className={classes.grow} />
             {this.state.idle ? <PauseIcon /> : ''}
             {this.state.busy && !this.state.idle ? (
               <CircularProgress className={classes.progress} color="inherit" />
             ) : (
               ''
             )}
+            <div className={classes.grow} />
           </Toolbar>
         </AppBar>
         <IdleTimer
