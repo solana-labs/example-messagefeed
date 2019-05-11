@@ -299,7 +299,7 @@ pub extern "C" fn entrypoint(input: *mut u8) -> bool {
 // User defined program
 
 fn process(num_ka: u64, ka: &mut [SolKeyedAccount], data: &[u8]) -> bool {
-    sol_log("message feed entrypoint woot");
+    sol_log("message feed entrypoint");
 
     if !ka[0].is_signer {
         sol_log("Error: Transaction not signed by key 0");
@@ -308,7 +308,7 @@ fn process(num_ka: u64, ka: &mut [SolKeyedAccount], data: &[u8]) -> bool {
 
     // Record the message into account 0
     if ka[0].data.len() - SIZE_PUBKEY < data.len() {
-        sol_log("account data to small to hold message");
+        sol_log("Error: account data to small to hold message");
         return false;
     }
     sol_memcpy(&mut ka[0].data, &data, SIZE_PUBKEY);
