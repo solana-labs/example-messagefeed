@@ -37,7 +37,13 @@ environment.  By default `LIVE=1` will connect to the
 beta testnet.  To use the edge testnet instead define `export CHANNEL=edge' in
 your environment (see [url.js](https://github.com/solana-labs/solana-example-message-feed/tree/master/urj.js) for more)
 
-### Build the BPF C program
+### Build the on-chain program
+
+Two versions of the program are provided: one written in C, the other
+in Rust.  Both the a BPF ELF shared object called `dist/program/messagefeed.so` and
+are interchangable.  Pick one to use.
+
+#### BPF C
 ```sh
 $ V=1 make -C program-bpf-c
 ```
@@ -46,9 +52,7 @@ or
 $ npm run build:bpf-c
 ```
 
-Compiled files can be found in `dist/program`. Compiler settings are configured in the [Solana SDK](https://github.com/solana-labs/solana/tree/master/sdk/bpf/bpf.mk)
-
-### Build the BPF Rust program
+#### BPF Rust
 ```sh
 $ ./program-bpf-rust/build.sh
 ```
@@ -56,8 +60,6 @@ or
 ```
 $ npm run build:bpf-rust
 ```
-
-Output ELF file can be found in `dist/program`.
 
 ### Start the web server
 The message feed program is deployed by the web server at `src/server.js`, so
