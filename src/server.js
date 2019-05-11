@@ -52,7 +52,7 @@ async function createMessageFeed(
   const firstMessage = await postMessageWithProgramId(
     connection,
     programId,
-    'First post!',
+    'First post! 💫',
   );
   console.log('First message public key:', firstMessage.toString());
   return {

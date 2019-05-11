@@ -55,7 +55,7 @@ const styles = theme => ({
     width: '100%',
     [theme.breakpoints.up('sm')]: {
       marginLeft: theme.spacing.unit * 3,
-      width: '60%',
+      width: '70%',
     },
   },
   inputRoot: {
@@ -64,14 +64,11 @@ const styles = theme => ({
   },
   inputInput: {
     paddingTop: theme.spacing.unit,
-    paddingRight: theme.spacing.unit,
+    paddingRight: theme.spacing.unit * 2,
     paddingBottom: theme.spacing.unit,
     paddingLeft: theme.spacing.unit * 2,
     transition: theme.transitions.create('width'),
     width: '100%',
-    [theme.breakpoints.up('md')]: {
-      width: 200,
-    },
   },
 });
 
@@ -84,6 +81,7 @@ class App extends React.Component {
       idle: false,
       messages: [],
       newMessage: '',
+      periodicRefreshActive: false,
       snackMessage: '',
     };
     this.load();
@@ -114,8 +112,8 @@ class App extends React.Component {
   }
 
   periodicRefresh = async firstMessage => {
-    if (!this.state.busy) {
-      this.setState({busy: true});
+    if (!this.state.periodicRefreshActive) {
+      this.setState({periodicRefreshActive: true});
       try {
         const {messages} = this.state;
         await refreshMessageFeed(this.connection, messages, firstMessage);
@@ -123,7 +121,7 @@ class App extends React.Component {
       } catch (err) {
         console.error(`periodicRefresh error: ${err}`);
       }
-      this.setState({busy: false});
+      this.setState({periodicRefreshActive: false});
     }
     if (!this.state.idle) {
       setTimeout(this.periodicRefresh, 1000);
