@@ -8,6 +8,7 @@ import {
   sendAndConfirmTransaction,
 } from '@solana/web3.js';
 import * as BufferLayout from 'buffer-layout';
+import fetch from 'node-fetch';
 
 import {newSystemAccountWithAirdrop} from './util/new-system-account-with-airdrop';
 import {sleep} from './util/sleep';
