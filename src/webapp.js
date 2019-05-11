@@ -1,18 +1,19 @@
+import AppBar from '@material-ui/core/AppBar';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Grid from '@material-ui/core/Grid';
+import IdleTimer from 'react-idle-timer';
+import InputBase from '@material-ui/core/InputBase';
+import Paper from '@material-ui/core/Paper';
+import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import IdleTimer from 'react-idle-timer';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography';
-import AppBar from '@material-ui/core/AppBar';
-import {withStyles} from '@material-ui/core/styles';
-import {fade} from '@material-ui/core/styles/colorManipulator';
-import PropTypes from 'prop-types';
-import InputBase from '@material-ui/core/InputBase';
-import Toolbar from '@material-ui/core/Toolbar';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import Snackbar from '@material-ui/core/Snackbar';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import escapeHtml from 'escape-html';
 import {Connection} from '@solana/web3.js';
+import {fade} from '@material-ui/core/styles/colorManipulator';
+import {withStyles} from '@material-ui/core/styles';
 
 import {sleep} from './util/sleep';
 import {getFirstMessage, refreshMessageFeed, postMessage} from './message-feed';
@@ -134,7 +135,7 @@ class App extends React.Component {
           <div key={i}>
             <br />
             <Paper className={classes.message}>
-              <Typography>{message.text}</Typography>
+              <Typography>{escapeHtml(message.text)}</Typography>
             </Paper>
           </div>
         );
