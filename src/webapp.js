@@ -17,6 +17,7 @@ import Typography from '@material-ui/core/Typography';
 import escapeHtml from 'escape-html';
 import {Connection} from '@solana/web3.js';
 import {fade} from '@material-ui/core/styles/colorManipulator';
+import Badge from '@material-ui/core/Badge';
 import {withStyles} from '@material-ui/core/styles';
 
 import {sleep} from './util/sleep';
@@ -39,7 +40,9 @@ const styles = theme => ({
       display: 'block',
     },
   },
-
+  badge: {
+    padding: `0 ${theme.spacing.unit * 1.5}px`,
+  },
   message: {
     ...theme.mixins.gutters(),
     paddingTop: theme.spacing.unit * 2,
@@ -97,7 +100,9 @@ class App extends React.Component {
     configUrl += '/config.json';
     this.configUrl = configUrl;
 
-    this.periodicRefresh();
+    this.periodicRefresh()
+      .catch(() => {})
+      .then(() => this.setState({busy: false}));
   }
 
   // TODO! Rewrite this function to use the solana-web3.js websocket
@@ -136,8 +141,18 @@ class App extends React.Component {
           }
 
           messages = [];
-          await refreshMessageFeed(this.connection, messages, firstMessage);
-          this.programId = programId;
+          for (;;) {
+            const transactionSignature = this.state.transactionSignature;
+            await refreshMessageFeed(
+              this.connection,
+              messages,
+              () => this.setState({messages}),
+              firstMessage,
+            );
+            if (transactionSignature === this.state.transactionSignature) {
+              break;
+            }
+          }
         } else {
           await refreshMessageFeed(this.connection, messages);
         }
@@ -147,12 +162,11 @@ class App extends React.Component {
         setTimeout(() => this.periodicRefresh(), 1000);
       } catch (err) {
         console.error(`periodicRefresh error: ${err}`);
-        await sleep(1000);
+        await sleep(2000);
         this.programId = null;
         this.setState({busy: true});
       }
     }
-    this.setState({busy: false});
   }
 
   render() {
@@ -184,14 +198,16 @@ class App extends React.Component {
             >
               <MenuIcon />
             </IconButton>
-            <Typography
-              className={classes.title}
-              variant="h6"
-              color="inherit"
-              noWrap
-            >
-              Message Feed
-            </Typography>
+            <Badge className={classes.badge} color="secondary" badgeContent={this.state.messages.length}>
+              <Typography
+                className={classes.title}
+                variant="h6"
+                color="inherit"
+                noWrap
+              >
+                Message Feed
+              </Typography>
+            </Badge>
             <div className={classes.newmessage}>
               <InputBase
                 placeholder="Say something nice…"
@@ -266,7 +282,6 @@ class App extends React.Component {
       return;
     }
     this.setState({busy: true});
-
     const {messages, newMessage} = this.state;
     try {
       const transactionSignature = await postMessage(
@@ -286,6 +301,7 @@ class App extends React.Component {
         snackMessage: 'An error occured when posting the message',
       });
     }
+    this.setState({busy: false});
   }
 
   onInputKeyDown = e => {

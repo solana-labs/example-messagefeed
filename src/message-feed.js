@@ -57,6 +57,7 @@ async function readMessage(
 export async function refreshMessageFeed(
   connection: Connection,
   messages: Array<Messages>,
+  onNewMessage: Function | null,
   message: PublicKey | null = null,
 ): Promise<void> {
   const emptyMessage = new PublicKey(0);
@@ -77,7 +78,7 @@ export async function refreshMessageFeed(
       publicKey: message,
       text: messageData.text,
     });
-
+    onNewMessage && onNewMessage();
     message = messageData.nextMessage;
   }
 }
