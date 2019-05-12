@@ -34,14 +34,13 @@ For more details on working with a local network, see the [full instructions](ht
 
 Alternatively to connect to the public testnet, `export LIVE=1` in your
 environment.  By default `LIVE=1` will connect to the
-beta testnet.  To use the edge testnet instead define `export CHANNEL=edge' in
-your environment (see [url.js](https://github.com/solana-labs/solana-example-message-feed/tree/master/urj.js) for more)
+beta testnet.  To use the edge testnet instead define `export CHANNEL=edge` in
+your environment (see [url.js](https://github.com/solana-labs/example-message-feed/tree/master/urj.js) for more)
 
 ### Build the on-chain program
 
-Two versions of the program are provided: one written in C, the other
-in Rust.  Both the a BPF ELF shared object called `dist/program/messagefeed.so` and
-are interchangable.  Pick one to use.
+Two versions of the program are provided, one written in C and the other
+in Rust.  The build process for each produce the same a BPF ELF shared object called `dist/program/messagefeed.so`.  They are interchangable so just pick one to use.
 
 #### BPF C
 ```sh
