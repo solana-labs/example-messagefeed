@@ -138,7 +138,6 @@ class App extends React.Component {
           messages = [];
           await refreshMessageFeed(this.connection, messages, firstMessage);
           this.programId = programId;
-          this.setState({busy: false});
         } else {
           await refreshMessageFeed(this.connection, messages);
         }
@@ -153,6 +152,7 @@ class App extends React.Component {
         this.setState({busy: true});
       }
     }
+    this.setState({busy: false});
   }
 
   render() {
@@ -258,6 +258,15 @@ class App extends React.Component {
       return;
     }
 
+    if (this.state.busy) {
+      this.setState({
+        snackMessage: 'Unable to post message, please retry when not busy',
+        transactionSignature: null,
+      });
+      return;
+    }
+    this.setState({busy: true});
+
     const {messages, newMessage} = this.state;
     try {
       const transactionSignature = await postMessage(
@@ -265,7 +274,7 @@ class App extends React.Component {
         newMessage,
         messages[messages.length - 1].publicKey,
       );
-      this.periodicRefresh();
+      await this.periodicRefresh();
       this.setState({
         snackMessage: 'Message posted',
         transactionSignature,
@@ -283,14 +292,7 @@ class App extends React.Component {
     if (e.keyCode !== 13) {
       return;
     }
-
-    if (this.state.busy) {
-      this.setState({
-        snackMessage: 'Unable to post message, please retry when not busy',
-      });
-    } else {
-      this.postMessage();
-    }
+    this.postMessage();
   };
 
   onInputChange = e => {
