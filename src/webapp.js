@@ -167,7 +167,7 @@ class App extends React.Component {
         <AppBar position="static">
           <Toolbar>
             <IconButton
-              disabled={this.state.busy}
+              disabled={!this.blockExplorerUrl}
               onClick={this.onBlockExplorerTransactionsByProgram}
               className={classes.menuButton}
               color="inherit"
