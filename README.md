@@ -7,7 +7,7 @@
 
 This project demonstrates how to use the [Solana Javascript API](https://github.com/solana-labs/solana-web3.js)
 to build, deploy, and interact with programs on the Solana blockchain, implementing a simple feed of messages
-To see the final product, go to https://solana-example-messagefeed.herokuapp.com/
+To see it running go to https://solana-example-messagefeed.herokuapp.com/
 
 ## Getting Started
 
@@ -35,7 +35,7 @@ For more details on working with a local network, see the [full instructions](ht
 Alternatively to connect to the public testnet, `export LIVE=1` in your
 environment.  By default `LIVE=1` will connect to the
 beta testnet.  To use the edge testnet instead define `export CHANNEL=edge` in
-your environment (see [url.js](https://github.com/solana-labs/example-message-feed/tree/master/urj.js) for more)
+your environment (see [url.js](https://github.com/solana-labs/example-messagefeed/blob/master/url.js) for more)
 
 ### Build the on-chain program
 
