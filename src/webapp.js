@@ -84,67 +84,76 @@ class App extends React.Component {
       idle: false,
       messages: [],
       newMessage: '',
-      periodicRefreshActive: false,
       snackMessage: '',
       transactionSignature: null,
     };
-    this.load();
-  }
+    this.periodicRefreshActive = false;
+    this.programId = null;
 
-  async load() {
     let configUrl = window.location.origin;
     if (window.location.hostname === 'localhost') {
       configUrl = 'http://localhost:8081';
     }
     configUrl += '/config.json';
+    this.configUrl = configUrl;
 
-    for (;;) {
+    this.periodicRefresh();
+  }
+
+  // TODO! Rewrite this function to use the solana-web3.js websocket
+  //       pubsub instead of polling
+  async periodicRefresh() {
+    if (this.periodicRefreshActive || this.state.idle) {
+      return;
+    }
+    this.periodicRefreshActive = true;
+
+    let {messages} = this.state;
+    while (this.periodicRefreshActive && !this.state.idle) {
       try {
-        const {firstMessage, url, programId} = await getFirstMessage(configUrl);
-
-        console.log(`Cluster RPC URL: ${url}`);
-        console.log(`Message feed program: ${programId}`);
-
-        this.connection = new Connection(url);
-        this.connectionUrl = url;
-        this.programId = programId;
-
-        const matches = this.connectionUrl.match(
-          'https://api.(.*)testnet.solana.com',
+        const {firstMessage, url, programId} = await getFirstMessage(
+          this.configUrl,
+          false,
         );
-        if (matches) {
-          const testnet = matches[1];
-          this.blockExplorerUrl = `http://${testnet}testnet.solana.com`;
+        if (!url) {
+          throw new Error(`Waiting for first message...`);
+        } else if (messages.length === 0 || this.programId !== programId) {
+          console.log(`Cluster RPC URL: ${url}`);
+          console.log(`Message feed program: ${programId}`);
+
+          this.connection = new Connection(url);
+          this.connectionUrl = url;
+          this.programId = programId;
+
+          const matches = this.connectionUrl.match(
+            'https://api.(.*)testnet.solana.com',
+          );
+          if (matches) {
+            const testnet = matches[1];
+            this.blockExplorerUrl = `http://${testnet}testnet.solana.com`;
+          } else {
+            this.blockExplorerUrl = 'http://localhost:3000';
+          }
+
+          messages = [];
+          await refreshMessageFeed(this.connection, messages, firstMessage);
+          this.programId = programId;
+          this.setState({busy: false});
         } else {
-          this.blockExplorerUrl = 'http://localhost:3000';
+          await refreshMessageFeed(this.connection, messages);
         }
 
-        this.setState({busy: false});
-        this.periodicRefresh(firstMessage);
-        return;
+        this.setState({messages});
+        this.periodicRefreshActive = false;
+        setTimeout(() => this.periodicRefresh(), 1000);
       } catch (err) {
-        console.error(`Failed to load: ${err}`);
+        console.error(`periodicRefresh error: ${err}`);
         await sleep(1000);
+        this.programId = null;
+        this.setState({busy: true});
       }
     }
   }
-
-  periodicRefresh = async firstMessage => {
-    if (!this.state.periodicRefreshActive) {
-      this.setState({periodicRefreshActive: true});
-      try {
-        const {messages} = this.state;
-        await refreshMessageFeed(this.connection, messages, firstMessage);
-        this.setState({messages});
-      } catch (err) {
-        console.error(`periodicRefresh error: ${err}`);
-      }
-      this.setState({periodicRefreshActive: false});
-    }
-    if (!this.state.idle) {
-      setTimeout(this.periodicRefresh, 1000);
-    }
-  };
 
   render() {
     const {classes} = this.props;
@@ -249,7 +258,6 @@ class App extends React.Component {
       return;
     }
 
-    this.setState({busy: true});
     const {messages, newMessage} = this.state;
     try {
       const transactionSignature = await postMessage(
@@ -257,9 +265,8 @@ class App extends React.Component {
         newMessage,
         messages[messages.length - 1].publicKey,
       );
-      await this.periodicRefresh();
+      this.periodicRefresh();
       this.setState({
-        busy: false,
         snackMessage: 'Message posted',
         transactionSignature,
         newMessage: '',
@@ -267,7 +274,6 @@ class App extends React.Component {
     } catch (err) {
       console.error(`Failed to post message: ${err}`);
       this.setState({
-        busy: false,
         snackMessage: 'An error occured when posting the message',
       });
     }
