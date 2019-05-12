@@ -115,3 +115,6 @@ app.use(express.static(path.join(__dirname, '../dist')));
 app.listen(port);
 console.log('Cluster RPC URL:', url);
 console.log('Listening on port', port);
+
+// Load the program immediately so the first client doesn't need to wait as long
+checkMessageFeed().catch(err => console.log(err));
