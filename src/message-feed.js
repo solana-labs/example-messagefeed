@@ -145,10 +145,7 @@ export async function postMessageWithProgramId(
   );
 }
 
-export async function getFirstMessage(
-  configUrl: string,
-  waitUntilLoaded: boolean = true,
-): Promise<Object> {
+export async function getFirstMessage(configUrl: string): Promise<Object> {
   for (;;) {
     try {
       const response = await fetch(configUrl);
@@ -165,10 +162,6 @@ export async function getFirstMessage(
     } catch (err) {
       console.error(`${err}`);
     }
-    if (!waitUntilLoaded) {
-      return {};
-    }
-
     await sleep(1000);
   }
 }
