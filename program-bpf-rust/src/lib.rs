@@ -109,8 +109,8 @@ pub fn sol_log_params(ka: &[SolKeyedAccount], index: usize, data: &[u8]) {
 }
 
 pub fn sol_memcpy(dst: &mut [u8], src: &[u8], start: usize) {
-    for (i, mut a) in src.iter().enumerate() {
-        for (j, mut b) in dst.iter_mut().enumerate() {
+    for (i, a) in src.iter().enumerate() {
+        for (j, b) in dst.iter_mut().enumerate() {
             if i + start == j {
                 *b = *a;
             }
@@ -260,7 +260,7 @@ pub extern "C" fn entrypoint(input: *mut u8) -> bool {
                 },
             ]
         } else {
-            let mut data2 = &mut [0_u8; 0];
+            let data2 = &mut [0_u8; 0];
             [
                 SolKeyedAccount {
                     key,
