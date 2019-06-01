@@ -21,7 +21,9 @@ import {withStyles} from '@material-ui/core/styles';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import IconButton from '@material-ui/core/IconButton';
+import ReportIcon from '@material-ui/icons/Report';
 
 //import {sleep} from './util/sleep';
 import {getFirstMessage, refreshMessageFeed, postMessage} from './message-feed';
@@ -193,10 +195,12 @@ class App extends React.Component {
           <List key={i} className={classes.root}>
             <Paper className={classes.message}>
               <ListItem>
-                <ListItemText
-                  primary={escapeHtml(message.text)}
-                  secondary={'Posted by ' + message.name}
-                />
+                <ListItemText primary={escapeHtml(message.text)} secondary={'Posted by ' + message.name} />
+                <ListItemSecondaryAction>
+                  <IconButton edge="end" aria-label="Report">
+                    <ReportIcon />
+                  </IconButton>
+                </ListItemSecondaryAction>
               </ListItem>
             </Paper>
           </List>
