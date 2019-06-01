@@ -2,6 +2,7 @@
 
 typedef struct {
   SolPubkey next_message;
+  SolPubkey from;
   uint8_t text[0];
 } AccountData;
 
@@ -36,13 +37,18 @@ extern bool entrypoint(const uint8_t *input) {
   }
 
   if (!params.ka[0].is_signer) {
-    sol_log("Error: Transaction not signed by key 0");
+    sol_log("Error: not signed by key 0");
+    return false;
+  }
+  if (!params.ka[1].is_signer) {
+    sol_log("Error: not signed by key 1");
     return false;
   }
 
+
   AccountData *new_message_data = NULL;
 
-  if (!deserialize_account_data(&params.ka[0], &new_message_data)) {
+  if (!deserialize_account_data(&params.ka[1], &new_message_data)) {
     sol_log("Error: unable to deserialize account 0 state");
     return false;
   }
@@ -50,9 +56,12 @@ extern bool entrypoint(const uint8_t *input) {
   // Write the message text into new_message_data
   sol_memcpy(new_message_data->text, params.data, params.data_len);
 
-  if (params.ka_num > 1) {
+  // Save the pubkey of who posted the message
+  sol_memcpy(&new_message_data->from, params.ka[0].key, sizeof(SolPubkey));
+
+  if (params.ka_num > 2) {
     AccountData *existing_message_data = NULL;
-    if (!deserialize_account_data(&params.ka[1], &existing_message_data)) {
+    if (!deserialize_account_data(&params.ka[2], &existing_message_data)) {
       sol_log("Error: unable to deserialize account 1 state");
       return false;
     }
@@ -64,7 +73,7 @@ extern bool entrypoint(const uint8_t *input) {
 
     // Link the new_message to the existing_message
     sol_memcpy(&existing_message_data->next_message,
-      params.ka[0].key,
+      params.ka[1].key,
       sizeof(SolPubkey)
     );
   }

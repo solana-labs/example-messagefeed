@@ -302,25 +302,33 @@ fn process(num_ka: u64, ka: &mut [SolKeyedAccount], data: &[u8]) -> bool {
     sol_log("message feed entrypoint");
 
     if !ka[0].is_signer {
-        sol_log("Error: Transaction not signed by key 0");
+        sol_log("Error: not signed by key 0");
         return false;
     }
 
-    // Record the message into account 0
-    if ka[0].data.len() - SIZE_PUBKEY < data.len() {
+    if !ka[1].is_signer {
+        sol_log("Error: not signed by key 1");
+        return false;
+    }
+
+    // Record the message into account 1
+    if ka[1].data.len() - 2 * SIZE_PUBKEY < data.len() {
         sol_log("Error: account data to small to hold message");
         return false;
     }
-    sol_memcpy(&mut ka[0].data, &data, SIZE_PUBKEY);
+    sol_memcpy(&mut ka[1].data, &data, 2 * SIZE_PUBKEY);
 
-    if num_ka > 1 {
-        if !sol_key_default(&SolPubkey { key: &ka[1].data }) {
+    // Save the pubkey of who posted the message into account 1
+    sol_memcpy(&mut ka[1].data, &ka[0].key.key, SIZE_PUBKEY);
+
+    if num_ka > 2 {
+        if !sol_key_default(&SolPubkey { key: &ka[2].data }) {
             sol_log("Error: account 1 is already linked");
             return false;
         }
 
-        // Link the account 1 to account 0
-        sol_memcpy(&mut ka[1].data, &ka[0].key.key, 0);
+        // Link the next_message field of account 2 to account 1
+        sol_memcpy(&mut ka[2].data, &ka[1].key.key, 0);
     }
 
     true

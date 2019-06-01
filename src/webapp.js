@@ -7,7 +7,6 @@ import Paper from '@material-ui/core/Paper';
 import PauseIcon from '@material-ui/icons/Pause';
 import MenuIcon from '@material-ui/icons/Menu';
 import Button from '@material-ui/core/Button';
-import IconButton from '@material-ui/core/IconButton';
 import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -19,6 +18,10 @@ import {Connection} from '@solana/web3.js';
 import {fade} from '@material-ui/core/styles/colorManipulator';
 import Badge from '@material-ui/core/Badge';
 import {withStyles} from '@material-ui/core/styles';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import IconButton from '@material-ui/core/IconButton';
 
 //import {sleep} from './util/sleep';
 import {getFirstMessage, refreshMessageFeed, postMessage} from './message-feed';
@@ -187,12 +190,16 @@ class App extends React.Component {
     const messages = this.state.messages
       .map((message, i) => {
         return (
-          <div key={i}>
-            <br />
+          <List key={i} className={classes.root}>
             <Paper className={classes.message}>
-              <Typography>{escapeHtml(message.text)}</Typography>
+              <ListItem>
+                <ListItemText
+                  primary={escapeHtml(message.text)}
+                  secondary={'Posted by ' + message.name}
+                />
+              </ListItem>
             </Paper>
-          </div>
+          </List>
         );
       })
       .reverse();

@@ -5,22 +5,26 @@ import {
   SystemProgram,
   PublicKey,
   Transaction,
-  TransactionSignature,
   sendAndConfirmTransaction,
 } from '@solana/web3.js';
 import * as BufferLayout from 'buffer-layout';
 import fetch from 'node-fetch';
+import type {TransactionSignature} from '@solana/web3.js';
 
+import {publicKeyToName} from './util/publickey-to-name';
 import {newSystemAccountWithAirdrop} from './util/new-system-account-with-airdrop';
 import {sleep} from './util/sleep';
 
-export type Messages = {
+export type Message = {
   publicKey: PublicKey,
+  from: PublicKey,
+  name: string,
   text: string,
 };
 
 type MessageData = {
   nextMessage: PublicKey,
+  from: PublicKey,
   programId: PublicKey,
   text: string,
 };
@@ -40,11 +44,13 @@ async function readMessage(
 
   const messageAccountDataLayout = BufferLayout.struct([
     publicKeyLayout('nextMessage'),
+    publicKeyLayout('from'),
     BufferLayout.cstr('text'),
   ]);
   const messageAccountData = messageAccountDataLayout.decode(accountInfo.data);
   return {
     nextMessage: new PublicKey(messageAccountData.nextMessage),
+    from: new PublicKey(messageAccountData.from),
     programId: accountInfo.owner,
     text: messageAccountData.text,
   };
@@ -56,7 +62,7 @@ async function readMessage(
  */
 export async function refreshMessageFeed(
   connection: Connection,
-  messages: Array<Messages>,
+  messages: Array<Message>,
   onNewMessage: Function | null,
   message: PublicKey | null = null,
 ): Promise<void> {
@@ -76,6 +82,8 @@ export async function refreshMessageFeed(
     const messageData = await readMessage(connection, message);
     messages.push({
       publicKey: message,
+      from: messageData.from,
+      name: publicKeyToName(messageData.from),
       text: messageData.text,
     });
     onNewMessage && onNewMessage();
@@ -121,14 +129,17 @@ export async function postMessageWithProgramId(
       payerAccount.publicKey,
       messageAccount.publicKey,
       1,
-      32 + textBuffer.length, // 32 = size of a public key
+      32 + 32 + textBuffer.length, // 32 = size of a public key
       programId,
     ),
   );
 
   // The second instruction in the transaction posts the message and optionally
   // links it to the previous message
-  const keys = [{pubkey: messageAccount.publicKey, isSigner: true}];
+  const keys = [
+    {pubkey: payerAccount.publicKey, isSigner: true},
+    {pubkey: messageAccount.publicKey, isSigner: true},
+  ];
   if (previousMessagePublicKey) {
     keys.push({pubkey: previousMessagePublicKey, isSigner: false});
   }

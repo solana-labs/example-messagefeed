@@ -2,7 +2,7 @@
 import {Connection} from '@solana/web3.js';
 
 import {getFirstMessage, refreshMessageFeed, postMessage} from './message-feed';
-import type {Messages} from './message-feed';
+import type {Message} from './message-feed';
 
 async function main() {
   const text = process.argv.splice(2).join(' ');
@@ -13,7 +13,7 @@ async function main() {
 
   console.log('Cluster RPC URL:', url);
   const connection = new Connection(url);
-  const messages: Messages = [];
+  const messages: Array<Message> = [];
   await refreshMessageFeed(connection, messages, null, firstMessage);
 
   if (text.length > 0) {
@@ -30,7 +30,7 @@ async function main() {
   console.log('Message Feed');
   console.log('------------');
   messages.reverse().forEach((message, index) => {
-    console.log(`Message #${index}: ${message.text}`);
+    console.log(`Message #${index} from "${message.name}": ${message.text}`);
   });
 }
 
