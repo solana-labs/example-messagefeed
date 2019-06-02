@@ -107,6 +107,7 @@ class App extends React.Component {
       snackMessage: '',
       transactionSignature: null,
       userAuthenticated: false,
+      loginMethod: 'none',
     };
     this.programId = null;
     this.postCount = 0;
@@ -136,9 +137,13 @@ class App extends React.Component {
 
     console.log('pollForFirstMessage');
     try {
-      const {firstMessage, url, programId} = await getFirstMessage(
+      let userAuthenticated = false;
+      const {firstMessage, loginMethod, url, programId} = await getFirstMessage(
         this.configUrl,
       );
+      if (loginMethod === 'none') {
+        userAuthenticated = true;
+      }
       if (this.programId !== programId) {
         this.connection = new Connection(url);
         this.connectionUrl = url;
@@ -155,7 +160,12 @@ class App extends React.Component {
           this.blockExplorerUrl = 'http://localhost:3000';
         }
 
-        this.setState({busyLoading: true, messages: []});
+        this.setState({
+          busyLoading: true,
+          messages: [],
+          loginMethod,
+          userAuthenticated,
+        });
       }
     } catch (err) {
       console.error(`pollForFirstMessage error: ${err}`);
@@ -212,13 +222,17 @@ class App extends React.Component {
                   secondary={'Posted by ' + message.name}
                 />
                 <ListItemSecondaryAction>
-                  <IconButton
-                    edge="end"
-                    aria-label="Report"
-                    onClick={() => this.onBanUser(message)}
-                  >
-                    <ReportIcon />
-                  </IconButton>
+                  {
+                    this.state.loginMethod === 'none' || !this.state.userAuthenticated ? '' : (
+                      <IconButton
+                        edge="end"
+                        aria-label="Report"
+                        onClick={() => this.onBanUser(message)}
+                      >
+                        <ReportIcon />
+                      </IconButton>
+                    )
+                  }
                 </ListItemSecondaryAction>
               </ListItem>
             </Paper>
@@ -277,13 +291,15 @@ class App extends React.Component {
         </div>
       );
     } else {
-      newMessage = (
-        <div className={classes.login}>
-          <Button variant="contained" color="default" onClick={this.onLogin}>
-            Login to start posting
-          </Button>
-        </div>
-      );
+      if (this.state.loginMethod !== 'none') {
+        newMessage = (
+          <div className={classes.login}>
+            <Button variant="contained" color="default" onClick={this.onLogin}>
+              Login to start posting
+            </Button>
+          </div>
+        );
+      }
     }
 
     return (
@@ -430,7 +446,17 @@ class App extends React.Component {
   };
 
   onLogin = () => {
-    this.setState({userAuthenticated: true});
+    switch (this.state.loginMethod) {
+      case 'google':
+        throw new Error(
+          `TODO unimplemented login method: ${this.state.loginMethod}`,
+        );
+      case 'local':
+        this.setState({userAuthenticated: true});
+        break;
+      default:
+        throw new Error(`Unsupported login method: ${this.state.loginMethod}`);
+    }
   };
 
   onBanUser = message => {

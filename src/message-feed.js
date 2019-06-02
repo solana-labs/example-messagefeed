@@ -164,9 +164,10 @@ export async function getFirstMessage(configUrl: string): Promise<Object> {
 
       if (!config.loading) {
         return {
-          url: config.url,
           firstMessage: new PublicKey(config.firstMessage),
+          loginMethod: config.loginMethod,
           programId: config.programId,
+          url: config.url,
         };
       }
       console.log(`Waiting for message feed program to finish loading...`);

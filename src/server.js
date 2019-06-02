@@ -18,6 +18,17 @@ type MessageFeedMeta = {
 let messageFeedMeta: MessageFeedMeta | null = null;
 let loading = false;
 
+const loginMethod = process.env.LOGIN_METHOD || 'none';
+switch (loginMethod) {
+  case 'none':
+  case 'local':
+  case 'google':
+    break;
+  default:
+    throw new Error(`Unknown LOGIN_METHOD: ${loginMethod}`);
+}
+console.log(`Login method: ${loginMethod}`);
+
 /**
  * Load a new instance of the Message Feed program
  */
@@ -99,6 +110,7 @@ app.get('/config.json', async (req, res) => {
     .send(
       JSON.stringify({
         loading,
+        loginMethod,
         url,
         firstMessage: messageFeedMeta
           ? messageFeedMeta.firstMessage.toString()

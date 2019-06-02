@@ -7,7 +7,7 @@ import type {Message} from './message-feed';
 async function main() {
   const text = process.argv.splice(2).join(' ');
 
-  const {firstMessage, url} = await getFirstMessage(
+  const {firstMessage, loginMethod, url} = await getFirstMessage(
     'http://localhost:8081/config.json',
   );
 
@@ -17,6 +17,9 @@ async function main() {
   await refreshMessageFeed(connection, messages, null, firstMessage);
 
   if (text.length > 0) {
+    if (loginMethod !== 'none') {
+      throw new Error(`Unsupported login method: ${loginMethod}`);
+    }
     console.log('Posting message:', text);
     await postMessage(
       connection,
