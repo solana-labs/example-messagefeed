@@ -1,13 +1,18 @@
 /* @flow */
 import {Connection} from '@solana/web3.js';
 
-import {getFirstMessage, refreshMessageFeed, postMessage} from './message-feed';
+import {
+  getFirstMessage,
+  refreshMessageFeed,
+  postMessage,
+  userLogin,
+} from './message-feed';
 import type {Message} from './message-feed';
 
 async function main() {
   const text = process.argv.splice(2).join(' ');
 
-  const {firstMessage, loginMethod, url} = await getFirstMessage(
+  const {firstMessage, loginMethod, programId, url} = await getFirstMessage(
     'http://localhost:8081/config.json',
   );
 
@@ -17,12 +22,14 @@ async function main() {
   await refreshMessageFeed(connection, messages, null, firstMessage);
 
   if (text.length > 0) {
-    if (loginMethod !== 'none') {
+    if (loginMethod !== 'local') {
       throw new Error(`Unsupported login method: ${loginMethod}`);
     }
+    const userAccount = await userLogin(connection, programId);
     console.log('Posting message:', text);
     await postMessage(
       connection,
+      userAccount,
       text,
       messages[messages.length - 1].publicKey,
     );

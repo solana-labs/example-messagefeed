@@ -1,18 +1,35 @@
 #include <solana_sdk.h>
 
-typedef struct {
-  SolPubkey next_message;
-  SolPubkey from;
-  uint8_t text[0];
-} AccountData;
 
-SOL_FN_PREFIX bool deserialize_account_data(SolKeyedAccount *ka, AccountData **data) {
-  if (ka->userdata_len < sizeof(AccountData)) {
-    sol_log("Error: invalid userdata_len");
-    sol_log_64(ka->userdata_len, sizeof(AccountData), 0, 0, 0);
+typedef struct {
+  uint8_t banned;
+  //SolPubkey creator; // Who created this account
+} UserAccountData;
+
+typedef struct {
+  SolPubkey next_message; // Next message in the feed
+  SolPubkey from; // The UserAccountData that posted this message
+  //SolPubkey creator; // Who created this feed
+  uint8_t text[0];
+} MessageAccountData;
+
+SOL_FN_PREFIX bool deserialize_user_account_data(SolKeyedAccount *ka, UserAccountData **data) {
+  if (ka->userdata_len != sizeof(UserAccountData)) {
+    sol_log("Error: invalid user account userdata_len");
+    sol_log_64(ka->userdata_len, sizeof(UserAccountData), 0, 0, 0);
     return false;
   }
-  *data = (AccountData *) ka->userdata;
+  *data = (UserAccountData *) ka->userdata;
+  return true;
+}
+
+SOL_FN_PREFIX bool deserialize_message_account_data(SolKeyedAccount *ka, MessageAccountData **data) {
+  if (ka->userdata_len < sizeof(MessageAccountData)) {
+    sol_log("Error: invalid message account userdata_len");
+    sol_log_64(ka->userdata_len, sizeof(MessageAccountData), 0, 0, 0);
+    return false;
+  }
+  *data = (MessageAccountData *) ka->userdata;
   return true;
 }
 
@@ -26,7 +43,7 @@ SOL_FN_PREFIX bool SolPubkey_default(const SolPubkey *pubkey) {
 }
 
 extern bool entrypoint(const uint8_t *input) {
-  SolKeyedAccount ka[3];
+  SolKeyedAccount ka[5];
   SolParameters params = (SolParameters) { .ka = ka };
 
   sol_log("message feed entrypoint");
@@ -45,11 +62,20 @@ extern bool entrypoint(const uint8_t *input) {
     return false;
   }
 
-
-  AccountData *new_message_data = NULL;
-
-  if (!deserialize_account_data(&params.ka[1], &new_message_data)) {
+  UserAccountData *user_data = NULL;
+  if (!deserialize_user_account_data(&params.ka[0], &user_data)) {
     sol_log("Error: unable to deserialize account 0 state");
+    return false;
+  }
+
+  if (user_data->banned) {
+    sol_log("Error: user is banned");
+    return false;
+  }
+
+  MessageAccountData *new_message_data = NULL;
+  if (!deserialize_message_account_data(&params.ka[1], &new_message_data)) {
+    sol_log("Error: unable to deserialize account 1 state");
     return false;
   }
 
@@ -60,8 +86,8 @@ extern bool entrypoint(const uint8_t *input) {
   sol_memcpy(&new_message_data->from, params.ka[0].key, sizeof(SolPubkey));
 
   if (params.ka_num > 2) {
-    AccountData *existing_message_data = NULL;
-    if (!deserialize_account_data(&params.ka[2], &existing_message_data)) {
+    MessageAccountData *existing_message_data = NULL;
+    if (!deserialize_message_account_data(&params.ka[2], &existing_message_data)) {
       sol_log("Error: unable to deserialize account 1 state");
       return false;
     }
@@ -76,6 +102,17 @@ extern bool entrypoint(const uint8_t *input) {
       params.ka[1].key,
       sizeof(SolPubkey)
     );
+  }
+
+  // Check if a user should be banned
+  if (params.ka_num > 3) {
+    UserAccountData *ban_user_data = NULL;
+    if (!deserialize_user_account_data(&params.ka[3], &ban_user_data)) {
+      sol_log("Error: unable to deserialize account 3 state");
+      return false;
+    }
+
+    ban_user_data->banned = true;
   }
 
   return true;

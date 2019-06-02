@@ -6,7 +6,7 @@ import {Account, BpfLoader, Connection, PublicKey} from '@solana/web3.js';
 
 import {url} from '../url';
 import {newSystemAccountWithAirdrop} from './util/new-system-account-with-airdrop';
-import {postMessageWithProgramId} from './message-feed';
+import {userLogin, postMessageWithProgramId} from './message-feed';
 
 const port = process.env.PORT || 8081;
 
@@ -18,9 +18,8 @@ type MessageFeedMeta = {
 let messageFeedMeta: MessageFeedMeta | null = null;
 let loading = false;
 
-const loginMethod = process.env.LOGIN_METHOD || 'none';
+const loginMethod = process.env.LOGIN_METHOD || 'local';
 switch (loginMethod) {
-  case 'none':
   case 'local':
   case 'google':
     break;
@@ -60,10 +59,14 @@ async function createMessageFeed(
   console.log('Message feed program:', programId.toString());
   console.log('Posting first message...');
 
+  // TODO: add special case for first message
+  const userAccount = await userLogin(connection, programId);
+
   const firstMessageAccount = new Account();
   await postMessageWithProgramId(
     connection,
     programId,
+    userAccount,
     firstMessageAccount,
     'First post! 💫',
   );

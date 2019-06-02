@@ -31,7 +31,13 @@ import {fade} from '@material-ui/core/styles/colorManipulator';
 import {withStyles} from '@material-ui/core/styles';
 
 //import {sleep} from './util/sleep';
-import {getFirstMessage, refreshMessageFeed, postMessage} from './message-feed';
+import {
+  getFirstMessage,
+  postMessage,
+  refreshMessageFeed,
+  userBanned,
+  userLogin,
+} from './message-feed';
 
 const styles = theme => ({
   root: {
@@ -97,6 +103,7 @@ class App extends React.Component {
     super(props);
 
     this.state = {
+      banUserAlreadyBanned: false,
       banUserDialogOpen: false,
       banUserMessage: null,
       busyLoading: true,
@@ -141,14 +148,12 @@ class App extends React.Component {
       const {firstMessage, loginMethod, url, programId} = await getFirstMessage(
         this.configUrl,
       );
-      if (loginMethod === 'none') {
-        userAuthenticated = true;
-      }
-      if (this.programId !== programId) {
+      if (!this.programId || !programId.equals(this.programId)) {
         this.connection = new Connection(url);
         this.connectionUrl = url;
         this.programId = programId;
         this.firstMessage = firstMessage;
+        this.userAccount = null;
 
         const matches = this.connectionUrl.match(
           'https://api.(.*)testnet.solana.com',
@@ -213,26 +218,30 @@ class App extends React.Component {
 
     const messages = this.state.messages
       .map((message, i) => {
+        const fromUser =
+          this.userAccount && message.from.equals(this.userAccount.publicKey);
         return (
           <List key={i} className={classes.root}>
             <Paper className={classes.message}>
               <ListItem>
                 <ListItemText
                   primary={escapeHtml(message.text)}
-                  secondary={'Posted by ' + message.name}
+                  secondary={
+                    'Posted by ' + message.name + (fromUser ? ' (you)' : '')
+                  }
                 />
                 <ListItemSecondaryAction>
-                  {
-                    this.state.loginMethod === 'none' || !this.state.userAuthenticated ? '' : (
-                      <IconButton
-                        edge="end"
-                        aria-label="Report"
-                        onClick={() => this.onBanUser(message)}
-                      >
-                        <ReportIcon />
-                      </IconButton>
-                    )
-                  }
+                  {!this.state.userAuthenticated || fromUser ? (
+                    ''
+                  ) : (
+                    <IconButton
+                      edge="end"
+                      aria-label="Report"
+                      onClick={() => this.onBanUser(message)}
+                    >
+                      <ReportIcon />
+                    </IconButton>
+                  )}
                 </ListItemSecondaryAction>
               </ListItem>
             </Paper>
@@ -245,33 +254,60 @@ class App extends React.Component {
     if (this.state.banUserMessage !== null) {
       const user = this.state.banUserMessage.name;
 
-      banUserDialog = (
-        <Dialog
-          open={this.state.banUserDialogOpen}
-          onClose={this.onBanUserDialogClose}
-          aria-labelledby="alert-dialog-title"
-          aria-describedby="alert-dialog-description"
-        >
-          <DialogTitle id="alert-dialog-title">{`Ban ${user}`}</DialogTitle>
-          <DialogContent>
-            <DialogContentText id="alert-dialog-description">
-              Do you want to prohibit <b>{user}</b> from posting messages?
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={this.onBanUserDialogClose} color="primary">
-              Cancel
-            </Button>
-            <Button
-              onClick={this.onBanUserDialogConfirm}
-              color="primary"
-              autoFocus
-            >
-              Ban User
-            </Button>
-          </DialogActions>
-        </Dialog>
-      );
+      if (this.state.banUserAlreadyBanned) {
+        banUserDialog = (
+          <Dialog
+            open={this.state.banUserDialogOpen}
+            onClose={this.onBanUserDialogClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogTitle id="alert-dialog-title">{`Ban ${user}`}</DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                <b>{user}</b> has already been banned
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button
+                autoFocus
+                onClick={this.onBanUserDialogClose}
+                color="primary"
+              >
+                Close
+              </Button>
+            </DialogActions>
+          </Dialog>
+        );
+      } else {
+        banUserDialog = (
+          <Dialog
+            open={this.state.banUserDialogOpen}
+            onClose={this.onBanUserDialogClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogTitle id="alert-dialog-title">{`Ban ${user}`}</DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                Do you want to prohibit <b>{user}</b> from posting new messages?
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={this.onBanUserDialogConfirm} color="secondary">
+                Ban User
+              </Button>
+              <Button
+                autoFocus
+                onClick={this.onBanUserDialogClose}
+                color="primary"
+              >
+                Cancel
+              </Button>
+            </DialogActions>
+          </Dialog>
+        );
+      }
     }
 
     let newMessage;
@@ -291,15 +327,13 @@ class App extends React.Component {
         </div>
       );
     } else {
-      if (this.state.loginMethod !== 'none') {
-        newMessage = (
-          <div className={classes.login}>
-            <Button variant="contained" color="default" onClick={this.onLogin}>
-              Login to start posting
-            </Button>
-          </div>
-        );
-      }
+      newMessage = (
+        <div className={classes.login}>
+          <Button variant="contained" color="default" onClick={this.onLogin}>
+            Login to start posting
+          </Button>
+        </div>
+      );
     }
 
     return (
@@ -380,8 +414,8 @@ class App extends React.Component {
     );
   }
 
-  async postMessage() {
-    if (this.state.newMessage.length === 0) {
+  async postMessage(newMessage: string, userToBan = null) {
+    if (newMessage.length === 0) {
       return;
     }
 
@@ -393,12 +427,22 @@ class App extends React.Component {
       return;
     }
     this.setState({busyPosting: true});
-    const {messages, newMessage} = this.state;
+    const {messages} = this.state;
     try {
+      if (await userBanned(this.connection, this.userAccount.publicKey)) {
+        this.setState({
+          snackMessage: 'You are banned',
+          transactionSignature: null,
+        });
+        return;
+      }
+
       const transactionSignature = await postMessage(
         this.connection,
+        this.userAccount,
         newMessage,
         messages[messages.length - 1].publicKey,
+        userToBan,
       );
       this.postCount++;
       this.setState({
@@ -411,15 +455,16 @@ class App extends React.Component {
       this.setState({
         snackMessage: 'An error occured when posting the message',
       });
+    } finally {
+      this.setState({busyPosting: false});
     }
-    this.setState({busyPosting: false});
   }
 
   onInputKeyDown = e => {
     if (e.keyCode !== 13) {
       return;
     }
-    this.postMessage();
+    this.postMessage(this.state.newMessage);
   };
 
   onInputChange = e => {
@@ -445,25 +490,36 @@ class App extends React.Component {
     this.setState({idle: true});
   };
 
-  onLogin = () => {
+  onLogin = async () => {
     switch (this.state.loginMethod) {
       case 'google':
         throw new Error(
           `TODO unimplemented login method: ${this.state.loginMethod}`,
         );
-      case 'local':
+      case 'local': {
+        this.userAccount = await userLogin(this.connection, this.programId);
         this.setState({userAuthenticated: true});
         break;
+      }
       default:
         throw new Error(`Unsupported login method: ${this.state.loginMethod}`);
     }
   };
 
-  onBanUser = message => {
-    this.setState({
-      banUserDialogOpen: true,
-      banUserMessage: message,
-    });
+  onBanUser = async message => {
+    try {
+      const banUserAlreadyBanned = await userBanned(
+        this.connection,
+        message.from,
+      );
+      this.setState({
+        banUserDialogOpen: true,
+        banUserAlreadyBanned,
+        banUserMessage: message,
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   onBanUserDialogClose = () => {
@@ -474,8 +530,11 @@ class App extends React.Component {
   };
 
   onBanUserDialogConfirm = () => {
-    console.log('Ban', this.state.banUserMessage);
     this.onBanUserDialogClose();
+    this.postMessage(
+      `${this.state.banUserMessage.name} has been banned`,
+      this.state.banUserMessage.from,
+    );
   };
 
   onBlockExplorerTransactionsByProgram = () => {
