@@ -1,29 +1,34 @@
 import AppBar from '@material-ui/core/AppBar';
+import Badge from '@material-ui/core/Badge';
+import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
 import IdleTimer from 'react-idle-timer';
 import InputBase from '@material-ui/core/InputBase';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import ListItemText from '@material-ui/core/ListItemText';
+import MenuIcon from '@material-ui/icons/Menu';
 import Paper from '@material-ui/core/Paper';
 import PauseIcon from '@material-ui/icons/Pause';
-import MenuIcon from '@material-ui/icons/Menu';
-import Button from '@material-ui/core/Button';
 import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import ReportIcon from '@material-ui/icons/Report';
 import Snackbar from '@material-ui/core/Snackbar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import escapeHtml from 'escape-html';
 import {Connection} from '@solana/web3.js';
 import {fade} from '@material-ui/core/styles/colorManipulator';
-import Badge from '@material-ui/core/Badge';
 import {withStyles} from '@material-ui/core/styles';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import IconButton from '@material-ui/core/IconButton';
-import ReportIcon from '@material-ui/icons/Report';
 
 //import {sleep} from './util/sleep';
 import {getFirstMessage, refreshMessageFeed, postMessage} from './message-feed';
@@ -53,7 +58,6 @@ const styles = theme => ({
     paddingTop: theme.spacing.unit * 2,
     paddingBottom: theme.spacing.unit * 2,
   },
-
   newmessage: {
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
@@ -68,6 +72,11 @@ const styles = theme => ({
       marginLeft: theme.spacing.unit * 3,
       width: '70%',
     },
+  },
+  login: {
+    position: 'relative',
+    marginLeft: theme.spacing.unit * 3,
+    marginRight: theme.spacing.unit * 4,
   },
   inputRoot: {
     color: 'inherit',
@@ -88,6 +97,8 @@ class App extends React.Component {
     super(props);
 
     this.state = {
+      banUserDialogOpen: false,
+      banUserMessage: null,
       busyLoading: true,
       busyPosting: false,
       idle: false,
@@ -95,6 +106,7 @@ class App extends React.Component {
       newMessage: '',
       snackMessage: '',
       transactionSignature: null,
+      userAuthenticated: false,
     };
     this.programId = null;
     this.postCount = 0;
@@ -195,9 +207,16 @@ class App extends React.Component {
           <List key={i} className={classes.root}>
             <Paper className={classes.message}>
               <ListItem>
-                <ListItemText primary={escapeHtml(message.text)} secondary={'Posted by ' + message.name} />
+                <ListItemText
+                  primary={escapeHtml(message.text)}
+                  secondary={'Posted by ' + message.name}
+                />
                 <ListItemSecondaryAction>
-                  <IconButton edge="end" aria-label="Report">
+                  <IconButton
+                    edge="end"
+                    aria-label="Report"
+                    onClick={() => this.onBanUser(message)}
+                  >
                     <ReportIcon />
                   </IconButton>
                 </ListItemSecondaryAction>
@@ -207,6 +226,65 @@ class App extends React.Component {
         );
       })
       .reverse();
+
+    let banUserDialog;
+    if (this.state.banUserMessage !== null) {
+      const user = this.state.banUserMessage.name;
+
+      banUserDialog = (
+        <Dialog
+          open={this.state.banUserDialogOpen}
+          onClose={this.onBanUserDialogClose}
+          aria-labelledby="alert-dialog-title"
+          aria-describedby="alert-dialog-description"
+        >
+          <DialogTitle id="alert-dialog-title">{`Ban ${user}`}</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="alert-dialog-description">
+              Do you want to prohibit <b>{user}</b> from posting messages?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.onBanUserDialogClose} color="primary">
+              Cancel
+            </Button>
+            <Button
+              onClick={this.onBanUserDialogConfirm}
+              color="primary"
+              autoFocus
+            >
+              Ban User
+            </Button>
+          </DialogActions>
+        </Dialog>
+      );
+    }
+
+    let newMessage;
+    if (this.state.userAuthenticated) {
+      newMessage = (
+        <div className={classes.newmessage}>
+          <InputBase
+            placeholder="Say something nice…"
+            value={this.state.newMessage}
+            classes={{
+              root: classes.inputRoot,
+              input: classes.inputInput,
+            }}
+            onKeyDown={this.onInputKeyDown}
+            onChange={this.onInputChange}
+          />
+        </div>
+      );
+    } else {
+      newMessage = (
+        <div className={classes.login}>
+          <Button variant="contained" color="default" onClick={this.onLogin}>
+            Login to start posting
+          </Button>
+        </div>
+      );
+    }
 
     return (
       <div className={classes.root}>
@@ -235,18 +313,7 @@ class App extends React.Component {
                 Message Feed
               </Typography>
             </Badge>
-            <div className={classes.newmessage}>
-              <InputBase
-                placeholder="Say something nice…"
-                value={this.state.newMessage}
-                classes={{
-                  root: classes.inputRoot,
-                  input: classes.inputInput,
-                }}
-                onKeyDown={this.onInputKeyDown}
-                onChange={this.onInputChange}
-              />
-            </div>
+            {newMessage}
             {this.state.idle ? <PauseIcon /> : ''}
             {this.busy() ? (
               <CircularProgress className={classes.progress} color="inherit" />
@@ -292,6 +359,7 @@ class App extends React.Component {
             )
           }
         />
+        {banUserDialog}
       </div>
     );
   }
@@ -359,6 +427,29 @@ class App extends React.Component {
   onIdle = () => {
     console.log('user is idle');
     this.setState({idle: true});
+  };
+
+  onLogin = () => {
+    this.setState({userAuthenticated: true});
+  };
+
+  onBanUser = message => {
+    this.setState({
+      banUserDialogOpen: true,
+      banUserMessage: message,
+    });
+  };
+
+  onBanUserDialogClose = () => {
+    this.setState({
+      banUserDialogOpen: false,
+      banUserMessage: null,
+    });
+  };
+
+  onBanUserDialogConfirm = () => {
+    console.log('Ban', this.state.banUserMessage);
+    this.onBanUserDialogClose();
   };
 
   onBlockExplorerTransactionsByProgram = () => {
