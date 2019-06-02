@@ -26,9 +26,10 @@ import Snackbar from '@material-ui/core/Snackbar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import escapeHtml from 'escape-html';
-import {Connection} from '@solana/web3.js';
+import {Account, Connection, PublicKey} from '@solana/web3.js';
 import {fade} from '@material-ui/core/styles/colorManipulator';
 import {withStyles} from '@material-ui/core/styles';
+import localforage from 'localforage';
 
 //import {sleep} from './util/sleep';
 import {
@@ -148,12 +149,27 @@ class App extends React.Component {
       const {firstMessage, loginMethod, url, programId} = await getFirstMessage(
         this.configUrl,
       );
+
       if (!this.programId || !programId.equals(this.programId)) {
         this.connection = new Connection(url);
         this.connectionUrl = url;
         this.programId = programId;
         this.firstMessage = firstMessage;
         this.userAccount = null;
+
+        try {
+          const savedProgramId = new PublicKey(
+            await localforage.getItem('programId'),
+          );
+          const savedUserAccount = await localforage.getItem('userAccount');
+          if (savedUserAccount !== null && programId.equals(savedProgramId)) {
+            this.userAccount = new Account(savedUserAccount);
+            console.log('Restored user account:', this.userAccount.publicKey.toString());
+            userAuthenticated = true;
+          }
+        } catch (err) {
+          console.log(`Unable to store programId in localforage: ${err}`);
+        }
 
         const matches = this.connectionUrl.match(
           'https://api.(.*)testnet.solana.com',
@@ -503,6 +519,14 @@ class App extends React.Component {
       }
       default:
         throw new Error(`Unsupported login method: ${this.state.loginMethod}`);
+    }
+
+    try {
+      console.log('Saved user account:', this.userAccount.publicKey.toString());
+      await localforage.setItem('programId', this.programId.toString());
+      await localforage.setItem('userAccount', this.userAccount.secretKey);
+    } catch (err) {
+      console.log(`Unable to store user account in localforage: ${err}`);
     }
   };
 
