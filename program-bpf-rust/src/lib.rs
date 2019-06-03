@@ -311,12 +311,18 @@ fn process(num_ka: u64, ka: &mut [SolKeyedAccount], data: &[u8]) -> bool {
         return false;
     }
 
+    // No instruction data means that a new user account should be initialized
+    if data.len() == 0 {
+        sol_memcpy(&mut ka[0].data, &ka[1].key.key, 1);
+        return true;
+    }
+
     // Record the message into account 1
-    if ka[1].data.len() - 2 * SIZE_PUBKEY < data.len() {
+    if ka[1].data.len() - 3 * SIZE_PUBKEY < data.len() {
         sol_log("Error: account data to small to hold message");
         return false;
     }
-    sol_memcpy(&mut ka[1].data, &data, 2 * SIZE_PUBKEY);
+    sol_memcpy(&mut ka[1].data, &data, 3 * SIZE_PUBKEY);
 
     // Save the pubkey of who posted the message into account 1
     sol_memcpy(&mut ka[1].data, &ka[0].key.key, SIZE_PUBKEY);
@@ -329,6 +335,27 @@ fn process(num_ka: u64, ka: &mut [SolKeyedAccount], data: &[u8]) -> bool {
 
         // Link the next_message field of account 2 to account 1
         sol_memcpy(&mut ka[2].data, &ka[1].key.key, 0);
+
+        // Propagate the chain creator to the new message
+        let mut creator = [0; SIZE_PUBKEY];
+        sol_memcpy(&mut creator, &ka[2].data, 0);
+        sol_memcpy(&mut ka[1].data, &creator, 2 * SIZE_PUBKEY);
+    } else {
+        // This is the first message in the chain, it is the "creator"
+        sol_memcpy(&mut ka[1].data, &ka[1].key.key, 2 * SIZE_PUBKEY);
+    }
+
+    // TODO: Add SolPubkey_same() equivalent and uncomment:
+    /*
+    if (!SolPubkey_same(&user_data->creator, &new_message_data->creator)) {
+        sol_log("user_data/new_message_data creator mismatch");
+        return false;
+    }
+    */
+
+    // Check if a user should be banned
+    if num_ka > 3 {
+        sol_memcpy(&mut ka[3].data, &[1], 0);
     }
 
     true
