@@ -3,13 +3,13 @@
 
 typedef struct {
   uint8_t banned;
-  //SolPubkey creator; // Who created this account
+  SolPubkey creator; // Who created this account
 } UserAccountData;
 
 typedef struct {
   SolPubkey next_message; // Next message in the feed
   SolPubkey from; // The UserAccountData that posted this message
-  //SolPubkey creator; // Who created this feed
+  SolPubkey creator; // Who created this feed
   uint8_t text[0];
 } MessageAccountData;
 
@@ -79,6 +79,12 @@ extern bool entrypoint(const uint8_t *input) {
     return false;
   }
 
+  // No instruction data means that a new user account should be initialized
+  if (params.data_len == 0) {
+    sol_memcpy(&user_data->creator, params.ka[1].key, sizeof(SolPubkey));
+    return true;
+  }
+
   // Write the message text into new_message_data
   sol_memcpy(new_message_data->text, params.data, params.data_len);
 
@@ -102,6 +108,17 @@ extern bool entrypoint(const uint8_t *input) {
       params.ka[1].key,
       sizeof(SolPubkey)
     );
+
+    // Propagate the chain creator to the new message
+    sol_memcpy(&new_message_data->creator, &existing_message_data->creator, sizeof(SolPubkey));
+  } else {
+    // This is the first message in the chain, it is the "creator"
+    sol_memcpy(&new_message_data->creator, params.ka[1].key, sizeof(SolPubkey));
+  }
+
+  if (!SolPubkey_same(&user_data->creator, &new_message_data->creator)) {
+    sol_log("user_data/new_message_data creator mismatch");
+    return false;
   }
 
   // Check if a user should be banned

@@ -120,12 +120,12 @@ class App extends React.Component {
     this.programId = null;
     this.postCount = 0;
 
-    let configUrl = window.location.origin;
+    let baseUrl = window.location.origin;
     if (window.location.hostname === 'localhost') {
-      configUrl = 'http://localhost:8081';
+      baseUrl = 'http://localhost:8081';
     }
-    configUrl += '/config.json';
-    this.configUrl = configUrl;
+    this.configUrl = baseUrl + '/config.json';
+    this.loginUrl = baseUrl + '/login';
 
     this.onActive();
   }
@@ -164,7 +164,10 @@ class App extends React.Component {
           const savedUserAccount = await localforage.getItem('userAccount');
           if (savedUserAccount !== null && programId.equals(savedProgramId)) {
             this.userAccount = new Account(savedUserAccount);
-            console.log('Restored user account:', this.userAccount.publicKey.toString());
+            console.log(
+              'Restored user account:',
+              this.userAccount.publicKey.toString(),
+            );
             userAuthenticated = true;
           }
         } catch (err) {
@@ -513,7 +516,13 @@ class App extends React.Component {
           `TODO unimplemented login method: ${this.state.loginMethod}`,
         );
       case 'local': {
-        this.userAccount = await userLogin(this.connection, this.programId);
+        const credentials = {id: new Account().publicKey.toString()};
+        this.userAccount = await userLogin(
+          this.connection,
+          this.programId,
+          this.loginUrl,
+          credentials,
+        );
         this.setState({userAuthenticated: true});
         break;
       }

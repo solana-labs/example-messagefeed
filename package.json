@@ -48,7 +48,6 @@
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-2": "^6.24.1",
     "babel-runtime": "^6.26.0",
-    "body-parser": "^1.18.3",
     "buffer-layout": "^1.2.0",
     "cors": "^2.8.5",
     "css-loader": "^2.0.0",

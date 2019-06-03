@@ -1,5 +1,5 @@
 /* @flow */
-import {Connection} from '@solana/web3.js';
+import {Account, Connection} from '@solana/web3.js';
 
 import {
   getFirstMessage,
@@ -12,8 +12,9 @@ import type {Message} from './message-feed';
 async function main() {
   const text = process.argv.splice(2).join(' ');
 
+  const baseUrl = 'http://localhost:8081';
   const {firstMessage, loginMethod, programId, url} = await getFirstMessage(
-    'http://localhost:8081/config.json',
+    baseUrl + '/config.json',
   );
 
   console.log('Cluster RPC URL:', url);
@@ -25,7 +26,13 @@ async function main() {
     if (loginMethod !== 'local') {
       throw new Error(`Unsupported login method: ${loginMethod}`);
     }
-    const userAccount = await userLogin(connection, programId);
+    const credentials = {id: new Account().publicKey.toString()};
+    const userAccount = await userLogin(
+      connection,
+      programId,
+      baseUrl + '/login',
+      credentials,
+    );
     console.log('Posting message:', text);
     await postMessage(
       connection,

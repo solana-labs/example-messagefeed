@@ -29,58 +29,65 @@ type MessageData = {
   text: string,
 };
 
-export async function userLogin(
+const publicKeyLayout = (property: string = 'publicKey'): Object => {
+  return BufferLayout.blob(32, property);
+};
+
+export async function createUser(
   connection: Connection,
   programId: PublicKey,
+  firstMessageAccount: Account,
 ): Promise<Account> {
   const fee = 10; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
   const payerAccount = await newSystemAccountWithAirdrop(connection, 1 + fee);
   const transaction = new Transaction();
 
   const userAccount = new Account();
+  // Allocate the user account
   transaction.add(
     SystemProgram.createAccount(
       payerAccount.publicKey,
       userAccount.publicKey,
       1,
-      1,
+      1 + 32, // 32 = size of a public key
       programId,
     ),
   );
 
-  // TODO: Add a message feed instruction here to initialize the user account.
-  // Must be signed by the message feed program itself (and flip the 'banned'
-  // bit so that by default users are banned)
-
-  /*
-  // The second instruction in the transaction posts the message, optionally
-  // links it to the previous message and optionally bans another user
+  // Initialize the user account
   const keys = [
     {pubkey: userAccount.publicKey, isSigner: true},
-    {pubkey: messageAccount.publicKey, isSigner: true},
+    {pubkey: firstMessageAccount.publicKey, isSigner: true},
   ];
-  if (previousMessagePublicKey) {
-    keys.push({pubkey: previousMessagePublicKey, isSigner: false});
-
-    if (userToBan) {
-      keys.push({pubkey: userToBan, isSigner: false});
-    }
-  }
   transaction.add({
     keys,
     programId,
-    data: textBuffer,
   });
-  */
 
   await sendAndConfirmTransaction(
     connection,
     transaction,
     payerAccount,
     userAccount,
+    firstMessageAccount,
   );
 
   return userAccount;
+}
+
+export async function userLogin(
+  connection: Connection,
+  programId: PublicKey,
+  loginUrl: string,
+  credentials: Object,
+): Promise<Account> {
+  const response = await fetch(loginUrl, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(credentials),
+  });
+  const json = await response.json();
+  return new Account(Uint8Array.from(Buffer.from(json.userAccount, 'hex')));
 }
 
 /**
@@ -94,6 +101,7 @@ export async function userBanned(
 
   const userAccountDataLayout = BufferLayout.struct([
     BufferLayout.u8('banned'),
+    publicKeyLayout('creator'),
   ]);
   const userAccountData = userAccountDataLayout.decode(accountInfo.data);
 
@@ -109,13 +117,10 @@ async function readMessage(
 ): Promise<MessageData> {
   const accountInfo = await connection.getAccountInfo(message);
 
-  const publicKeyLayout = (property: string = 'publicKey'): Object => {
-    return BufferLayout.blob(32, property);
-  };
-
   const messageAccountDataLayout = BufferLayout.struct([
     publicKeyLayout('nextMessage'),
     publicKeyLayout('from'),
+    publicKeyLayout('creator'),
     BufferLayout.cstr('text'),
   ]);
   const messageAccountData = messageAccountDataLayout.decode(accountInfo.data);
@@ -192,7 +197,7 @@ export async function postMessage(
 export async function postMessageWithProgramId(
   connection,
   programId: PublicKey,
-  userAccount: Account,
+  userAccount: Account | null,
   messageAccount: Account,
   text: string,
   previousMessagePublicKey: PublicKey,
@@ -203,17 +208,40 @@ export async function postMessageWithProgramId(
   const transaction = new Transaction();
   const textBuffer = Buffer.from(text);
 
-  // The first instruction of the transaction allocates an account for the
-  // message
+  // Allocate the message account
   transaction.add(
     SystemProgram.createAccount(
       payerAccount.publicKey,
       messageAccount.publicKey,
       1,
-      32 + 32 + textBuffer.length, // 32 = size of a public key
+      32 + 32 + 32 + textBuffer.length, // 32 = size of a public key
       programId,
     ),
   );
+
+  if (userAccount === null) {
+    userAccount = new Account();
+    // Allocate the user account
+    transaction.add(
+      SystemProgram.createAccount(
+        payerAccount.publicKey,
+        userAccount.publicKey,
+        1,
+        1 + 32, // 32 = size of a public key
+        programId,
+      ),
+    );
+
+    // Initialize the user account
+    const keys = [
+      {pubkey: userAccount.publicKey, isSigner: true},
+      {pubkey: messageAccount.publicKey, isSigner: true},
+    ];
+    transaction.add({
+      keys,
+      programId,
+    });
+  }
 
   // The second instruction in the transaction posts the message, optionally
   // links it to the previous message and optionally bans another user
