@@ -250,7 +250,7 @@ class App extends React.Component {
                   }
                 />
                 <ListItemSecondaryAction>
-                  {!this.state.userAuthenticated || fromUser ? (
+                  {!this.state.userAuthenticated || fromUser || i === 0 ? (
                     ''
                   ) : (
                     <IconButton
