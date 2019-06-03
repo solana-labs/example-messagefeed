@@ -2,4 +2,5 @@
 
 set -ex
 
+cd "$(dirname "$0")"
 cargo clean
