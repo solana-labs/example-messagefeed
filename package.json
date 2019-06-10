@@ -30,7 +30,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "prettier": "^1.18.1"
+    "prettier": "^1.18.2"
   },
   "dependencies": {
     "@material-ui/core": "^3.9.3",
