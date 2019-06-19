@@ -51,7 +51,6 @@ fn process_instruction(ka: &mut [SolKeyedAccount], _info: &SolClusterInfo, data:
     let len = ka.len();
     if len < 2 {
         sol_log("Error: Expected at least two keys");
-        sol_log_64(0, 0, 0, 0, len as u64);
         return false;
     }
 
