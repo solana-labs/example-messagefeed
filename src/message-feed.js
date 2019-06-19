@@ -38,8 +38,8 @@ export async function createUser(
   programId: PublicKey,
   firstMessageAccount: Account,
 ): Promise<Account> {
-  const fee = 10; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
-  const payerAccount = await newSystemAccountWithAirdrop(connection, 1 + fee);
+  const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
+  const payerAccount = await newSystemAccountWithAirdrop(connection, 10 + fee);
   const transaction = new Transaction();
 
   const userAccount = new Account();
@@ -203,8 +203,8 @@ export async function postMessageWithProgramId(
   previousMessagePublicKey: PublicKey,
   userToBan: PublicKey | null = null,
 ): Promise<TransactionSignature> {
-  const fee = 10; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
-  const payerAccount = await newSystemAccountWithAirdrop(connection, 1 + fee);
+  const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
+  const payerAccount = await newSystemAccountWithAirdrop(connection, 100 + fee);
   const transaction = new Transaction();
   const textBuffer = Buffer.from(text);
 
