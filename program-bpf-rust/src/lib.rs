@@ -18,7 +18,7 @@ impl<'a> UserAccountData<'a> {
     fn new(data: &'a mut [u8]) -> Self {
         let (banned, creator) = data.split_at_mut(1);
         Self {
-            banned: unsafe { core::mem::transmute::<&mut u8, &mut bool>(&mut banned[0]) },
+            banned: unsafe {&mut *(&mut banned[0] as *mut u8 as *mut bool) },
             creator: array_mut_ref!(creator, 0, size_of::<SolPubkey>()),
         }
     }
