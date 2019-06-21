@@ -6,39 +6,40 @@
 extern crate arrayref;
 extern crate solana_sdk_bpf_utils;
 
+use core::mem::size_of;
 use solana_sdk_bpf_utils::entrypoint;
 use solana_sdk_bpf_utils::entrypoint::*;
 use solana_sdk_bpf_utils::log::*;
 
 struct UserAccountData<'a> {
     pub banned: &'a mut u8, // TODO How to make this a &bool without transmute?
-    pub creator: SolPubkey<'a>,
+    pub creator: &'a mut SolPubkey,
 }
 impl<'a> UserAccountData<'a> {
     fn new(data: &'a mut [u8]) -> Self {
         let (banned, creator) = data.split_at_mut(1);
         Self {
             banned: &mut banned[0],
-            creator: array_mut_ref!(creator, 0, SIZE_PUBKEY),
+            creator: array_mut_ref!(creator, 0, size_of::<SolPubkey>()),
         }
     }
 }
 
 struct MessageAccountData<'a> {
-    pub next_message: SolPubkey<'a>,
-    pub from: SolPubkey<'a>,
-    pub creator: SolPubkey<'a>,
+    pub next_message: &'a mut SolPubkey,
+    pub from: &'a mut SolPubkey,
+    pub creator: &'a mut SolPubkey,
     pub text: &'a mut [u8],
 }
 impl<'a> MessageAccountData<'a> {
     fn new(data: &'a mut [u8]) -> Self {
-        let (next_message, rest) = data.split_at_mut(SIZE_PUBKEY);
-        let (from, rest) = rest.split_at_mut(SIZE_PUBKEY);
-        let (creator, text) = rest.split_at_mut(SIZE_PUBKEY);
+        let (next_message, rest) = data.split_at_mut(size_of::<SolPubkey>());
+        let (from, rest) = rest.split_at_mut(size_of::<SolPubkey>());
+        let (creator, text) = rest.split_at_mut(size_of::<SolPubkey>());
         Self {
-            next_message: array_mut_ref!(next_message, 0, SIZE_PUBKEY),
-            from: array_mut_ref!(from, 0, SIZE_PUBKEY),
-            creator: array_mut_ref!(creator, 0, SIZE_PUBKEY),
+            next_message: array_mut_ref!(next_message, 0, size_of::<SolPubkey>()),
+            from: array_mut_ref!(from, 0, size_of::<SolPubkey>()),
+            creator: array_mut_ref!(creator, 0, size_of::<SolPubkey>()),
             text,
         }
     }
@@ -90,7 +91,7 @@ fn process_instruction(ka: &mut [SolKeyedAccount], _info: &SolClusterInfo, data:
         let (existing_message_account, rest) = rest.split_at_mut(1);
         let existing_message_data = MessageAccountData::new(existing_message_account[0].data);
 
-        if existing_message_data.next_message != &[0; SIZE_PUBKEY] {
+        if existing_message_data.next_message != &[0; size_of::<SolPubkey>()] {
             sol_log("Error: account 1 already has a next_message");
             return false;
         }
