@@ -70,7 +70,7 @@
     "node-fetch": "^2.6.0",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
-    "react-idle-timer": "^4.2.5",
+    "react-idle-timer": "^4.2.6",
     "readline-promise": "^1.0.3",
     "superstruct": "^0.6.0",
     "watch": "^1.0.2",
