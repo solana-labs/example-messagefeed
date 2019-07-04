@@ -19,10 +19,10 @@
     "clean:bpf-c": "make -C program-bpf-c clean",
     "build:bpf-rust": "./program-bpf-rust/do.sh build",
     "clean:bpf-rust": "./program-bpf-rust/do.sh clean",
-    "localnet:update": "solana-localnet update beta",
-    "localnet:up": "set -x; solana-localnet down beta; set -e; solana-localnet up beta",
+    "localnet:update": "solana-localnet update",
+    "localnet:up": "set -x; solana-localnet down; set -e; solana-localnet up",
     "localnet:deploy": "./program-native/deploy.sh",
-    "localnet:down": "solana-localnet down beta",
+    "localnet:down": "solana-localnet down",
     "localnet:logs": "solana-localnet logs -f",
     "pretty": "prettier --write '{,src/**/}*.js'",
     "postinstall": "npm run build; npm run bpf-sdk:update"
