@@ -4,6 +4,8 @@
 
 #[macro_use]
 extern crate arrayref;
+#[cfg(not(test))]
+extern crate solana_sdk_bpf_no_std;
 extern crate solana_sdk_bpf_utils;
 
 use core::mem::size_of;
@@ -18,7 +20,7 @@ impl<'a> UserAccountData<'a> {
     fn new(data: &'a mut [u8]) -> Self {
         let (banned, creator) = data.split_at_mut(1);
         Self {
-            banned: unsafe {&mut *(&mut banned[0] as *mut u8 as *mut bool) },
+            banned: unsafe { &mut *(&mut banned[0] as *mut u8 as *mut bool) },
             creator: array_mut_ref!(creator, 0, size_of::<SolPubkey>()),
         }
     }

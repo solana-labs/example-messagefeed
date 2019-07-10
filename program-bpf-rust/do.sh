@@ -3,18 +3,21 @@
 cd "$(dirname "$0")"
 
 usage() {
-    echo ""
-    echo "  Usage: do.sh action <project>"
-    echo ""
-    echo "  If relative_project_path is ommitted then action will"
-    echo "  be performed on all projects"
-    echo ""
-    echo "  Supported actions:"
-    echo "    build"
-    echo "    clean"
-    echo "    clippy"
-    echo "    fmt"
-    echo ""
+    cat <<EOF
+
+Usage: do.sh action <project>
+
+If relative_project_path is ommitted then action will
+be performed on all projects
+
+Supported actions:
+    build
+    clean
+    test
+    clippy
+    fmt
+
+EOF
 }
 
 perform_action() {
@@ -24,22 +27,22 @@ perform_action() {
          ../node_modules/@solana/web3.js/bpf-sdk/rust/build.sh "$PWD"
          mkdir -p ../dist/program
          cp ./target/bpfel-unknown-unknown/release/messagefeed.so ../dist/program
-    ;;
+        ;;
     clean)
          ../node_modules/@solana/web3.js/bpf-sdk/rust/clean.sh "$PWD"
-    ;;
+        ;;
+    test)
+            echo "test $2"
+            cargo +nightly test
+        ;;
     clippy)
-        (
             echo "clippy $2"
             cargo +nightly clippy
-        )
-    ;;
+        ;;
     fmt)
-        (
             echo "formatting $2"
             cargo fmt
-        )
-    ;;
+        ;;
     help)
         usage
         exit
@@ -48,7 +51,7 @@ perform_action() {
         echo "Error: Unknown command"
         usage
         exit
-    ;;
+        ;;
     esac
 }
 
