@@ -4,6 +4,7 @@
 
 #[macro_use]
 extern crate arrayref;
+extern crate solana_sdk_bpf_no_std;
 extern crate solana_sdk_bpf_utils;
 
 use core::mem::size_of;
