@@ -26,7 +26,7 @@ perform_action() {
     build)
          ../node_modules/@solana/web3.js/bpf-sdk/rust/build.sh "$PWD"
          mkdir -p ../dist/program
-         cp ./target/bpfel-unknown-unknown/release/tictactoe.so ../dist/program
+         cp ./target/bpfel-unknown-unknown/release/messagefeed.so ../dist/program
         ;;
     clean)
          ../node_modules/@solana/web3.js/bpf-sdk/rust/clean.sh "$PWD"
