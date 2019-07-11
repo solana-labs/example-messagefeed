@@ -198,15 +198,18 @@ class App extends React.Component {
         }
         case 'addFundsResponse': {
           const params = e.data.params;
+          let payerBalance = this.state.payerBalance;
           let transactionSignature = null;
           let snackMessage = 'Unexpected wallet response';
           if (params.amount && params.signature) {
             snackMessage = `Received ${params.amount} from wallet`;
             transactionSignature = params.signature;
+            payerBalance = await this.connection.getBalance(
+              this.payerAccount.publicKey,
+            );
+          } else if (params.err) {
+            snackMessage = 'Funds request failed';
           }
-          const payerBalance = await this.connection.getBalance(
-            this.payerAccount.publicKey,
-          );
           this.setState({payerBalance, snackMessage, transactionSignature});
           break;
         }
