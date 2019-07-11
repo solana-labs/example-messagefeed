@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'mz/fs';
 import {Account, BpfLoader, Connection, PublicKey} from '@solana/web3.js';
 
-import {url} from '../url';
+import {url, walletUrl} from '../urls';
 import {newSystemAccountWithAirdrop} from './util/new-system-account-with-airdrop';
 import {createUser, postMessageWithProgramId} from './message-feed';
 
@@ -117,6 +117,7 @@ app.get('/config.json', async (req, res) => {
         loading,
         loginMethod,
         url,
+        walletUrl,
         firstMessage: messageFeedMeta
           ? messageFeedMeta.firstMessage.publicKey.toString()
           : null,

@@ -128,21 +128,73 @@ class App extends React.Component {
       userAuthenticated: false,
       payerBalance: 0,
       loginMethod: 'none',
+      walletUrl: '',
     };
     this.programId = null;
     this.postCount = 0;
 
     let baseUrl = window.location.origin;
-    let walletUrl = baseUrl.replace('messagefeed', 'webwallet');
     if (window.location.hostname === 'localhost') {
       baseUrl = 'http://localhost:8081';
-      walletUrl = 'http://localhost:8082';
     }
     this.configUrl = baseUrl + '/config.json';
     this.loginUrl = baseUrl + '/login';
-    this.walletUrl = walletUrl;
 
     this.onActive();
+  }
+
+  requestFunds() {
+    const windowName = 'wallet';
+    const windowOptions = 'toolbar=no, location=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=500, height=600';
+    if (!this.walletWindow) {
+      window.addEventListener('message', (e) => this.onWalletMessage(e));
+      this.walletWindow = window.open(this.state.walletUrl, windowName, windowOptions);
+    } else {
+      if (this.walletWindow.closed) {
+        this.walletWindow = window.open(this.state.walletUrl, windowName, windowOptions);
+      } else {
+        this.walletWindow.postMessage({
+          method: 'addFunds',
+          params: {
+            pubkey: this.payerAccount.publicKey.toString(),
+            amount: 150,
+            network: this.connectionUrl,
+          },
+        }, this.state.walletUrl);
+      }
+    }
+  }
+
+  async onWalletMessage(e) {
+    if (e.origin === window.location.origin) return;
+
+    if (e.data) {
+      switch (e.data.method) {
+        case 'ready': {
+          this.walletWindow.postMessage({
+            method: 'addFunds',
+            params: {
+              pubkey: this.payerAccount.publicKey.toString(),
+              amount: 150,
+              network: this.connectionUrl,
+            },
+          }, this.state.walletUrl);
+          break;
+        }
+        case 'addFundsResponse': {
+          const params = e.data.params;
+          let transactionSignature = null;
+          let snackMessage = 'Unexpected wallet response';
+          if (params.amount && params.signature) {
+            snackMessage = `Received ${params.amount} from wallet`;
+            transactionSignature = params.signature;
+          }
+          const payerBalance = await this.connection.getBalance(this.payerAccount.publicKey);
+          this.setState({payerBalance, snackMessage, transactionSignature});
+          break;
+        }
+      }
+    }
   }
 
   busy() {
@@ -162,7 +214,7 @@ class App extends React.Component {
     try {
       let userAuthenticated = false;
       let payerBalance = 0;
-      const {firstMessage, loginMethod, url, programId} = await getFirstMessage(
+      const {firstMessage, loginMethod, url, walletUrl, programId} = await getFirstMessage(
         this.configUrl,
       );
 
@@ -215,6 +267,7 @@ class App extends React.Component {
           busyLoading: true,
           messages: [],
           loginMethod,
+          walletUrl,
           payerBalance,
           userAuthenticated,
         });
@@ -270,10 +323,13 @@ class App extends React.Component {
     return (
       <React.Fragment>
         <div className={classes.funds}>
-          <Button variant="contained" color="secondary" onMouseOver={() => this.setState({balanceHovered: true})} onMouseOut={() => this.setState({balanceHovered: false})} onClick={() => {
-            window.open(this.buildAddFundsUrl(),'targetWindow', 'toolbar=no, location=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=500, height=600');
-            return false;
-          }}>
+          <Button
+            variant="contained"
+            color="secondary"
+            disabled={!this.state.walletUrl}
+            onMouseOver={() => this.setState({balanceHovered: true})}
+            onMouseOut={() => this.setState({balanceHovered: false})}
+            onClick={() => this.requestFunds()}>
             {text}
           </Button>
         </div>
@@ -560,10 +616,6 @@ class App extends React.Component {
     console.log('user is idle');
     this.setState({idle: true});
   };
-
-  buildAddFundsUrl = () => {
-    return `${this.walletUrl}?pubkey=${this.payerAccount.publicKey}&amount=150&neturl=${encodeURIComponent(this.connectionUrl)}`;
-  }
 
   onLogin = async () => {
     switch (this.state.loginMethod) {

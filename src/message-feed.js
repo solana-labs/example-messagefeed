@@ -273,6 +273,7 @@ export async function getFirstMessage(configUrl: string): Promise<Object> {
           loginMethod: config.loginMethod,
           programId: new PublicKey(config.programId),
           url: config.url,
+          walletUrl: config.walletUrl,
         };
       }
       console.log(`Waiting for message feed program to finish loading...`);
