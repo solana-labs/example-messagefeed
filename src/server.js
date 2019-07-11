@@ -6,7 +6,7 @@ import {Account, BpfLoader, Connection, PublicKey} from '@solana/web3.js';
 
 import {url} from '../url';
 import {newSystemAccountWithAirdrop} from './util/new-system-account-with-airdrop';
-import {createUser, postMessageWithProgramId} from './message-feed';
+import {createUser, generateUserAccount, postMessageWithProgramId} from './message-feed';
 
 const port = process.env.PORT || 8081;
 
@@ -59,10 +59,13 @@ async function createMessageFeed(
   console.log('Message feed program:', programId.toString());
   console.log('Posting first message...');
 
+  const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
+  const payerAccount = await newSystemAccountWithAirdrop(connection, 1000 + fee);
   const firstMessage = new Account();
   await postMessageWithProgramId(
     connection,
     programId,
+    payerAccount,
     null,
     firstMessage,
     'First post! 💫',
@@ -152,9 +155,12 @@ app.post('/login', async (req, res) => {
   } else {
     console.log(`Creating new account for user ${id}`);
     const connection = new Connection(url);
+    const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
+    const payerAccount = await newSystemAccountWithAirdrop(connection, 1000 + fee);
     const userAccount = await createUser(
       connection,
       messageFeedMeta.programId,
+      payerAccount,
       messageFeedMeta.firstMessage,
     );
 
