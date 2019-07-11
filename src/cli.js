@@ -7,6 +7,7 @@ import {
   postMessage,
   userLogin,
 } from './message-feed';
+import {newSystemAccountWithAirdrop} from './util/new-system-account-with-airdrop';
 import type {Message} from './message-feed';
 
 async function main() {
@@ -33,10 +34,13 @@ async function main() {
       baseUrl + '/login',
       credentials,
     );
+    const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
+    const payerAccount = await newSystemAccountWithAirdrop(connection, 1000 + fee);
     console.log('Posting message:', text);
     await postMessage(
       connection,
       userAccount,
+      payerAccount,
       text,
       messages[messages.length - 1].publicKey,
     );

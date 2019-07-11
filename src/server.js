@@ -6,7 +6,7 @@ import {Account, BpfLoader, Connection, PublicKey} from '@solana/web3.js';
 
 import {url} from '../url';
 import {newSystemAccountWithAirdrop} from './util/new-system-account-with-airdrop';
-import {createUser, generateUserAccount, postMessageWithProgramId} from './message-feed';
+import {createUser, postMessageWithProgramId} from './message-feed';
 
 const port = process.env.PORT || 8081;
 
