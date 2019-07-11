@@ -72,7 +72,13 @@ export async function createUser(
   messageAccount: Account,
 ): Promise<Account> {
   const transaction = new Transaction();
-  const userAccount = createUserAccount(connection, programId, payerAccount, messageAccount, transaction);
+  const userAccount = createUserAccount(
+    connection,
+    programId,
+    payerAccount,
+    messageAccount,
+    transaction,
+  );
   await sendAndConfirmTransaction(
     connection,
     transaction,
@@ -231,7 +237,13 @@ export async function postMessageWithProgramId(
 
   let userAccount = userAccountArg;
   if (userAccount === null) {
-    userAccount = createUserAccount(connection, programId, payerAccount, messageAccount, transaction);
+    userAccount = createUserAccount(
+      connection,
+      programId,
+      payerAccount,
+      messageAccount,
+      transaction,
+    );
   }
 
   // The second instruction in the transaction posts the message, optionally
@@ -241,7 +253,11 @@ export async function postMessageWithProgramId(
     {pubkey: messageAccount.publicKey, isSigner: true, isDebitable: false},
   ];
   if (previousMessagePublicKey) {
-    keys.push({pubkey: previousMessagePublicKey, isSigner: false, isDebitable: true});
+    keys.push({
+      pubkey: previousMessagePublicKey,
+      isSigner: false,
+      isDebitable: true,
+    });
 
     if (userToBan) {
       keys.push({pubkey: userToBan, isSigner: false, isDebitable: true});

@@ -145,22 +145,34 @@ class App extends React.Component {
 
   requestFunds() {
     const windowName = 'wallet';
-    const windowOptions = 'toolbar=no, location=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=500, height=600';
+    const windowOptions =
+      'toolbar=no, location=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=500, height=600';
     if (!this.walletWindow) {
-      window.addEventListener('message', (e) => this.onWalletMessage(e));
-      this.walletWindow = window.open(this.state.walletUrl, windowName, windowOptions);
+      window.addEventListener('message', e => this.onWalletMessage(e));
+      this.walletWindow = window.open(
+        this.state.walletUrl,
+        windowName,
+        windowOptions,
+      );
     } else {
       if (this.walletWindow.closed) {
-        this.walletWindow = window.open(this.state.walletUrl, windowName, windowOptions);
+        this.walletWindow = window.open(
+          this.state.walletUrl,
+          windowName,
+          windowOptions,
+        );
       } else {
-        this.walletWindow.postMessage({
-          method: 'addFunds',
-          params: {
-            pubkey: this.payerAccount.publicKey.toString(),
-            amount: 150,
-            network: this.connectionUrl,
+        this.walletWindow.postMessage(
+          {
+            method: 'addFunds',
+            params: {
+              pubkey: this.payerAccount.publicKey.toString(),
+              amount: 150,
+              network: this.connectionUrl,
+            },
           },
-        }, this.state.walletUrl);
+          this.state.walletUrl,
+        );
       }
     }
   }
@@ -171,14 +183,17 @@ class App extends React.Component {
     if (e.data) {
       switch (e.data.method) {
         case 'ready': {
-          this.walletWindow.postMessage({
-            method: 'addFunds',
-            params: {
-              pubkey: this.payerAccount.publicKey.toString(),
-              amount: 150,
-              network: this.connectionUrl,
+          this.walletWindow.postMessage(
+            {
+              method: 'addFunds',
+              params: {
+                pubkey: this.payerAccount.publicKey.toString(),
+                amount: 150,
+                network: this.connectionUrl,
+              },
             },
-          }, this.state.walletUrl);
+            this.state.walletUrl,
+          );
           break;
         }
         case 'addFundsResponse': {
@@ -189,7 +204,9 @@ class App extends React.Component {
             snackMessage = `Received ${params.amount} from wallet`;
             transactionSignature = params.signature;
           }
-          const payerBalance = await this.connection.getBalance(this.payerAccount.publicKey);
+          const payerBalance = await this.connection.getBalance(
+            this.payerAccount.publicKey,
+          );
           this.setState({payerBalance, snackMessage, transactionSignature});
           break;
         }
@@ -214,9 +231,13 @@ class App extends React.Component {
     try {
       let userAuthenticated = false;
       let payerBalance = 0;
-      const {firstMessage, loginMethod, url, walletUrl, programId} = await getFirstMessage(
-        this.configUrl,
-      );
+      const {
+        firstMessage,
+        loginMethod,
+        url,
+        walletUrl,
+        programId,
+      } = await getFirstMessage(this.configUrl);
 
       if (!this.programId || !programId.equals(this.programId)) {
         this.connection = new Connection(url);
@@ -244,10 +265,15 @@ class App extends React.Component {
           const savedPayerAccount = await localforage.getItem('payerAccount');
           if (savedPayerAccount !== null) {
             this.payerAccount = new Account(savedPayerAccount);
-            payerBalance = await this.connection.getBalance(this.payerAccount.publicKey);
+            payerBalance = await this.connection.getBalance(
+              this.payerAccount.publicKey,
+            );
           } else {
             this.payerAccount = new Account();
-            await localforage.setItem('payerAccount', this.payerAccount.secretKey);
+            await localforage.setItem(
+              'payerAccount',
+              this.payerAccount.secretKey,
+            );
           }
         } catch (err) {
           console.log(`Unable to fetch programId from localforage: ${err}`);
@@ -292,7 +318,9 @@ class App extends React.Component {
       for (;;) {
         const {postCount} = this;
         if (this.connection && this.payerAccount) {
-          const payerBalance = await this.connection.getBalance(this.payerAccount.publicKey);
+          const payerBalance = await this.connection.getBalance(
+            this.payerAccount.publicKey,
+          );
           this.setState({payerBalance});
         }
         await refreshMessageFeed(
@@ -319,7 +347,9 @@ class App extends React.Component {
 
   renderBalanceButton() {
     const {classes} = this.props;
-    const text = this.state.balanceHovered ? 'Add Funds' : `Balance: ${this.state.payerBalance}`;
+    const text = this.state.balanceHovered
+      ? 'Add Funds'
+      : `Balance: ${this.state.payerBalance}`;
     return (
       <React.Fragment>
         <div className={classes.funds}>
@@ -329,7 +359,8 @@ class App extends React.Component {
             disabled={!this.state.walletUrl}
             onMouseOver={() => this.setState({balanceHovered: true})}
             onMouseOut={() => this.setState({balanceHovered: false})}
-            onClick={() => this.requestFunds()}>
+            onClick={() => this.requestFunds()}
+          >
             {text}
           </Button>
         </div>
@@ -454,7 +485,12 @@ class App extends React.Component {
       newMessage = (
         <React.Fragment>
           <div className={classes.login}>
-            <Button disabled={this.state.loginMethod === 'none'} variant="contained" color="default" onClick={this.onLogin}>
+            <Button
+              disabled={this.state.loginMethod === 'none'}
+              variant="contained"
+              color="default"
+              onClick={this.onLogin}
+            >
               Login to start posting
             </Button>
           </div>
@@ -477,10 +513,7 @@ class App extends React.Component {
             >
               <ExploreIcon />
             </Button>
-            <Badge
-              color="secondary"
-              badgeContent={this.state.messages.length}
-            >
+            <Badge color="secondary" badgeContent={this.state.messages.length}>
               <Typography
                 className={classes.title}
                 variant="h6"
@@ -527,7 +560,8 @@ class App extends React.Component {
               <Button
                 color="secondary"
                 size="small"
-                href={this.blockExplorerLatestTransactionUrl()}>
+                href={this.blockExplorerLatestTransactionUrl()}
+              >
                 Transaction Details
               </Button>
             ) : (

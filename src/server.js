@@ -60,7 +60,10 @@ async function createMessageFeed(
   console.log('Posting first message...');
 
   const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
-  const payerAccount = await newSystemAccountWithAirdrop(connection, 1000 + fee);
+  const payerAccount = await newSystemAccountWithAirdrop(
+    connection,
+    1000 + fee,
+  );
   const firstMessage = new Account();
   await postMessageWithProgramId(
     connection,
@@ -157,7 +160,10 @@ app.post('/login', async (req, res) => {
     console.log(`Creating new account for user ${id}`);
     const connection = new Connection(url);
     const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
-    const payerAccount = await newSystemAccountWithAirdrop(connection, 1000 + fee);
+    const payerAccount = await newSystemAccountWithAirdrop(
+      connection,
+      1000 + fee,
+    );
     const userAccount = await createUser(
       connection,
       messageFeedMeta.programId,

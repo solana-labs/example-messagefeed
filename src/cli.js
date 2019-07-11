@@ -35,7 +35,10 @@ async function main() {
       credentials,
     );
     const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
-    const payerAccount = await newSystemAccountWithAirdrop(connection, 1000 + fee);
+    const payerAccount = await newSystemAccountWithAirdrop(
+      connection,
+      1000 + fee,
+    );
     console.log('Posting message:', text);
     await postMessage(
       connection,
