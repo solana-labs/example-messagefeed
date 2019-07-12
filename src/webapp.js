@@ -15,7 +15,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
-import MenuIcon from '@material-ui/icons/Menu';
+import ExploreIcon from '@material-ui/icons/Explore';
 import Paper from '@material-ui/core/Paper';
 import PauseIcon from '@material-ui/icons/Pause';
 import PropTypes from 'prop-types';
@@ -48,8 +48,12 @@ const styles = theme => ({
     flexGrow: 1,
   },
   menuButton: {
-    marginLeft: -12,
+    marginLeft: -6,
     marginRight: 20,
+    minWidth: 0,
+    [theme.breakpoints.up('sm')]: {
+      marginLeft: -12,
+    },
   },
   title: {
     display: 'none',
@@ -57,8 +61,9 @@ const styles = theme => ({
       display: 'block',
     },
   },
-  badge: {
-    padding: `0 ${theme.spacing.unit * 1.5}px`,
+  listitem: {
+    marginLeft: theme.spacing.unit,
+    marginRight: theme.spacing.unit,
   },
   message: {
     ...theme.mixins.gutters(),
@@ -74,16 +79,21 @@ const styles = theme => ({
     },
     marginRight: theme.spacing.unit * 2,
     marginLeft: 0,
-    width: '100%',
+    flexGrow: 1,
     [theme.breakpoints.up('sm')]: {
       marginLeft: theme.spacing.unit * 3,
-      width: '70%',
     },
   },
   login: {
     position: 'relative',
     marginLeft: theme.spacing.unit * 3,
     marginRight: theme.spacing.unit * 4,
+    whiteSpace: 'nowrap',
+  },
+  funds: {
+    position: 'relative',
+    marginRight: theme.spacing.unit * 5,
+    whiteSpace: 'nowrap',
   },
   inputRoot: {
     color: 'inherit',
@@ -104,6 +114,7 @@ class App extends React.Component {
     super(props);
 
     this.state = {
+      balanceHovered: false,
       banUserAlreadyBanned: false,
       banUserDialogOpen: false,
       banUserMessage: null,
@@ -115,7 +126,9 @@ class App extends React.Component {
       snackMessage: '',
       transactionSignature: null,
       userAuthenticated: false,
+      payerBalance: 0,
       loginMethod: 'none',
+      walletUrl: '',
     };
     this.programId = null;
     this.postCount = 0;
@@ -128,6 +141,80 @@ class App extends React.Component {
     this.loginUrl = baseUrl + '/login';
 
     this.onActive();
+  }
+
+  requestFunds() {
+    const windowName = 'wallet';
+    const windowOptions =
+      'toolbar=no, location=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=500, height=600';
+    if (!this.walletWindow) {
+      window.addEventListener('message', e => this.onWalletMessage(e));
+      this.walletWindow = window.open(
+        this.state.walletUrl,
+        windowName,
+        windowOptions,
+      );
+    } else {
+      if (this.walletWindow.closed) {
+        this.walletWindow = window.open(
+          this.state.walletUrl,
+          windowName,
+          windowOptions,
+        );
+      } else {
+        this.walletWindow.postMessage(
+          {
+            method: 'addFunds',
+            params: {
+              pubkey: this.payerAccount.publicKey.toString(),
+              amount: 150,
+              network: this.connectionUrl,
+            },
+          },
+          this.state.walletUrl,
+        );
+      }
+    }
+  }
+
+  async onWalletMessage(e) {
+    if (e.origin === window.location.origin) return;
+
+    if (e.data) {
+      switch (e.data.method) {
+        case 'ready': {
+          this.walletWindow.postMessage(
+            {
+              method: 'addFunds',
+              params: {
+                pubkey: this.payerAccount.publicKey.toString(),
+                amount: 150,
+                network: this.connectionUrl,
+              },
+            },
+            this.state.walletUrl,
+          );
+          break;
+        }
+        case 'addFundsResponse': {
+          const params = e.data.params;
+          let payerBalance = this.state.payerBalance;
+          let transactionSignature = null;
+          let snackMessage = 'Unexpected wallet response';
+          if (params.amount && params.signature) {
+            snackMessage = `Received ${params.amount} from wallet`;
+            transactionSignature = params.signature;
+            payerBalance = await this.connection.getBalance(
+              this.payerAccount.publicKey,
+            );
+          } else if (params.err) {
+            snackMessage = 'Funds request failed';
+          }
+          this.setState({payerBalance, snackMessage, transactionSignature});
+          break;
+        }
+      }
+    }
   }
 
   busy() {
@@ -146,9 +233,14 @@ class App extends React.Component {
     console.log('pollForFirstMessage');
     try {
       let userAuthenticated = false;
-      const {firstMessage, loginMethod, url, programId} = await getFirstMessage(
-        this.configUrl,
-      );
+      let payerBalance = 0;
+      const {
+        firstMessage,
+        loginMethod,
+        url,
+        walletUrl,
+        programId,
+      } = await getFirstMessage(this.configUrl);
 
       if (!this.programId || !programId.equals(this.programId)) {
         this.connection = new Connection(url);
@@ -156,6 +248,7 @@ class App extends React.Component {
         this.programId = programId;
         this.firstMessage = firstMessage;
         this.userAccount = null;
+        this.payerAccount = null;
 
         try {
           const savedProgramId = new PublicKey(
@@ -168,10 +261,25 @@ class App extends React.Component {
               'Restored user account:',
               this.userAccount.publicKey.toString(),
             );
+
             userAuthenticated = true;
           }
+
+          const savedPayerAccount = await localforage.getItem('payerAccount');
+          if (savedPayerAccount !== null) {
+            this.payerAccount = new Account(savedPayerAccount);
+            payerBalance = await this.connection.getBalance(
+              this.payerAccount.publicKey,
+            );
+          } else {
+            this.payerAccount = new Account();
+            await localforage.setItem(
+              'payerAccount',
+              this.payerAccount.secretKey,
+            );
+          }
         } catch (err) {
-          console.log(`Unable to store programId in localforage: ${err}`);
+          console.log(`Unable to fetch programId from localforage: ${err}`);
         }
 
         const matches = this.connectionUrl.match(
@@ -188,6 +296,8 @@ class App extends React.Component {
           busyLoading: true,
           messages: [],
           loginMethod,
+          walletUrl,
+          payerBalance,
           userAuthenticated,
         });
       }
@@ -210,6 +320,12 @@ class App extends React.Component {
       let {messages} = this.state;
       for (;;) {
         const {postCount} = this;
+        if (this.connection && this.payerAccount) {
+          const payerBalance = await this.connection.getBalance(
+            this.payerAccount.publicKey,
+          );
+          this.setState({payerBalance});
+        }
         await refreshMessageFeed(
           this.connection,
           messages,
@@ -232,6 +348,29 @@ class App extends React.Component {
     );
   }
 
+  renderBalanceButton() {
+    const {classes} = this.props;
+    const text = this.state.balanceHovered
+      ? 'Add Funds'
+      : `Balance: ${this.state.payerBalance}`;
+    return (
+      <React.Fragment>
+        <div className={classes.funds}>
+          <Button
+            variant="contained"
+            color="secondary"
+            disabled={!this.state.walletUrl}
+            onMouseOver={() => this.setState({balanceHovered: true})}
+            onMouseOut={() => this.setState({balanceHovered: false})}
+            onClick={() => this.requestFunds()}
+          >
+            {text}
+          </Button>
+        </div>
+      </React.Fragment>
+    );
+  }
+
   render() {
     const {classes} = this.props;
 
@@ -240,7 +379,7 @@ class App extends React.Component {
         const fromUser =
           this.userAccount && message.from.equals(this.userAccount.publicKey);
         return (
-          <List key={i} className={classes.root}>
+          <List key={i} className={classes.listitem}>
             <Paper className={classes.message}>
               <ListItem>
                 <ListItemText
@@ -347,11 +486,19 @@ class App extends React.Component {
       );
     } else {
       newMessage = (
-        <div className={classes.login}>
-          <Button variant="contained" color="default" onClick={this.onLogin}>
-            Login to start posting
-          </Button>
-        </div>
+        <React.Fragment>
+          <div className={classes.login}>
+            <Button
+              disabled={this.state.loginMethod === 'none'}
+              variant="contained"
+              color="default"
+              onClick={this.onLogin}
+            >
+              Login to start posting
+            </Button>
+          </div>
+          <div className={classes.grow} />
+        </React.Fragment>
       );
     }
 
@@ -359,20 +506,17 @@ class App extends React.Component {
       <div className={classes.root}>
         <AppBar position="static">
           <Toolbar>
-            <IconButton
+            <Button
+              variant="contained"
               disabled={!this.blockExplorerUrl}
-              onClick={this.onBlockExplorerTransactionsByProgram}
+              href={this.blockExplorerTransactionsByProgramUrl()}
               className={classes.menuButton}
-              color="inherit"
+              color="secondary"
               aria-label="Block explorer"
             >
-              <MenuIcon />
-            </IconButton>
-            <Badge
-              className={classes.badge}
-              color="secondary"
-              badgeContent={this.state.messages.length}
-            >
+              <ExploreIcon />
+            </Button>
+            <Badge color="secondary" badgeContent={this.state.messages.length}>
               <Typography
                 className={classes.title}
                 variant="h6"
@@ -383,13 +527,13 @@ class App extends React.Component {
               </Typography>
             </Badge>
             {newMessage}
+            {this.renderBalanceButton()}
             {this.state.idle ? <PauseIcon /> : ''}
             {this.busy() ? (
               <CircularProgress className={classes.progress} color="inherit" />
             ) : (
               ''
             )}
-            <div className={classes.grow} />
           </Toolbar>
         </AppBar>
         <IdleTimer
@@ -419,7 +563,7 @@ class App extends React.Component {
               <Button
                 color="secondary"
                 size="small"
-                onClick={this.onBlockExplorerLatestTransaction}
+                href={this.blockExplorerLatestTransactionUrl()}
               >
                 Transaction Details
               </Button>
@@ -458,6 +602,7 @@ class App extends React.Component {
 
       const transactionSignature = await postMessage(
         this.connection,
+        this.payerAccount,
         this.userAccount,
         newMessage,
         messages[messages.length - 1].publicKey,
@@ -570,17 +715,15 @@ class App extends React.Component {
     );
   };
 
-  onBlockExplorerTransactionsByProgram = () => {
+  blockExplorerTransactionsByProgramUrl = (): string | null => {
     if (!this.blockExplorerUrl) return;
-    window.open(`${this.blockExplorerUrl}/txns-by-prgid/${this.programId}`);
+    return `${this.blockExplorerUrl}/txns-by-prgid/${this.programId}`;
   };
 
-  onBlockExplorerLatestTransaction = () => {
+  blockExplorerLatestTransactionUrl = () => {
     if (!this.blockExplorerUrl) return;
     if (this.state.transactionSignature === null) return;
-    window.open(
-      `${this.blockExplorerUrl}/txn/${this.state.transactionSignature}`,
-    );
+    return `${this.blockExplorerUrl}/txns-by-prgid/${this.programId}`;
   };
 }
 App.propTypes = {

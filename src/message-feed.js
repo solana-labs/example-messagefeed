@@ -12,7 +12,6 @@ import fetch from 'node-fetch';
 import type {TransactionSignature} from '@solana/web3.js';
 
 import {publicKeyToName} from './util/publickey-to-name';
-import {newSystemAccountWithAirdrop} from './util/new-system-account-with-airdrop';
 import {sleep} from './util/sleep';
 
 export type Message = {
@@ -33,16 +32,15 @@ const publicKeyLayout = (property: string = 'publicKey'): Object => {
   return BufferLayout.blob(32, property);
 };
 
-export async function createUser(
+function createUserAccount(
   connection: Connection,
   programId: PublicKey,
-  firstMessageAccount: Account,
-): Promise<Account> {
-  const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
-  const payerAccount = await newSystemAccountWithAirdrop(connection, 10 + fee);
-  const transaction = new Transaction();
-
+  payerAccount: Account,
+  messageAccount: Account,
+  transaction: Transaction,
+): Account {
   const userAccount = new Account();
+
   // Allocate the user account
   transaction.add(
     SystemProgram.createAccount(
@@ -56,20 +54,37 @@ export async function createUser(
 
   // Initialize the user account
   const keys = [
-    {pubkey: userAccount.publicKey, isSigner: true},
-    {pubkey: firstMessageAccount.publicKey, isSigner: true},
+    {pubkey: userAccount.publicKey, isSigner: true, isDebitable: false},
+    {pubkey: messageAccount.publicKey, isSigner: true, isDebitable: false},
   ];
   transaction.add({
     keys,
     programId,
   });
 
+  return userAccount;
+}
+
+export async function createUser(
+  connection: Connection,
+  programId: PublicKey,
+  payerAccount: Account,
+  messageAccount: Account,
+): Promise<Account> {
+  const transaction = new Transaction();
+  const userAccount = createUserAccount(
+    connection,
+    programId,
+    payerAccount,
+    messageAccount,
+    transaction,
+  );
   await sendAndConfirmTransaction(
     connection,
     transaction,
     payerAccount,
     userAccount,
-    firstMessageAccount,
+    messageAccount,
   );
 
   return userAccount;
@@ -176,6 +191,7 @@ export async function refreshMessageFeed(
  */
 export async function postMessage(
   connection: Connection,
+  payerAccount: Account,
   userAccount: Account,
   text: string,
   previousMessage: PublicKey,
@@ -186,6 +202,7 @@ export async function postMessage(
   return postMessageWithProgramId(
     connection,
     messageData.programId,
+    payerAccount,
     userAccount,
     messageAccount,
     text,
@@ -195,16 +212,15 @@ export async function postMessage(
 }
 
 export async function postMessageWithProgramId(
-  connection,
+  connection: Connection,
   programId: PublicKey,
-  userAccount: Account | null,
+  payerAccount: Account,
+  userAccountArg: Account | null,
   messageAccount: Account,
   text: string,
   previousMessagePublicKey: PublicKey,
   userToBan: PublicKey | null = null,
 ): Promise<TransactionSignature> {
-  const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
-  const payerAccount = await newSystemAccountWithAirdrop(connection, 100 + fee);
   const transaction = new Transaction();
   const textBuffer = Buffer.from(text);
 
@@ -219,41 +235,32 @@ export async function postMessageWithProgramId(
     ),
   );
 
+  let userAccount = userAccountArg;
   if (userAccount === null) {
-    userAccount = new Account();
-    // Allocate the user account
-    transaction.add(
-      SystemProgram.createAccount(
-        payerAccount.publicKey,
-        userAccount.publicKey,
-        1,
-        1 + 32, // 32 = size of a public key
-        programId,
-      ),
-    );
-
-    // Initialize the user account
-    const keys = [
-      {pubkey: userAccount.publicKey, isSigner: true},
-      {pubkey: messageAccount.publicKey, isSigner: true},
-    ];
-    transaction.add({
-      keys,
+    userAccount = createUserAccount(
+      connection,
       programId,
-    });
+      payerAccount,
+      messageAccount,
+      transaction,
+    );
   }
 
   // The second instruction in the transaction posts the message, optionally
   // links it to the previous message and optionally bans another user
   const keys = [
-    {pubkey: userAccount.publicKey, isSigner: true},
-    {pubkey: messageAccount.publicKey, isSigner: true},
+    {pubkey: userAccount.publicKey, isSigner: true, isDebitable: false},
+    {pubkey: messageAccount.publicKey, isSigner: true, isDebitable: false},
   ];
   if (previousMessagePublicKey) {
-    keys.push({pubkey: previousMessagePublicKey, isSigner: false});
+    keys.push({
+      pubkey: previousMessagePublicKey,
+      isSigner: false,
+      isDebitable: true,
+    });
 
     if (userToBan) {
-      keys.push({pubkey: userToBan, isSigner: false});
+      keys.push({pubkey: userToBan, isSigner: false, isDebitable: true});
     }
   }
   transaction.add({
@@ -261,7 +268,7 @@ export async function postMessageWithProgramId(
     programId,
     data: textBuffer,
   });
-  return sendAndConfirmTransaction(
+  return await sendAndConfirmTransaction(
     connection,
     transaction,
     payerAccount,
@@ -282,6 +289,7 @@ export async function getFirstMessage(configUrl: string): Promise<Object> {
           loginMethod: config.loginMethod,
           programId: new PublicKey(config.programId),
           url: config.url,
+          walletUrl: config.walletUrl,
         };
       }
       console.log(`Waiting for message feed program to finish loading...`);
