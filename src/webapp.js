@@ -253,7 +253,11 @@ class App extends React.Component {
         try {
           const savedProgramId = await localforage.getItem('programId');
           const savedUserAccount = await localforage.getItem('userAccount');
-          if (savedUserAccount && savedProgramId && programId.equals(new PublicKey(savedProgramId))) {
+          if (
+            savedUserAccount &&
+            savedProgramId &&
+            programId.equals(new PublicKey(savedProgramId))
+          ) {
             this.userAccount = new Account(savedUserAccount);
             console.log(
               'Restored user account:',
@@ -468,10 +472,14 @@ class App extends React.Component {
 
     let newMessage;
     if (this.state.userAuthenticated) {
+      const zeroBalance = !this.state.payerBalance;
       newMessage = (
         <div className={classes.newmessage}>
           <InputBase
-            placeholder="Say something nice…"
+            disabled={zeroBalance}
+            placeholder={
+              zeroBalance ? 'First add funds →' : 'Say something nice…'
+            }
             value={this.state.newMessage}
             classes={{
               root: classes.inputRoot,
