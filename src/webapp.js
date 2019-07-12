@@ -251,11 +251,9 @@ class App extends React.Component {
         this.payerAccount = null;
 
         try {
-          const savedProgramId = new PublicKey(
-            await localforage.getItem('programId'),
-          );
+          const savedProgramId = await localforage.getItem('programId');
           const savedUserAccount = await localforage.getItem('userAccount');
-          if (savedUserAccount !== null && programId.equals(savedProgramId)) {
+          if (savedUserAccount && savedProgramId && programId.equals(new PublicKey(savedProgramId))) {
             this.userAccount = new Account(savedUserAccount);
             console.log(
               'Restored user account:',
