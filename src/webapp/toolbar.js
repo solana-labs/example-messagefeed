@@ -14,9 +14,16 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   funds: {
+    transition: 'margin-right 100ms linear, width 100ms linear',
     position: 'relative',
     marginRight: theme.spacing.unit * 5,
     whiteSpace: 'nowrap',
+  },
+  fundsHidden: {
+    [theme.breakpoints.down('sm')]: {
+      marginRight: 0,
+      width: 0,
+    },
   },
   fundsText: {
     display: 'flex',
@@ -82,6 +89,7 @@ class Toolbar extends React.Component {
     super(props);
     this.state = {
       balanceHovered: false,
+      messageInputFocused: false,
       newMessage: '',
     };
   }
@@ -166,6 +174,8 @@ class Toolbar extends React.Component {
               root: classes.inputRoot,
               input: classes.inputInput,
             }}
+            onFocus={() => this.setState({messageInputFocused: true})}
+            onBlur={() => this.setState({messageInputFocused: false})}
             onKeyDown={this.onInputKeyDown}
             onChange={this.onInputChange}
           />
@@ -196,8 +206,12 @@ class Toolbar extends React.Component {
     if (payerBalance === 0 || this.state.balanceHovered) {
       text.reverse();
     }
+    let className = classes.funds;
+    if (this.state.messageInputFocused) {
+      className += ` ${classes.fundsHidden}`;
+    }
     return (
-      <div className={classes.funds}>
+      <div className={className}>
         <Button
           variant="contained"
           color="secondary"
