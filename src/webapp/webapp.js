@@ -7,38 +7,29 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
 import IdleTimer from 'react-idle-timer';
 import InputBase from '@material-ui/core/InputBase';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemText from '@material-ui/core/ListItemText';
 import ExploreIcon from '@material-ui/icons/Explore';
-import Paper from '@material-ui/core/Paper';
 import PauseIcon from '@material-ui/icons/Pause';
 import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import ReportIcon from '@material-ui/icons/Report';
 import Snackbar from '@material-ui/core/Snackbar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import escapeHtml from 'escape-html';
 import {Account, Connection, PublicKey} from '@solana/web3.js';
 import {fade} from '@material-ui/core/styles/colorManipulator';
 import {withStyles} from '@material-ui/core/styles';
 import localforage from 'localforage';
 
-//import {sleep} from './util/sleep';
+import MessageList from './message-list';
 import {
   getFirstMessage,
   postMessage,
   refreshMessageFeed,
   userBanned,
   userLogin,
-} from './message-feed';
+} from '../message-feed';
 
 const styles = theme => ({
   root: {
@@ -396,40 +387,6 @@ class App extends React.Component {
   render() {
     const {classes} = this.props;
 
-    const messages = this.state.messages
-      .map((message, i) => {
-        const fromUser =
-          this.userAccount && message.from.equals(this.userAccount.publicKey);
-        return (
-          <List key={i} className={classes.listitem}>
-            <Paper className={classes.message}>
-              <ListItem>
-                <ListItemText
-                  primary={escapeHtml(message.text)}
-                  secondary={
-                    'Posted by ' + message.name + (fromUser ? ' (you)' : '')
-                  }
-                />
-                <ListItemSecondaryAction>
-                  {!this.state.userAuthenticated || fromUser || i === 0 ? (
-                    ''
-                  ) : (
-                    <IconButton
-                      edge="end"
-                      aria-label="Report"
-                      onClick={() => this.onBanUser(message)}
-                    >
-                      <ReportIcon />
-                    </IconButton>
-                  )}
-                </ListItemSecondaryAction>
-              </ListItem>
-            </Paper>
-          </List>
-        );
-      })
-      .reverse();
-
     let banUserDialog;
     if (this.state.banUserMessage !== null) {
       const user = this.state.banUserMessage.name;
@@ -569,9 +526,12 @@ class App extends React.Component {
           debounce={250}
           timeout={1000 * 60 * 15}
         />
-        <Grid item xs>
-          {messages}
-        </Grid>
+        <MessageList
+          messages={this.state.messages}
+          payerBalance={this.state.payerBalance}
+          userAccount={this.userAccount}
+          userAuthenticated={this.state.userAuthenticated}
+        />
         <Snackbar
           open={this.state.snackMessage !== ''}
           anchorOrigin={{
