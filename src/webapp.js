@@ -134,8 +134,12 @@ class App extends React.Component {
     this.postCount = 0;
 
     let baseUrl = window.location.origin;
-    if (window.location.hostname === 'localhost') {
-      baseUrl = 'http://localhost:8081';
+    let hostname = window.location.hostname;
+    switch (hostname) {
+      case 'localhost':
+      case '127.0.0.1':
+      case '0.0.0.0':
+        baseUrl = 'http://' + hostname + ':8081';
     }
     this.configUrl = baseUrl + '/config.json';
     this.loginUrl = baseUrl + '/login';
