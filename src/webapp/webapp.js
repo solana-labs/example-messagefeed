@@ -1,28 +1,20 @@
-import AppBar from '@material-ui/core/AppBar';
-import Badge from '@material-ui/core/Badge';
 import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import IdleTimer from 'react-idle-timer';
-import InputBase from '@material-ui/core/InputBase';
-import ExploreIcon from '@material-ui/icons/Explore';
-import PauseIcon from '@material-ui/icons/Pause';
 import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Snackbar from '@material-ui/core/Snackbar';
-import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
 import {Account, Connection, PublicKey} from '@solana/web3.js';
-import {fade} from '@material-ui/core/styles/colorManipulator';
 import {withStyles} from '@material-ui/core/styles';
 import localforage from 'localforage';
 
 import MessageList from './message-list';
+import Toolbar from './toolbar';
 import {
   getFirstMessage,
   postMessage,
@@ -31,79 +23,8 @@ import {
   userLogin,
 } from '../message-feed';
 
-const styles = theme => ({
+const styles = () => ({
   root: {
-    width: '100%',
-  },
-  grow: {
-    flexGrow: 1,
-  },
-  menuButton: {
-    marginLeft: -6,
-    marginRight: 20,
-    minWidth: 0,
-    [theme.breakpoints.up('sm')]: {
-      marginLeft: -12,
-    },
-  },
-  title: {
-    display: 'none',
-    [theme.breakpoints.up('sm')]: {
-      display: 'block',
-    },
-  },
-  listitem: {
-    marginLeft: theme.spacing.unit,
-    marginRight: theme.spacing.unit,
-  },
-  message: {
-    ...theme.mixins.gutters(),
-    paddingTop: theme.spacing.unit * 2,
-    paddingBottom: theme.spacing.unit * 2,
-  },
-  newmessage: {
-    position: 'relative',
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: fade(theme.palette.common.white, 0.15),
-    '&:hover': {
-      backgroundColor: fade(theme.palette.common.white, 0.25),
-    },
-    marginRight: theme.spacing.unit * 2,
-    marginLeft: 0,
-    flexGrow: 1,
-    [theme.breakpoints.up('sm')]: {
-      marginLeft: theme.spacing.unit * 3,
-    },
-  },
-  login: {
-    position: 'relative',
-    marginLeft: theme.spacing.unit * 3,
-    marginRight: theme.spacing.unit * 4,
-    whiteSpace: 'nowrap',
-  },
-  funds: {
-    position: 'relative',
-    marginRight: theme.spacing.unit * 5,
-    whiteSpace: 'nowrap',
-  },
-  fundsText: {
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  hiddenFundsText: {
-    visibility: 'hidden',
-    height: 0,
-  },
-  inputRoot: {
-    color: 'inherit',
-    width: '100%',
-  },
-  inputInput: {
-    paddingTop: theme.spacing.unit,
-    paddingRight: theme.spacing.unit * 2,
-    paddingBottom: theme.spacing.unit,
-    paddingLeft: theme.spacing.unit * 2,
-    transition: theme.transitions.create('width'),
     width: '100%',
   },
 });
@@ -113,15 +34,14 @@ class App extends React.Component {
     super(props);
 
     this.state = {
-      balanceHovered: false,
       banUserAlreadyBanned: false,
       banUserDialogOpen: false,
       banUserMessage: null,
       busyLoading: true,
+      busyLoggingIn: false,
       busyPosting: false,
       idle: false,
       messages: [],
-      newMessage: '',
       snackMessage: '',
       transactionSignature: null,
       userAuthenticated: false,
@@ -220,12 +140,6 @@ class App extends React.Component {
         }
       }
     }
-  }
-
-  busy() {
-    return (
-      (this.state.busyLoading || this.state.busyPosting) && !this.state.idle
-    );
   }
 
   // Periodically polls for a new program id, which indicates either a cluster reset
@@ -355,37 +269,6 @@ class App extends React.Component {
     );
   }
 
-  renderBalanceButton() {
-    const {classes} = this.props;
-    const text =  [
-      `Balance: ${this.state.payerBalance}`,
-      'Add Funds',
-    ];
-    if (this.state.payerBalance === 0 || this.state.balanceHovered) {
-      text.reverse();
-    }
-    return (
-      <React.Fragment>
-        <div className={classes.funds}>
-          <Button
-            variant="contained"
-            color="secondary"
-            disabled={!this.state.walletUrl}
-            onMouseOver={() => this.setState({balanceHovered: true})}
-            onMouseOut={() => this.setState({balanceHovered: false})}
-            onClick={() => this.requestFunds()}
-          >
-            {/* Ensures that button width is not changed on hover  */}
-            <div className={classes.fundsText}>
-              <span>{text[0]}</span>
-              <span className={classes.hiddenFundsText}>{text[1]}</span>
-            </div>
-          </Button>
-        </div>
-      </React.Fragment>
-    );
-  }
-
   render() {
     const {classes} = this.props;
 
@@ -449,78 +332,22 @@ class App extends React.Component {
       }
     }
 
-    let newMessage;
-    if (this.state.userAuthenticated) {
-      const zeroBalance = !this.state.payerBalance;
-      newMessage = (
-        <div className={classes.newmessage}>
-          <InputBase
-            disabled={zeroBalance}
-            placeholder={
-              zeroBalance ? 'First add funds →' : 'Say something nice…'
-            }
-            value={this.state.newMessage}
-            classes={{
-              root: classes.inputRoot,
-              input: classes.inputInput,
-            }}
-            onKeyDown={this.onInputKeyDown}
-            onChange={this.onInputChange}
-          />
-        </div>
-      );
-    } else {
-      newMessage = (
-        <React.Fragment>
-          <div className={classes.login}>
-            <Button
-              disabled={this.state.loginMethod === 'none'}
-              variant="contained"
-              color="default"
-              onClick={this.onLogin}
-            >
-              Login to start posting
-            </Button>
-          </div>
-          <div className={classes.grow} />
-        </React.Fragment>
-      );
-    }
-
+    const {busyLoading, busyPosting, busyLoggingIn} = this.state;
     return (
       <div className={classes.root}>
-        <AppBar position="static">
-          <Toolbar>
-            <Button
-              variant="contained"
-              disabled={!this.blockExplorerUrl}
-              href={this.blockExplorerTransactionsByProgramUrl()}
-              className={classes.menuButton}
-              color="secondary"
-              aria-label="Block explorer"
-            >
-              <ExploreIcon />
-            </Button>
-            <Badge color="secondary" badgeContent={this.state.messages.length}>
-              <Typography
-                className={classes.title}
-                variant="h6"
-                color="inherit"
-                noWrap
-              >
-                Message Feed
-              </Typography>
-            </Badge>
-            {newMessage}
-            {this.renderBalanceButton()}
-            {this.state.idle ? <PauseIcon /> : ''}
-            {this.busy() ? (
-              <CircularProgress className={classes.progress} color="inherit" />
-            ) : (
-              ''
-            )}
-          </Toolbar>
-        </AppBar>
+        <Toolbar
+          busy={busyLoading || busyPosting || busyLoggingIn}
+          explorerUrl={this.blockExplorerTransactionsByProgramUrl()}
+          idle={this.state.idle}
+          loginDisabled={this.state.loginMethod === 'none'}
+          messageCount={this.state.messages.length}
+          onLogin={() => this.onLogin()}
+          onPostMessage={msg => this.postMessage(msg)}
+          onRequestFunds={() => this.requestFunds()}
+          payerBalance={this.state.payerBalance}
+          userAuthenticated={this.state.userAuthenticated}
+          walletDisabled={!this.state.walletUrl}
+        />
         <IdleTimer
           element={document}
           onActive={this.onActive}
@@ -567,7 +394,7 @@ class App extends React.Component {
 
   async postMessage(newMessage: string, userToBan = null) {
     if (newMessage.length === 0) {
-      return;
+      return false;
     }
 
     if (this.state.busyPosting) {
@@ -575,7 +402,7 @@ class App extends React.Component {
         snackMessage: 'Unable to post message, please retry when not busy',
         transactionSignature: null,
       });
-      return;
+      return false;
     }
     this.setState({busyPosting: true});
     const {messages} = this.state;
@@ -585,7 +412,7 @@ class App extends React.Component {
           snackMessage: 'You are banned',
           transactionSignature: null,
         });
-        return;
+        return false;
       }
 
       const transactionSignature = await postMessage(
@@ -600,28 +427,18 @@ class App extends React.Component {
       this.setState({
         snackMessage: 'Message posted',
         transactionSignature,
-        newMessage: '',
       });
     } catch (err) {
       console.error(`Failed to post message: ${err}`);
       this.setState({
         snackMessage: 'An error occured when posting the message',
       });
+      return false;
     } finally {
       this.setState({busyPosting: false});
     }
+    return true;
   }
-
-  onInputKeyDown = e => {
-    if (e.keyCode !== 13) {
-      return;
-    }
-    this.postMessage(this.state.newMessage);
-  };
-
-  onInputChange = e => {
-    this.setState({newMessage: e.target.value});
-  };
 
   onSnackClose = () => {
     this.setState({
@@ -650,13 +467,19 @@ class App extends React.Component {
         );
       case 'local': {
         const credentials = {id: new Account().publicKey.toString()};
-        this.userAccount = await userLogin(
-          this.connection,
-          this.programId,
-          this.loginUrl,
-          credentials,
-        );
-        this.setState({userAuthenticated: true});
+        let userAuthenticated = this.state.userAuthenticated;
+        this.setState({busyLoggingIn: true});
+        try {
+          this.userAccount = await userLogin(
+            this.connection,
+            this.programId,
+            this.loginUrl,
+            credentials,
+          );
+          userAuthenticated = true;
+        } finally {
+          this.setState({busyLoggingIn: false, userAuthenticated});
+        }
         break;
       }
       default:

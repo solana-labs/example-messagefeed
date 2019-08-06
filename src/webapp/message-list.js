@@ -21,19 +21,17 @@ const styles = theme => ({
 });
 
 class MessageList extends React.Component {
-
   render() {
     const {messages, userAccount} = this.props;
-    const renderMessages = messages.map((message, index) => {
-      const fromUser = userAccount && message.from.equals(userAccount.publicKey);
-      return this.renderMessage(message, index, fromUser);
-    }).reverse();
+    const renderMessages = messages
+      .map((message, index) => {
+        const fromUser =
+          userAccount && message.from.equals(userAccount.publicKey);
+        return this.renderMessage(message, index, fromUser);
+      })
+      .reverse();
 
-    return (
-      <List>
-        {renderMessages}
-      </List>
-    );
+    return <List>{renderMessages}</List>;
   }
 
   renderMessage(message, index, fromUser) {
