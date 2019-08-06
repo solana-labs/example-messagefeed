@@ -95,6 +95,14 @@ const styles = theme => ({
     marginRight: theme.spacing.unit * 5,
     whiteSpace: 'nowrap',
   },
+  fundsText: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  hiddenFundsText: {
+    visibility: 'hidden',
+    height: 0,
+  },
   inputRoot: {
     color: 'inherit',
     width: '100%',
@@ -356,9 +364,13 @@ class App extends React.Component {
 
   renderBalanceButton() {
     const {classes} = this.props;
-    const text = this.state.balanceHovered
-      ? 'Add Funds'
-      : `Balance: ${this.state.payerBalance}`;
+    const text =  [
+      `Balance: ${this.state.payerBalance}`,
+      'Add Funds',
+    ];
+    if (this.state.payerBalance === 0 || this.state.balanceHovered) {
+      text.reverse();
+    }
     return (
       <React.Fragment>
         <div className={classes.funds}>
@@ -370,7 +382,11 @@ class App extends React.Component {
             onMouseOut={() => this.setState({balanceHovered: false})}
             onClick={() => this.requestFunds()}
           >
-            {text}
+            {/* Ensures that button width is not changed on hover  */}
+            <div className={classes.fundsText}>
+              <span>{text[0]}</span>
+              <span className={classes.hiddenFundsText}>{text[1]}</span>
+            </div>
           </Button>
         </div>
       </React.Fragment>
