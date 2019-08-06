@@ -142,7 +142,9 @@ class App extends React.Component {
     }
     this.configUrl = baseUrl + '/config.json';
     this.loginUrl = baseUrl + '/login';
+  }
 
+  componentDidMount() {
     this.onActive();
   }
 
