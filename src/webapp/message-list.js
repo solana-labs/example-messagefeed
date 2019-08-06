@@ -38,7 +38,6 @@ class MessageList extends React.Component {
 
   renderMessage(message, index, fromUser) {
     const {classes, userAuthenticated, payerBalance} = this.props;
-    console.log({index, fromUser, userAuthenticated});
     const showReportAction = userAuthenticated && !fromUser && index !== 0;
     const reportDisabled = payerBalance === 0;
     const reportAction = showReportAction ? (
