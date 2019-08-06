@@ -49,4 +49,9 @@ module.exports = {
     'require-await': ['error'],
     semi: ['error', 'always'],
   },
+  settings: {
+    react: {
+      version: 'detect',
+    },
+  },
 };
