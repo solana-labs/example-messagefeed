@@ -13,6 +13,9 @@ import {fade} from '@material-ui/core/styles/colorManipulator';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
+  bar: {
+    overflow: 'hidden',
+  },
   funds: {
     transition: 'margin-right 100ms linear, width 100ms linear',
     position: 'relative',
@@ -82,6 +85,16 @@ const styles = theme => ({
       display: 'block',
     },
   },
+  hideSmall: {
+    [theme.breakpoints.down('sm')]: {
+      display: 'none',
+    },
+  },
+  hideNotSmall: {
+    [theme.breakpoints.up('sm')]: {
+      display: 'none',
+    },
+  },
 });
 
 class Toolbar extends React.Component {
@@ -121,7 +134,7 @@ class Toolbar extends React.Component {
     );
 
     return (
-      <AppBar position="static">
+      <AppBar position="static" className={classes.bar}>
         <MaterialToolbar>
           <Button
             variant="contained"
@@ -191,7 +204,8 @@ class Toolbar extends React.Component {
               color="default"
               onClick={onLogin}
             >
-              Login to start posting
+              <span className={classes.hideSmall}>Login to start posting</span>
+              <span className={classes.hideNotSmall}>Login</span>
             </Button>
           </div>
           <div className={classes.grow} />
