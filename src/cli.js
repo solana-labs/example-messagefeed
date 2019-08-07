@@ -2,7 +2,7 @@
 import {Account, Connection} from '@solana/web3.js';
 
 import {
-  getFirstMessage,
+  getConfig,
   refreshMessageFeed,
   postMessage,
   userLogin,
@@ -14,7 +14,7 @@ async function main() {
   const text = process.argv.splice(2).join(' ');
 
   const baseUrl = 'http://localhost:8081';
-  const {firstMessage, loginMethod, programId, url} = await getFirstMessage(
+  const {firstMessage, loginMethod, programId, url} = await getConfig(
     baseUrl + '/config.json',
   );
 

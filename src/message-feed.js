@@ -277,7 +277,7 @@ export async function postMessageWithProgramId(
   );
 }
 
-export async function getFirstMessage(configUrl: string): Promise<Object> {
+export async function getConfig(configUrl: string): Promise<Object> {
   for (;;) {
     try {
       const response = await fetch(configUrl);

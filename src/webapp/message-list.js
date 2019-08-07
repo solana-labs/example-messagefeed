@@ -43,7 +43,7 @@ class MessageList extends React.Component {
         <IconButton
           edge="end"
           aria-label="Report"
-          onClick={() => this.onBanUser(message)}
+          onClick={() => this.props.onBanUser(message)}
           disabled={reportDisabled}
         >
           <ReportIcon />
@@ -69,6 +69,7 @@ class MessageList extends React.Component {
 MessageList.propTypes = {
   classes: PropTypes.object.isRequired,
   messages: PropTypes.array.isRequired,
+  onBanUser: PropTypes.func.isRequired,
   payerBalance: PropTypes.number.isRequired,
   userAccount: PropTypes.object,
   userAuthenticated: PropTypes.bool.isRequired,
