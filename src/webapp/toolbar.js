@@ -153,7 +153,7 @@ class Toolbar extends React.Component {
               color="inherit"
               noWrap
             >
-              Message Feed
+              Solana Feed
             </Typography>
           </Badge>
           {this.renderMessageInput()}

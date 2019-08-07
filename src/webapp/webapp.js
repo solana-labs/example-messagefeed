@@ -5,15 +5,21 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import IdleTimer from 'react-idle-timer';
+import Paper from '@material-ui/core/Paper';
 import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Snackbar from '@material-ui/core/Snackbar';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 import {withStyles} from '@material-ui/core/styles';
 
 import Api from './api';
 import MessageList from './message-list';
 import Toolbar from './toolbar';
+
+const MESSAGES_TAB = 0;
+const POLLS_TAB = 1;
 
 const styles = () => ({
   root: {
@@ -40,6 +46,7 @@ class App extends React.Component {
       userAccount: null,
       payerBalance: 0,
       programId: null,
+      selectedTab: 0,
       walletUrl: '',
     };
 
@@ -93,6 +100,26 @@ class App extends React.Component {
 
   requestFunds() {
     this.api.requestFunds(res => this.setState(res));
+  }
+
+  showTabPage() {
+    switch (this.state.selectedTab) {
+      case MESSAGES_TAB: {
+        return (
+          <MessageList
+            messages={this.state.messages}
+            onBanUser={msg => this.onBanUser(msg)}
+            payerBalance={this.state.payerBalance}
+            userAccount={this.state.userAccount}
+            userAuthenticated={!!this.state.userAccount}
+          />
+        );
+      }
+      case POLLS_TAB: {
+        return null;
+      }
+      default: return null;
+    }
   }
 
   render() {
@@ -181,13 +208,19 @@ class App extends React.Component {
           debounce={250}
           timeout={1000 * 60 * 15}
         />
-        <MessageList
-          messages={this.state.messages}
-          onBanUser={msg => this.onBanUser(msg)}
-          payerBalance={this.state.payerBalance}
-          userAccount={this.state.userAccount}
-          userAuthenticated={!!this.state.userAccount}
-        />
+        <Paper square={true}>
+          <Tabs
+            value={this.state.selectedTab}
+            onChange={(e, selectedTab) => this.setState({selectedTab})}
+            indicatorColor="primary"
+            textColor="primary"
+            centered
+          >
+            <Tab label="Messages" />
+            <Tab label="Polls" />
+          </Tabs>
+        </Paper>
+        {this.showTabPage()}
         <Snackbar
           open={this.state.snackMessage !== ''}
           anchorOrigin={{
