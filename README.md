@@ -90,8 +90,8 @@ your environment (see [url.js](https://github.com/solana-labs/example-messagefee
 ### Build the on-chain program
 
 Two versions of the program are provided, one written in C and the other in
-Rust.  The build process for each produce the same a BPF ELF shared object
-called `dist/program/messagefeed.so`.  They are interchangable so just pick one
+Rust.  The build processes for each version produce a BPF ELF shared object
+called `dist/programs/messagefeed.so`.  They are interchangeable so just pick one
 to use.
 
 #### BPF C

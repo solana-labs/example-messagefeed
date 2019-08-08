@@ -2,5 +2,5 @@
 *.sw[po]
 /dist/*bundle.js
 /dist/*worker.js
-/dist/program/
+/dist/programs/
 /.cargo
