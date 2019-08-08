@@ -113,8 +113,8 @@ $ npm run build:bpf-rust
 ```
 
 ### Start the web server
-The message feed program is deployed by the web server at `src/server.js`, so
-start it first:
+The message feed program is deployed by the web server at `src/server/main.js`,
+so start it first:
 ```sh
 $ npm run start-server
 ```
