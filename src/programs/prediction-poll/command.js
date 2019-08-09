@@ -12,6 +12,7 @@ const COMMAND_LENGTH = 8;
 
 const Command = {
   InitCollection: 0,
+  InitPoll: 1,
 };
 
 function zeroPad(command: Buffer): Buffer {
@@ -34,6 +35,10 @@ function commandWithNoArgs(command: number): Buffer {
 
 export function initCollection(): Buffer {
   return commandWithNoArgs(Command.InitCollection);
+}
+
+export function initPoll(): Buffer {
+  return commandWithNoArgs(Command.InitPoll);
 }
 
 /**

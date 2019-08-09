@@ -3,6 +3,7 @@ import localforage from 'localforage';
 
 import {getConfig, userLogin} from '../../client';
 import MessageFeedApi from './message-feed';
+import PredictionPollApi from './prediction-poll';
 
 export default class Api {
   constructor() {
@@ -16,6 +17,7 @@ export default class Api {
     }
 
     this.messageFeed = new MessageFeedApi();
+    this.predictionPoll = new PredictionPollApi();
     this.configUrl = baseUrl + '/config.json';
     this.loginUrl = baseUrl + '/login';
   }
@@ -34,10 +36,15 @@ export default class Api {
     this.messageFeed.subscribe(onMessages);
   }
 
+  subscribePolls(onPolls) {
+    this.predictionPoll.subscribe(onPolls);
+  }
+
   unsubscribe() {
     this.balanceCallback = null;
     this.configCallback = null;
     this.messageFeed.unsubscribe();
+    this.predictionPoll.unsubscribe();
   }
 
   explorerUrl() {
@@ -61,6 +68,7 @@ export default class Api {
       const {
         loginMethod,
         messageFeed,
+        predictionPoll,
         url,
         walletUrl,
       } = await getConfig(this.configUrl);
@@ -78,6 +86,14 @@ export default class Api {
         );
       } catch (err) {
         console.error('failed to update message feed config', err);
+      }
+
+      try {
+        Object.assign(response,
+          await this.predictionPoll.updateConfig(this.connection, predictionPoll)
+        );
+      } catch (err) {
+        console.error('failed to update poll config', err);
       }
 
       if (this.configCallback) {

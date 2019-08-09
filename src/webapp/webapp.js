@@ -78,6 +78,10 @@ class App extends React.Component {
         messages,
       });
     });
+
+    this.api.subscribePolls(polls => {
+      console.log({polls});
+    });
   }
 
   onIdle() {

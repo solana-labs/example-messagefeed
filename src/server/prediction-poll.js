@@ -85,7 +85,19 @@ export default class PollController {
         payerAccount.publicKey,
         collectionAccount.publicKey,
         programFunds,
+        // TODO add more data
         32 + 32 + 32, // 32 = size of a public key
+        programId,
+      )
+    );
+
+    const pollAccount = new Account();
+    transaction.add(
+      SystemProgram.createAccount(
+        payerAccount.publicKey,
+        pollAccount.publicKey,
+        1,
+        300,
         programId,
       ),
     );
@@ -96,6 +108,15 @@ export default class PollController {
       ],
       programId,
       data: ProgramCommand.initCollection(),
+    });
+
+    transaction.add({
+      keys: [
+        {pubkey: collectionAccount.publicKey, isSigner: true, isDebitable: true},
+        {pubkey: pollAccount.publicKey, isSigner: false, isDebitable: false},
+      ],
+      programId,
+      data: ProgramCommand.initPoll(),
     });
 
     await sendAndConfirmTransaction(
