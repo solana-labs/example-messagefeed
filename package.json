@@ -68,7 +68,7 @@
     "moment": "^2.22.2",
     "mz": "^2.7.0",
     "node-fetch": "^2.6.0",
-    "react": "^16.8.6",
+    "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "react-idle-timer": "^4.2.8",
     "readline-promise": "^1.0.3",
