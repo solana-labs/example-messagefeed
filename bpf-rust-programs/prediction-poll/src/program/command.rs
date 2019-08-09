@@ -6,5 +6,6 @@ use serde::{Deserialize, Serialize};
 #[allow(dead_code)]
 pub enum Command {
     InitCollection,
+    InitPoll,
 }
 impl SimpleSerde for Command {}

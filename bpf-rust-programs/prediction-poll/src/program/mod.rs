@@ -15,6 +15,7 @@ pub fn process_instruction(
     let command = Command::deserialize(data)?;
     match command {
         Command::InitCollection => init_collection(keyed_accounts)?,
+        Command::InitPoll => init_poll(keyed_accounts)?,
     }
 
     Ok(())
@@ -37,6 +38,24 @@ fn init_collection(keyed_accounts: &mut [SolKeyedAccount]) -> ProgramResult<()> 
         }
     }?;
 
+    collection.serialize(&mut keyed_accounts[COLLECTION_INDEX].data)?;
+    Ok(())
+}
+
+fn init_poll(keyed_accounts: &mut [SolKeyedAccount]) -> ProgramResult<()> {
+    const COLLECTION_INDEX: usize = 0;
+    const POLL_INDEX: usize = 1;
+    expect_n_accounts(keyed_accounts, 2)?;
+    let collection =
+        <Option<Collection> as SimpleSerde>::deserialize(&keyed_accounts[COLLECTION_INDEX].data)?;
+
+    if collection.is_none() {
+        info!("Invalid collection state for InitCollection");
+        return Err(ProgramError::InvalidInput);
+    }
+
+    let mut collection = collection.unwrap();
+    collection.add_poll(&keyed_accounts[POLL_INDEX].key)?;
     collection.serialize(&mut keyed_accounts[COLLECTION_INDEX].data)?;
     Ok(())
 }
