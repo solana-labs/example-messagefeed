@@ -4,13 +4,16 @@ import path from 'path';
 
 import {url, walletUrl} from '../../urls';
 import {newSystemAccountWithAirdrop} from '../util/new-system-account-with-airdrop';
-import {createUser, postMessageWithProgramId} from '../message-feed';
-import {MessageFeedController} from './message-feed';
+import MessageController from './message-feed';
+import PollController from './prediction-poll';
+import * as MessageFeedProgram from '../programs/message-feed';
 import {Connection} from '@solana/web3.js';
 
 const port = process.env.PORT || 8081;
 
-const messageFeedController = new MessageFeedController();
+const messageController = new MessageController();
+const pollController = new PollController();
+
 const loginMethod = process.env.LOGIN_METHOD || 'local';
 switch (loginMethod) {
   case 'local':
@@ -25,11 +28,18 @@ const app = express();
 app.use(cors());
 app.use(express.json()); // for parsing application/json
 app.get('/config.json', async (req, res) => {
-  const meta = await messageFeedController.checkMessageFeed();
+  const messageMeta = await messageController.getMeta();
+  const pollMeta = await pollController.getMeta();
   const response = {
-    loading: !meta,
-    firstMessage: meta ? meta.firstMessage.publicKey.toString() : null,
-    programId: meta ? meta.programId.toString() : null,
+    loading: !messageMeta || !pollMeta,
+    messageFeed: messageMeta ? {
+      firstMessage: messageMeta.firstMessage.publicKey.toString(),
+      programId: messageMeta.programId.toString(),
+    } : null,
+    predictionPoll: pollMeta ? {
+      programId: pollMeta.programId.toString(),
+      collection: pollMeta.collection.publicKey.toString(),
+    } : null,
     loginMethod,
     url,
     walletUrl,
@@ -40,7 +50,7 @@ app.get('/config.json', async (req, res) => {
 
 const users = {};
 app.post('/login', async (req, res) => {
-  const meta = await messageFeedController.checkMessageFeed();
+  const meta = await messageController.getMeta();
   if (!meta) {
     res.status(500).send('Loading');
     return;
@@ -72,7 +82,7 @@ app.post('/login', async (req, res) => {
       connection,
       1000 + fee,
     );
-    const userAccount = await createUser(
+    const userAccount = await MessageFeedProgram.createUser(
       connection,
       meta.programId,
       payerAccount,
@@ -96,4 +106,5 @@ console.log('Cluster RPC URL:', url);
 console.log('Listening on port', port);
 
 // Load the program immediately so the first client doesn't need to wait as long
-messageFeedController.checkMessageFeed().catch(err => console.log(err));
+messageController.reload().catch(err => console.log(err));
+pollController.reload().catch(err => console.log(err));

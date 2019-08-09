@@ -1,13 +1,8 @@
-import {Account, Connection, PublicKey} from '@solana/web3.js';
+import {Account, Connection} from '@solana/web3.js';
 import localforage from 'localforage';
 
-import {
-  getConfig,
-  postMessage,
-  refreshMessageFeed,
-  userBanned,
-  userLogin,
-} from '../message-feed';
+import {getConfig, userLogin} from '../../client';
+import MessageFeedApi from './message-feed';
 
 export default class Api {
   constructor() {
@@ -20,8 +15,7 @@ export default class Api {
         baseUrl = 'http://' + hostname + ':8081';
     }
 
-    this.messages = [];
-    this.postCount = 0;
+    this.messageFeed = new MessageFeedApi();
     this.configUrl = baseUrl + '/config.json';
     this.loginUrl = baseUrl + '/login';
   }
@@ -37,17 +31,13 @@ export default class Api {
   }
 
   subscribeMessages(onMessages) {
-    this.messageCallback = onMessages;
-    if (this.messages.length > 0) {
-      this.messageCallback(this.messages);
-    }
-    this.pollMessages(onMessages);
+    this.messageFeed.subscribe(onMessages);
   }
 
   unsubscribe() {
     this.balanceCallback = null;
     this.configCallback = null;
-    this.messageCallback = null;
+    this.messageFeed.unsubscribe();
   }
 
   explorerUrl() {
@@ -69,11 +59,10 @@ export default class Api {
     console.log('pollConfig');
     try {
       const {
-        firstMessage,
         loginMethod,
+        messageFeed,
         url,
         walletUrl,
-        programId,
       } = await getConfig(this.configUrl);
 
       this.connection = new Connection(url);
@@ -83,17 +72,12 @@ export default class Api {
       const explorerUrl = this.explorerUrl(this.connectionUrl);
       const response = {explorerUrl, loginMethod, walletUrl};
 
-      if (!this.programId || !programId.equals(this.programId)) {
-        this.programId = programId;
-        this.firstMessage = firstMessage;
-        this.messages = [];
-        this.userAccount = await this.loadUserAccount(programId);
-        Object.assign(response, {
-          busyLoading: true,
-          messages: this.messages,
-          programId,
-          userAccount: this.userAccount,
-        });
+      try {
+        Object.assign(response,
+          await this.messageFeed.updateConfig(this.connection, messageFeed)
+        );
+      } catch (err) {
+        console.error('failed to update message feed config', err);
       }
 
       if (this.configCallback) {
@@ -122,42 +106,6 @@ export default class Api {
       }
     }
     setTimeout(() => this.pollBalance(callback), 1000);
-  }
-
-  // Refresh messages.
-  // TODO: Rewrite this function to use the solana-web3.js websocket pubsub
-  //       instead of polling
-  async pollMessages(callback) {
-    console.log('pollMessages');
-
-    const onUpdate = () => {
-      if (this.messageCallback) {
-        this.messageCallback(this.messages);
-      }
-    };
-
-    try {
-      for (;;) {
-        if (callback !== this.messageCallback) return;
-        if (!this.connection) break;
-        const {postCount} = this;
-        await refreshMessageFeed(
-          this.connection,
-          this.messages,
-          () => onUpdate(),
-          this.messages.length === 0 ? this.firstMessage : null,
-        );
-        if (postCount === this.postCount) {
-          break;
-        }
-
-        console.log('Post count increased, refreshing');
-      }
-    } catch (err) {
-      console.error(`pollMessages error: ${err}`);
-    }
-
-    setTimeout(() => this.pollMessages(callback), this.posting ? 250 : 1000);
   }
 
   async requestFunds(callback) {
@@ -195,40 +143,6 @@ export default class Api {
           this.walletUrl,
         );
       }
-    }
-  }
-
-  async postMessage(userAccount, newMessage, lastMessageKey, userToBan = null) {
-    this.posting = true;
-    try {
-      const payerAccount = await this.getPayerAccount();
-      if (await userBanned(this.connection, userAccount.publicKey)) {
-        return {
-          snackMessage: 'You are banned',
-        };
-      }
-
-      const transactionSignature = await postMessage(
-        this.connection,
-        payerAccount,
-        userAccount,
-        newMessage,
-        lastMessageKey,
-        userToBan,
-      );
-      this.postCount++;
-
-      return {
-        snackMessage: 'Message posted',
-        transactionSignature,
-      };
-    } catch (err) {
-      console.error(`Failed to post message: ${err}`);
-      return {
-        snackMessage: 'An error occured when posting the message',
-      };
-    } finally {
-      this.posting = false;
     }
   }
 
@@ -272,6 +186,15 @@ export default class Api {
     }
   }
 
+  async postMessage(newMessage, userToBan) {
+    const payerAccount = await this.getPayerAccount();
+    return await this.messageFeed.postMessage(payerAccount, newMessage, userToBan);
+  }
+
+  async isUserBanned(userKey) {
+    return await this.messageFeed.isUserBanned(userKey);
+  }
+
   async login(loginMethod) {
     if (!this.connection) {
       throw new Error('Cannot login while disconnected');
@@ -283,49 +206,16 @@ export default class Api {
         throw new Error(`TODO unimplemented login method: ${loginMethod}`);
       case 'local': {
         const credentials = {id: new Account().publicKey.toString()};
-        userAccount = await userLogin(
-          this.connection,
-          this.programId,
-          this.loginUrl,
-          credentials,
-        );
+        userAccount = await userLogin(this.loginUrl, credentials);
         break;
       }
       default:
         throw new Error(`Unsupported login method: ${loginMethod}`);
     }
 
-    try {
-      console.log('Saved user account:', userAccount.publicKey.toString());
-      await localforage.setItem('programId', this.programId.toString());
-      await localforage.setItem('userAccount', userAccount.secretKey);
-    } catch (err) {
-      console.error(`Unable to store user account in localforage: ${err}`);
-    }
+    await this.messageFeed.saveUser(userAccount);
 
     return userAccount;
-  }
-
-  async isUserBanned(userKey) {
-    return await userBanned(this.connection, userKey);
-  }
-
-  async loadUserAccount(programId) {
-    try {
-      const savedProgramId = await localforage.getItem('programId');
-      const savedUserAccount = await localforage.getItem('userAccount');
-      if (
-        savedUserAccount &&
-        savedProgramId &&
-        programId.equals(new PublicKey(savedProgramId))
-      ) {
-        const userAccount = new Account(savedUserAccount);
-        console.log('Restored user account:', userAccount.publicKey.toString());
-        return userAccount;
-      }
-    } catch (err) {
-      console.error(`Unable to load user account from localforage: ${err}`);
-    }
   }
 
   async getPayerAccount() {
