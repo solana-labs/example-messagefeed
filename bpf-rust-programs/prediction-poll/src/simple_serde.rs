@@ -1,11 +1,11 @@
-use crate::result::{ProgramError, Result};
+use crate::result::{ProgramError, ProgramResult};
 use core::mem::size_of;
 use core::option::Option;
 use serde;
 use solana_sdk_bpf_utils::info;
 
 pub trait SimpleSerde: Clone {
-    fn deserialize<'a>(input: &'a [u8]) -> Result<Self>
+    fn deserialize<'a>(input: &'a [u8]) -> ProgramResult<Self>
     where
         Self: serde::Deserialize<'a>,
     {
@@ -20,7 +20,7 @@ pub trait SimpleSerde: Clone {
         }
     }
 
-    fn serialize(self: &Self, output: &mut [u8]) -> Result<()>
+    fn serialize(self: &Self, output: &mut [u8]) -> ProgramResult<()>
     where
         Self: core::marker::Sized + serde::Serialize,
     {

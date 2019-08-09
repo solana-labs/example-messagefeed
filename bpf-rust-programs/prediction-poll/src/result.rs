@@ -5,7 +5,7 @@ pub enum ProgramError {
     InvalidInput,
 }
 
-pub type Result<T> = core::result::Result<T, ProgramError>;
+pub type ProgramResult<T> = core::result::Result<T, ProgramError>;
 
 impl ProgramError {
     pub fn print(&self) {
