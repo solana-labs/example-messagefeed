@@ -15,7 +15,7 @@ mod simple_serde;
 mod util;
 
 use program::process_instruction;
-use solana_sdk_bpf_utils::entrypoint::*;
+use solana_sdk_bpf_utils::entrypoint::{SolKeyedAccount, SolClusterInfo};
 use solana_sdk_bpf_utils::{entrypoint, info};
 
 entrypoint!(_entrypoint);

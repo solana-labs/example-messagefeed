@@ -1,8 +1,8 @@
 mod command;
 
 use crate::collection::Collection;
+use prediction_poll_types::Collection as CollectionType;
 use crate::result::{ProgramError, ProgramResult};
-use crate::simple_serde::SimpleSerde;
 use command::Command;
 use solana_sdk_bpf_utils::entrypoint::SolKeyedAccount;
 use solana_sdk_bpf_utils::info;
@@ -24,8 +24,7 @@ pub fn process_instruction(
 fn init_collection(keyed_accounts: &mut [SolKeyedAccount]) -> ProgramResult<()> {
     const COLLECTION_INDEX: usize = 0;
     expect_n_accounts(keyed_accounts, 1)?;
-    let mut collection =
-        <Option<Collection> as SimpleSerde>::deserialize(&keyed_accounts[COLLECTION_INDEX].data)?;
+    let mut collection: Option<CollectionType> = bincode::deserialize(&keyed_accounts[COLLECTION_INDEX].data);
 
     match collection {
         None => {
@@ -47,14 +46,14 @@ fn init_poll(keyed_accounts: &mut [SolKeyedAccount]) -> ProgramResult<()> {
     const POLL_INDEX: usize = 1;
     expect_n_accounts(keyed_accounts, 2)?;
     let collection =
-        <Option<Collection> as SimpleSerde>::deserialize(&keyed_accounts[COLLECTION_INDEX].data)?;
+        <Option<CollectionType> as SimpleSerde>::deserialize(&keyed_accounts[COLLECTION_INDEX].data)?;
 
     if collection.is_none() {
         info!("Invalid collection state for InitCollection");
         return Err(ProgramError::InvalidInput);
     }
 
-    let mut collection = collection.unwrap();
+    let mut collection = Collection(collection.unwrap());
     collection.add_poll(&keyed_accounts[POLL_INDEX].key)?;
     collection.serialize(&mut keyed_accounts[COLLECTION_INDEX].data)?;
     Ok(())

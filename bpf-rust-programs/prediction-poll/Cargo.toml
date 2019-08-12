@@ -1,28 +1,2 @@
-
-# Note: This crate must be built using build.sh
-
-[package]
-name = "prediction-poll"
-version = "0.16.0"
-description = "Poll feed program written in Rust"
-authors = ["Solana Maintainers <maintainers@solana.com>"]
-repository = "https://github.com/solana-labs/solana"
-license = "Apache-2.0"
-homepage = "https://solana.com/"
-edition = "2018"
-
-[dependencies]
-arrayref = "0.3.5"
-serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
-solana-sdk-bpf-utils = { path = "../../node_modules/@solana/web3.js/bpf-sdk/rust/rust-utils" }
-solana-sdk-bpf-no-std = { path = "../../node_modules/@solana/web3.js/bpf-sdk/rust/rust-no-std" }
-
-[dev_dependencies]
-solana-sdk-bpf-test = { path = "../../node_modules/@solana/web3.js/bpf-sdk/rust/rust-test" }
-
 [workspace]
-members = []
-
-[lib]
-name = "prediction_poll"
-crate-type = ["cdylib"]
+members = ["program", "types", "solana_types"]
