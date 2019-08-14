@@ -26,6 +26,7 @@ pub fn process_instruction(
 fn init_collection(keyed_accounts: &mut [SolKeyedAccount]) -> ProgramResult<()> {
     const COLLECTION_INDEX: usize = 0;
     expect_n_accounts(keyed_accounts, 1)?;
+    info!("init_collection");
     // let mut collection: Option<CollectionType> = serde_json::from_slice(&keyed_accounts[COLLECTION_INDEX].data).unwrap();
     //
     // match collection {
@@ -39,9 +40,12 @@ fn init_collection(keyed_accounts: &mut [SolKeyedAccount]) -> ProgramResult<()> 
     //     }
     // }?;
     //
+    info!("create default collection type");
     let collection = CollectionType::default();
+    info!("serde_json::to_vec");
     let coll_vec: Vec<u8> = serde_json::to_vec(&collection).unwrap();
     let coll_len = coll_vec.len();
+    info!("copy_from_slice");
     keyed_accounts[COLLECTION_INDEX].data[..coll_len].copy_from_slice(&coll_vec[..]);
     Ok(())
 }
@@ -50,11 +54,12 @@ fn init_poll(keyed_accounts: &mut [SolKeyedAccount]) -> ProgramResult<()> {
     const COLLECTION_INDEX: usize = 0;
     const POLL_INDEX: usize = 1;
     expect_n_accounts(keyed_accounts, 2)?;
-    let collection: CollectionType = serde_json::from_slice(&keyed_accounts[COLLECTION_INDEX].data).unwrap();
-    let mut collection = Collection(collection);
-    collection.add_poll(&keyed_accounts[POLL_INDEX].key)?;
-    let coll_vec: Vec<u8> = serde_json::to_vec(&Some(collection.0)).unwrap();
-    let coll_len = coll_vec.len();
-    keyed_accounts[COLLECTION_INDEX].data[..coll_len].copy_from_slice(&coll_vec[..]);
+    info!("init_poll");
+    // let collection: CollectionType = serde_json::from_slice(&keyed_accounts[COLLECTION_INDEX].data).unwrap();
+    // let mut collection = Collection(collection);
+    // collection.add_poll(&keyed_accounts[POLL_INDEX].key)?;
+    // let coll_vec: Vec<u8> = serde_json::to_vec(&Some(collection.0)).unwrap();
+    // let coll_len = coll_vec.len();
+    // keyed_accounts[COLLECTION_INDEX].data[..coll_len].copy_from_slice(&coll_vec[..]);
     Ok(())
 }
