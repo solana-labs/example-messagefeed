@@ -1,3 +1,4 @@
+use alloc::vec::Vec;
 use serde::{Deserialize, Serialize};
 use solana_sdk_types::SolPubkey;
 #[cfg(feature = "wasm")]
@@ -6,19 +7,19 @@ use wasm_bindgen::prelude::*;
 #[repr(C)]
 #[cfg_attr(feature="wasm", wasm_bindgen)]
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
-pub struct Collection<'a> {
+pub struct Collection {
     // #[wasm_bindgen(skip)]
-    pub polls: &'a [SolPubkey],
+    pub polls: Vec<SolPubkey>,
 
 }
 
 #[cfg_attr(feature="wasm", wasm_bindgen)]
-impl Collection<'_> {
-    #[cfg(feature = "wasm")]
-    #[wasm_bindgen(js_name = getPolls)]
-    pub fn get_polls(&self) -> JsValue {
-        JsValue::from_serde(&self.polls).unwrap()
-    }
+impl Collection {
+    // #[cfg(feature = "wasm")]
+    // #[wasm_bindgen(js_name = getPolls)]
+    // pub fn get_polls(&self) -> JsValue {
+    //     JsValue::from_serde(&self.polls).unwrap()
+    // }
 
     #[cfg(feature = "wasm")]
     #[wasm_bindgen(js_name = fromData)]
@@ -27,9 +28,7 @@ impl Collection<'_> {
         let array = js_sys::Uint8Array::from(val);
         let mut dst: Vec<u8> = vec![0; array.length() as usize];
         array.copy_to(&mut dst);
-
-        let s: &Self = unsafe { &*(&dst[0] as *const u8 as *const Self) };
-        let c = (*s).clone();
-        c
+        let blah: Option<Collection> = serde_json::from_slice(&dst[..]).expect("should de into json");
+        blah.expect("is some")
     }
 }

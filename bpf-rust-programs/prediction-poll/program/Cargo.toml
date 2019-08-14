@@ -13,6 +13,7 @@ edition = "2018"
 
 [dependencies]
 arrayref = "0.3.5"
+serde_json = { git = "http://github.com/jstarry/json", branch = "no_std", default-features = false, features = ["no_std"]}
 prediction-poll-types = { path = "../types" }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 solana-sdk-bpf-utils = { path = "../../../node_modules/@solana/web3.js/bpf-sdk/rust/rust-utils" }

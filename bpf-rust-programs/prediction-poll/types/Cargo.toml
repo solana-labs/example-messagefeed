@@ -10,12 +10,13 @@ edition = "2018"
 
 [dependencies]
 arrayref = "0.3.5"
+serde_json = { git = "http://github.com/jstarry/json", branch = "no_std", default-features = false, features = ["no_std"]}
 console_error_panic_hook = { version = "0.1", optional = true}
 js-sys = { version = "0.3", optional = true }
-serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
 solana-sdk-types = { path = "../solana_types" }
 solana-sdk-bpf-no-std = { path = "../../../node_modules/@solana/web3.js/bpf-sdk/rust/rust-no-std", optional = true }
-wasm-bindgen = { version = "0.2", features = ["serde-serialize"], optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
+serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
 
 [features]
 bpf = ["solana-sdk-bpf-no-std"]

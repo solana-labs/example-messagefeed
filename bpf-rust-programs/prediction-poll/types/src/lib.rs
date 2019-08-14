@@ -1,5 +1,7 @@
 #![no_std]
 
+#[macro_use]
+extern crate alloc;
 extern crate arrayref;
 #[cfg(feature = "wasm")]
 extern crate std;

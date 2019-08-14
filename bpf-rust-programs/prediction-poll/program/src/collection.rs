@@ -1,7 +1,5 @@
-use crate::simple_serde::SimpleSerde;
 use crate::result::{ProgramResult, ProgramError};
 use core::ops::{Deref, DerefMut};
-use alloc::vec::Vec;
 use solana_sdk_types::SolPubkey;
 use prediction_poll_types::Collection as CollectionType;
 use solana_sdk_bpf_utils::info;

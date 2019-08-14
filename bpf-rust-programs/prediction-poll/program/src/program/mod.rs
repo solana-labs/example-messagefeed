@@ -1,8 +1,10 @@
 mod command;
 
+use alloc::vec::Vec;
 use crate::collection::Collection;
 use prediction_poll_types::Collection as CollectionType;
 use crate::result::{ProgramError, ProgramResult};
+use crate::simple_serde::SimpleSerde;
 use command::Command;
 use solana_sdk_bpf_utils::entrypoint::SolKeyedAccount;
 use solana_sdk_bpf_utils::info;
@@ -24,20 +26,23 @@ pub fn process_instruction(
 fn init_collection(keyed_accounts: &mut [SolKeyedAccount]) -> ProgramResult<()> {
     const COLLECTION_INDEX: usize = 0;
     expect_n_accounts(keyed_accounts, 1)?;
-    let mut collection: Option<CollectionType> = bincode::deserialize(&keyed_accounts[COLLECTION_INDEX].data);
-
-    match collection {
-        None => {
-            collection = Some(Default::default());
-            Ok(())
-        }
-        _ => {
-            info!("Invalid collection state for InitCollection");
-            Err(ProgramError::InvalidInput)
-        }
-    }?;
-
-    collection.serialize(&mut keyed_accounts[COLLECTION_INDEX].data)?;
+    // let mut collection: Option<CollectionType> = serde_json::from_slice(&keyed_accounts[COLLECTION_INDEX].data).unwrap();
+    //
+    // match collection {
+    //     None => {
+    //         collection = Some(Default::default());
+    //         Ok(())
+    //     }
+    //     _ => {
+    //         info!("Invalid collection state for InitCollection");
+    //         Err(ProgramError::InvalidInput)
+    //     }
+    // }?;
+    //
+    let collection = CollectionType::default();
+    let coll_vec: Vec<u8> = serde_json::to_vec(&collection).unwrap();
+    let coll_len = coll_vec.len();
+    keyed_accounts[COLLECTION_INDEX].data[..coll_len].copy_from_slice(&coll_vec[..]);
     Ok(())
 }
 
@@ -45,16 +50,11 @@ fn init_poll(keyed_accounts: &mut [SolKeyedAccount]) -> ProgramResult<()> {
     const COLLECTION_INDEX: usize = 0;
     const POLL_INDEX: usize = 1;
     expect_n_accounts(keyed_accounts, 2)?;
-    let collection =
-        <Option<CollectionType> as SimpleSerde>::deserialize(&keyed_accounts[COLLECTION_INDEX].data)?;
-
-    if collection.is_none() {
-        info!("Invalid collection state for InitCollection");
-        return Err(ProgramError::InvalidInput);
-    }
-
-    let mut collection = Collection(collection.unwrap());
+    let collection: CollectionType = serde_json::from_slice(&keyed_accounts[COLLECTION_INDEX].data).unwrap();
+    let mut collection = Collection(collection);
     collection.add_poll(&keyed_accounts[POLL_INDEX].key)?;
-    collection.serialize(&mut keyed_accounts[COLLECTION_INDEX].data)?;
+    let coll_vec: Vec<u8> = serde_json::to_vec(&Some(collection.0)).unwrap();
+    let coll_len = coll_vec.len();
+    keyed_accounts[COLLECTION_INDEX].data[..coll_len].copy_from_slice(&coll_vec[..]);
     Ok(())
 }
