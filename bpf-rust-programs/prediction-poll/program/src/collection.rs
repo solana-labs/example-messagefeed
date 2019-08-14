@@ -1,24 +1,12 @@
-use crate::result::{ProgramResult, ProgramError};
-use core::ops::{Deref, DerefMut};
-use solana_sdk_types::SolPubkey;
-use prediction_poll_types::Collection as CollectionType;
+use crate::result::{ProgramError, ProgramResult};
+use alloc::vec::Vec;
+use serde::{Deserialize, Serialize};
 use solana_sdk_bpf_utils::info;
+use solana_sdk_types::SolPubkey;
 
-#[derive(Debug, Default, Clone, PartialEq)]
-pub struct Collection(pub CollectionType);
-
-impl Deref for Collection {
-    type Target = CollectionType;
-
-    fn deref<'a>(&'a self) -> &'a CollectionType {
-        &self.0
-    }
-}
-
-impl DerefMut for Collection {
-    fn deref_mut<'a>(&'a mut self) -> &'a mut CollectionType {
-        &mut self.0
-    }
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize)]
+pub struct Collection {
+    pub polls: Vec<SolPubkey>,
 }
 
 impl Collection {

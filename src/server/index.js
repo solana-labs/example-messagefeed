@@ -106,5 +106,5 @@ console.log('Cluster RPC URL:', url);
 console.log('Listening on port', port);
 
 // Load the program immediately so the first client doesn't need to wait as long
-messageController.reload().catch(err => console.log(err));
+// messageController.reload().catch(err => console.log(err));
 pollController.reload().catch(err => console.log(err));

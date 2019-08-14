@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::simple_serde::SimpleSerde;
+use serde::{Deserialize, Serialize};
 
 #[repr(C)]
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
