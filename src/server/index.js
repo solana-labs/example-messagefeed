@@ -98,7 +98,7 @@ app.post('/login', async (req, res) => {
     .end();
 });
 
-app.use(express.static(path.join(__dirname, '../dist')));
+app.use(express.static(path.join(__dirname, '../../dist/static')));
 app.listen(port);
 console.log('Cluster RPC URL:', url);
 console.log('Listening on port', port);
