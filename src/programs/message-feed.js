@@ -8,11 +8,9 @@ import {
   sendAndConfirmTransaction,
 } from '@solana/web3.js';
 import * as BufferLayout from 'buffer-layout';
-import fetch from 'node-fetch';
 import type {TransactionSignature} from '@solana/web3.js';
 
-import {publicKeyToName} from './util/publickey-to-name';
-import {sleep} from './util/sleep';
+import {publicKeyToName} from '../util/publickey-to-name';
 
 export type Message = {
   publicKey: PublicKey,
@@ -88,21 +86,6 @@ export async function createUser(
   );
 
   return userAccount;
-}
-
-export async function userLogin(
-  connection: Connection,
-  programId: PublicKey,
-  loginUrl: string,
-  credentials: Object,
-): Promise<Account> {
-  const response = await fetch(loginUrl, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(credentials),
-  });
-  const json = await response.json();
-  return new Account(Uint8Array.from(Buffer.from(json.userAccount, 'hex')));
 }
 
 /**
@@ -218,7 +201,7 @@ export async function postMessageWithProgramId(
   userAccountArg: Account | null,
   messageAccount: Account,
   text: string,
-  previousMessagePublicKey: PublicKey,
+  previousMessagePublicKey: PublicKey | null = null,
   userToBan: PublicKey | null = null,
 ): Promise<TransactionSignature> {
   const transaction = new Transaction();
@@ -275,27 +258,4 @@ export async function postMessageWithProgramId(
     userAccount,
     messageAccount,
   );
-}
-
-export async function getConfig(configUrl: string): Promise<Object> {
-  for (;;) {
-    try {
-      const response = await fetch(configUrl);
-      const config = await response.json();
-
-      if (!config.loading) {
-        return {
-          firstMessage: new PublicKey(config.firstMessage),
-          loginMethod: config.loginMethod,
-          programId: new PublicKey(config.programId),
-          url: config.url,
-          walletUrl: config.walletUrl,
-        };
-      }
-      console.log(`Waiting for message feed program to finish loading...`);
-    } catch (err) {
-      console.error(`${err}`);
-    }
-    await sleep(1000);
-  }
 }

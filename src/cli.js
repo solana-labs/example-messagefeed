@@ -1,22 +1,19 @@
 /* @flow */
 import {Account, Connection} from '@solana/web3.js';
 
-import {
-  getConfig,
-  refreshMessageFeed,
-  postMessage,
-  userLogin,
-} from './message-feed';
+import {refreshMessageFeed, postMessage} from './programs/message-feed';
+import {getConfig, userLogin} from './client';
 import {newSystemAccountWithAirdrop} from './util/new-system-account-with-airdrop';
-import type {Message} from './message-feed';
+import type {Message} from './programs/message-feed';
 
 async function main() {
   const text = process.argv.splice(2).join(' ');
 
   const baseUrl = 'http://localhost:8081';
-  const {firstMessage, loginMethod, programId, url} = await getConfig(
+  const {messageFeed, loginMethod, url} = await getConfig(
     baseUrl + '/config.json',
   );
+  const {firstMessage} = messageFeed;
 
   console.log('Cluster RPC URL:', url);
   const connection = new Connection(url);
@@ -28,12 +25,7 @@ async function main() {
       throw new Error(`Unsupported login method: ${loginMethod}`);
     }
     const credentials = {id: new Account().publicKey.toString()};
-    const userAccount = await userLogin(
-      connection,
-      programId,
-      baseUrl + '/login',
-      credentials,
-    );
+    const userAccount = await userLogin(baseUrl + '/login', credentials);
     const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
     const payerAccount = await newSystemAccountWithAirdrop(
       connection,
