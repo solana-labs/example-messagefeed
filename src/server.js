@@ -38,7 +38,7 @@ async function loadMessageFeedProgram(
     __dirname,
     '..',
     'dist',
-    'program',
+    'programs',
     'messagefeed.so',
   );
   console.log(`Reading ${elfFile}...`);
