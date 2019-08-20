@@ -2,7 +2,9 @@ import {Account, Connection} from '@solana/web3.js';
 import localforage from 'localforage';
 
 import {getConfig, userLogin} from '../../client';
+import ClockApi from './clock';
 import MessageFeedApi from './message-feed';
+import PredictionPollApi from './prediction-poll';
 
 export default class Api {
   constructor() {
@@ -12,10 +14,12 @@ export default class Api {
       case 'localhost':
       case '127.0.0.1':
       case '0.0.0.0':
-        baseUrl = 'http://' + hostname + ':8081';
+        baseUrl = `http://${hostname}:${process.env.PORT || 8081}`;
     }
 
+    this.clock = new ClockApi();
     this.messageFeed = new MessageFeedApi();
+    this.predictionPoll = new PredictionPollApi();
     this.configUrl = baseUrl + '/config.json';
     this.loginUrl = baseUrl + '/login';
   }
@@ -34,10 +38,20 @@ export default class Api {
     this.messageFeed.subscribe(onMessages);
   }
 
+  subscribePolls(onPolls) {
+    this.predictionPoll.subscribe(onPolls);
+  }
+
+  subscribeClock(onClock) {
+    this.clock.subscribe(onClock);
+  }
+
   unsubscribe() {
     this.balanceCallback = null;
     this.configCallback = null;
+    this.clock.unsubscribe();
     this.messageFeed.unsubscribe();
+    this.predictionPoll.unsubscribe();
   }
 
   explorerUrl() {
@@ -56,15 +70,19 @@ export default class Api {
   // or new message feed server deployment
   async pollConfig(callback) {
     if (callback !== this.configCallback) return;
-    console.log('pollConfig');
     try {
-      const {loginMethod, messageFeed, url, walletUrl} = await getConfig(
-        this.configUrl,
-      );
+      const {
+        loginMethod,
+        messageFeed,
+        predictionPoll,
+        url,
+        walletUrl,
+      } = await getConfig(this.configUrl);
 
       this.connection = new Connection(url);
       this.connectionUrl = url;
       this.walletUrl = walletUrl;
+      this.clock.updateConfig(this.connection);
 
       const explorerUrl = this.explorerUrl(this.connectionUrl);
       const response = {explorerUrl, loginMethod, walletUrl};
@@ -78,6 +96,11 @@ export default class Api {
         console.error('failed to update message feed config', err);
       }
 
+      Object.assign(
+        response,
+        this.predictionPoll.updateConfig(this.connection, predictionPoll),
+      );
+
       if (this.configCallback) {
         this.configCallback(response);
       }
@@ -89,7 +112,6 @@ export default class Api {
 
   async pollBalance(callback) {
     if (callback !== this.balanceCallback) return;
-    console.log('pollBalance');
     if (this.connection) {
       const payerAccount = await this.getPayerAccount();
       try {
@@ -191,6 +213,29 @@ export default class Api {
       newMessage,
       userToBan,
     );
+  }
+
+  async createPoll(header, optionA, optionB, timeout) {
+    const payerAccount = await this.getPayerAccount();
+    const creatorAccount = this.messageFeed.getUserAccount();
+    return await this.predictionPoll.createPoll(
+      payerAccount,
+      creatorAccount,
+      header,
+      optionA,
+      optionB,
+      timeout,
+    );
+  }
+
+  async vote(pollKey, wager, tally) {
+    const payerAccount = await this.getPayerAccount();
+    return await this.predictionPoll.vote(payerAccount, pollKey, wager, tally);
+  }
+
+  async claim(poll, pollKey) {
+    const payerAccount = await this.getPayerAccount();
+    return await this.predictionPoll.claim(payerAccount, poll, pollKey);
   }
 
   async isUserBanned(userKey) {

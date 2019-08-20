@@ -2,12 +2,13 @@
 const path = require('path');
 const webpack = require('webpack');
 const CopyPlugin = require('copy-webpack-plugin');
+const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin');
 const FilterWarningsPlugin = require('webpack-filter-warnings-plugin');
 
 const distStatic = path.resolve(__dirname, 'dist', 'static');
 const clientConfig = {
   target: 'web',
-  entry: './src/webapp/webapp.js',
+  entry: './src/webapp/bootstrap.js',
   output: {
     path: distStatic,
     publicPath: '/',
@@ -17,7 +18,7 @@ const clientConfig = {
     rules: [
       {
         test: /\.js$/,
-        exclude: [/node_modules/],
+        exclude: [/node_modules/, /wasm/],
         use: ['babel-loader', 'eslint-loader'],
       },
       {
@@ -35,9 +36,21 @@ const clientConfig = {
     new webpack.DefinePlugin({
       'process.env': {
         LIVE: JSON.stringify(process.env.LIVE),
+        PORT: JSON.stringify(process.env.PORT),
       },
     }),
     new CopyPlugin([{from: path.resolve(__dirname, 'static'), to: distStatic}]),
+    new WasmPackPlugin({
+      crateDirectory: path.resolve(
+        __dirname,
+        'bpf-rust-programs',
+        'prediction-poll',
+        'wasm',
+      ),
+      extraArgs: '--no-typescript',
+      outDir: path.resolve(__dirname, 'wasm'),
+      outName: 'index',
+    }),
   ],
   devServer: {
     disableHostCheck: true,
@@ -52,7 +65,7 @@ const clientConfig = {
 
 const serverConfig = {
   target: 'node',
-  entry: './src/server/index.js',
+  entry: './src/server/bootstrap.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'server.js',
@@ -64,7 +77,7 @@ const serverConfig = {
     rules: [
       {
         test: /\.js$/,
-        exclude: [/node_modules/],
+        exclude: [/node_modules/, /wasm/],
         use: ['babel-loader', 'eslint-loader'],
       },
     ],

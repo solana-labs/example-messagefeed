@@ -6,11 +6,13 @@ import {Connection} from '@solana/web3.js';
 import {url, walletUrl} from '../../urls';
 import {newSystemAccountWithAirdrop} from '../util/new-system-account-with-airdrop';
 import MessageController from './message-feed';
+import PollController from './prediction-poll';
 import * as MessageFeedProgram from '../programs/message-feed';
 
 const port = process.env.PORT || 8081;
 
 const messageController = new MessageController();
+const pollController = new PollController();
 
 const loginMethod = process.env.LOGIN_METHOD || 'local';
 switch (loginMethod) {
@@ -27,12 +29,23 @@ app.use(cors());
 app.use(express.json()); // for parsing application/json
 app.get('/config.json', async (req, res) => {
   const messageMeta = await messageController.getMeta();
+  const pollMeta = await pollController.getMeta();
+
   const response = {
-    loading: !messageMeta,
+    loading: !messageMeta || !pollMeta,
     loginMethod,
     url,
     walletUrl,
   };
+
+  if (pollMeta) {
+    Object.assign(response, {
+      predictionPoll: {
+        programId: pollMeta.programId.toString(),
+        collection: pollMeta.collection.publicKey.toString(),
+      },
+    });
+  }
 
   if (messageMeta) {
     Object.assign(response, {
@@ -105,3 +118,4 @@ console.log('Listening on port', port);
 
 // Load the program immediately so the first client doesn't need to wait as long
 messageController.reload().catch(err => console.log(err));
+pollController.reload().catch(err => console.log(err));

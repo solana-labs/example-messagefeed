@@ -153,7 +153,7 @@ class Toolbar extends React.Component {
               color="inherit"
               noWrap
             >
-              Message Feed
+              Solana Feed
             </Typography>
           </Badge>
           {this.renderMessageInput()}
@@ -171,9 +171,18 @@ class Toolbar extends React.Component {
       onLogin,
       payerBalance,
       userAuthenticated,
+      showMessageInput,
     } = this.props;
 
     if (userAuthenticated) {
+      if (!showMessageInput) {
+        return (
+          <React.Fragment>
+            <div className={classes.grow} />
+          </React.Fragment>
+        );
+      }
+
       const zeroBalance = !payerBalance;
       return (
         <div className={classes.newMessage}>
@@ -258,6 +267,7 @@ Toolbar.propTypes = {
   payerBalance: PropTypes.number.isRequired,
   userAuthenticated: PropTypes.bool.isRequired,
   walletDisabled: PropTypes.bool.isRequired,
+  showMessageInput: PropTypes.bool.isRequired,
 };
 
 export default withStyles(styles)(Toolbar);

@@ -4,6 +4,7 @@ import path from 'path';
 import {Account, BpfLoader, Connection, PublicKey} from '@solana/web3.js';
 
 import {newSystemAccountWithAirdrop} from '../util/new-system-account-with-airdrop';
+import {sleep} from '../util/sleep';
 import {url} from '../../urls';
 import * as Program from '../programs/message-feed';
 
@@ -25,7 +26,10 @@ export default class MessageFeedController {
     if (this.meta) {
       const {firstMessage} = this.meta;
       try {
-        await this.connection.getAccountInfo(firstMessage.publicKey);
+        await Promise.race([
+          sleep(2000),
+          this.connection.getAccountInfo(firstMessage.publicKey),
+        ]);
         return this.meta;
       } catch (err) {
         console.error(

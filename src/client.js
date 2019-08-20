@@ -6,6 +6,7 @@ import {sleep} from './util/sleep';
 
 export type Config = {
   messageFeed: MessageFeedConfig,
+  predictionPoll: PredictionPollConfig,
   loginMethod: string,
   url: string,
   walletUrl: string,
@@ -14,6 +15,11 @@ export type Config = {
 export type MessageFeedConfig = {
   programId: PublicKey,
   firstMessage: PublicKey,
+};
+
+export type PredictionPollConfig = {
+  programId: PublicKey,
+  collection: PublicKey,
 };
 
 export async function getConfig(configUrl: string): Promise<Config> {
@@ -26,6 +32,10 @@ export async function getConfig(configUrl: string): Promise<Config> {
           messageFeed: {
             firstMessage: new PublicKey(config.messageFeed.firstMessage),
             programId: new PublicKey(config.messageFeed.programId),
+          },
+          predictionPoll: {
+            collection: new PublicKey(config.predictionPoll.collection),
+            programId: new PublicKey(config.predictionPoll.programId),
           },
           loginMethod: config.loginMethod,
           url: config.url,
