@@ -158,7 +158,7 @@ export default class Api {
             method: 'addFunds',
             params: {
               pubkey: payerAccount.publicKey.toString(),
-              amount: 1000,
+              amount: 750,
               network: this.connectionUrlTls,
             },
           },
@@ -180,7 +180,7 @@ export default class Api {
               method: 'addFunds',
               params: {
                 pubkey: payerAccount.publicKey.toString(),
-                amount: 1000,
+                amount: 750,
                 network: this.connectionUrlTls,
               },
             },

@@ -65,6 +65,7 @@ class Poll extends React.Component {
           variant="contained"
           color="primary"
           className={this.props.classes.button}
+          disabled={this.props.payerBalance < 100}
           onClick={() => this.props.onClaim()}
         >
           Submit Claim
@@ -74,7 +75,7 @@ class Poll extends React.Component {
   }
 
   renderWagerInput() {
-    const {classes, onSubmit, poll} = this.props;
+    const {classes, onSubmit, poll, payerBalance} = this.props;
     const wager = parseInt(this.state.wager);
     const validWager = Number.isInteger(wager) && wager > 0;
 
@@ -85,12 +86,17 @@ class Poll extends React.Component {
     if (this.state.selectedOption === 1) {
       tallyKey = poll.optionA.tallyKey;
       optionAQuantity += wager;
-    } else {
+    } else if (this.state.selectedOption === 2) {
       tallyKey = poll.optionB.tallyKey;
       optionBQuantity += wager;
     }
-    const wagerError =
-      optionAQuantity === optionBQuantity ? 'Cannot make poll equal' : '';
+    let wagerError = '';
+    if (wager > payerBalance - 100) {
+      wagerError = 'Insufficient Funds';
+    } else if (optionAQuantity === optionBQuantity) {
+      wagerError = 'Cannot make wagers even';
+    }
+    const noSelection = !this.state.selectedOption;
 
     return (
       <React.Fragment>
@@ -110,7 +116,7 @@ class Poll extends React.Component {
         <Button
           variant="contained"
           color="primary"
-          disabled={!validWager || !this.state.selectedOption}
+          disabled={!validWager || noSelection || !!wagerError}
           className={`${classes.button} ${classes.submit}`}
           onClick={() => onSubmit(wager, tallyKey)}
         >
@@ -257,6 +263,7 @@ Poll.propTypes = {
   onClaim: PropTypes.func.isRequired,
   clock: PropTypes.number.isRequired,
   payerKey: PropTypes.object.isRequired,
+  payerBalance: PropTypes.number.isRequired,
 };
 
 export default withStyles(styles)(Poll);

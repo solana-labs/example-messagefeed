@@ -65,7 +65,7 @@ class PollGrid extends React.Component {
   renderPoll(key, poll, balance, tallies) {
     const onSubmit = (wager, tally) => this.props.onVote(key, wager, tally);
     const onClaim = () => this.props.onClaim(poll, key);
-    const {clock, payerKey} = this.props;
+    const {clock, payerKey, payerBalance} = this.props;
     return (
       <Grid key={key} item xs={12} md={8}>
         <Poll
@@ -73,6 +73,7 @@ class PollGrid extends React.Component {
           poll={poll}
           balance={balance}
           payerKey={payerKey}
+          payerBalance={payerBalance}
           tallies={tallies}
           onSubmit={onSubmit}
           onClaim={onClaim}
