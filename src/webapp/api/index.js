@@ -12,7 +12,7 @@ export default class Api {
       case 'localhost':
       case '127.0.0.1':
       case '0.0.0.0':
-        baseUrl = 'http://' + hostname + ':8081';
+        baseUrl = `http://${hostname}:${process.env.PORT || 8081}`;
     }
 
     this.messageFeed = new MessageFeedApi();

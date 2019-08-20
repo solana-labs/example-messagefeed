@@ -35,6 +35,7 @@ const clientConfig = {
     new webpack.DefinePlugin({
       'process.env': {
         LIVE: JSON.stringify(process.env.LIVE),
+        PORT: JSON.stringify(process.env.PORT),
       },
     }),
     new CopyPlugin([{from: path.resolve(__dirname, 'static'), to: distStatic}]),
