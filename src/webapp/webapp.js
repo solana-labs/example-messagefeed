@@ -18,7 +18,6 @@ import Api from './api';
 import MessageList from './components/message-list';
 import PollGrid from './components/poll-grid';
 import Toolbar from './components/toolbar';
-import CreatePollDialog from './components/create-poll';
 
 const MESSAGES_TAB = 0;
 const POLLS_TAB = 1;
@@ -134,14 +133,14 @@ class App extends React.Component {
       case POLLS_TAB: {
         return (
           <React.Fragment>
-            <CreatePollDialog
-              onCreate={(...args) => this.createPoll(...args)}
-            />
             <PollGrid
               clock={this.state.clock}
               polls={this.state.polls}
+              busy={this.busy()}
+              payerBalance={this.state.payerBalance}
               onVote={(...args) => this.vote(...args)}
               onClaim={(...args) => this.claim(...args)}
+              onCreate={(...args) => this.createPoll(...args)}
             />
           </React.Fragment>
         );
@@ -149,6 +148,16 @@ class App extends React.Component {
       default:
         return null;
     }
+  }
+
+  busy() {
+    const {
+      loadingMessages,
+      loadingPolls,
+      busyPosting,
+      busyLoggingIn,
+    } = this.state;
+    return loadingMessages || loadingPolls || busyPosting || busyLoggingIn;
   }
 
   render() {
@@ -214,16 +223,10 @@ class App extends React.Component {
       }
     }
 
-    const {
-      loadingMessages,
-      loadingPolls,
-      busyPosting,
-      busyLoggingIn,
-    } = this.state;
     return (
       <div className={classes.root}>
         <Toolbar
-          busy={loadingMessages || loadingPolls || busyPosting || busyLoggingIn}
+          busy={this.busy()}
           explorerUrl={this.blockExplorerTransactionsByProgramUrl()}
           idle={this.state.idle}
           loginDisabled={this.state.loginMethod === 'none'}

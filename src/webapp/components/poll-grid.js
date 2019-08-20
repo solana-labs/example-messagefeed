@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {withStyles} from '@material-ui/core/styles';
 
 import Poll from './poll';
+import CreatePollDialog from './create-poll';
 
 const styles = () => ({
   root: {
@@ -22,7 +23,7 @@ class PollGrid extends React.Component {
   }
 
   render() {
-    const {polls, classes} = this.props;
+    const {polls, classes, payerBalance, busy} = this.props;
     const renderPolls = polls
       .map(([key, poll]) => this.renderPoll(poll, key))
       .reverse();
@@ -32,6 +33,10 @@ class PollGrid extends React.Component {
         <Grid container spacing={8}>
           {renderPolls}
         </Grid>
+        <CreatePollDialog
+          disabled={busy || !payerBalance}
+          onCreate={(...args) => this.props.onCreate(...args)}
+        />
       </div>
     );
   }
@@ -53,7 +58,10 @@ PollGrid.propTypes = {
   polls: PropTypes.array.isRequired,
   onVote: PropTypes.func.isRequired,
   onClaim: PropTypes.func.isRequired,
+  onCreate: PropTypes.func.isRequired,
   clock: PropTypes.number.isRequired,
+  busy: PropTypes.bool.isRequired,
+  payerBalance: PropTypes.number.isRequired,
 };
 
 export default withStyles(styles)(PollGrid);
