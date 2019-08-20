@@ -23,6 +23,7 @@ module.exports = {
   },
   resolve: {
     extensions: ['*', '.js', '.jsx'],
+    mainFiles: ['index'],
   },
   output: {
     path: __dirname + '/dist',

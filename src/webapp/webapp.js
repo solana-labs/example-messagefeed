@@ -29,7 +29,7 @@ class App extends React.Component {
       banUserAlreadyBanned: false,
       banUserDialogOpen: false,
       banUserMessage: null,
-      busyLoading: true,
+      loadingMessages: true,
       busyLoggingIn: false,
       busyPosting: false,
       idle: true,
@@ -67,7 +67,7 @@ class App extends React.Component {
 
     this.api.subscribeMessages(messages => {
       this.setState({
-        busyLoading: false,
+        loadingMessages: false,
         messages,
       });
     });
@@ -158,11 +158,11 @@ class App extends React.Component {
       }
     }
 
-    const {busyLoading, busyPosting, busyLoggingIn} = this.state;
+    const {loadingMessages, busyPosting, busyLoggingIn} = this.state;
     return (
       <div className={classes.root}>
         <Toolbar
-          busy={busyLoading || busyPosting || busyLoggingIn}
+          busy={loadingMessages || busyPosting || busyLoggingIn}
           explorerUrl={this.blockExplorerTransactionsByProgramUrl()}
           idle={this.state.idle}
           loginDisabled={this.state.loginMethod === 'none'}
@@ -234,12 +234,8 @@ class App extends React.Component {
 
     this.setState({busyPosting: true});
 
-    const {messages, userAccount} = this.state;
-    const lastMessageKey = messages[messages.length - 1].publicKey;
     const {snackMessage, transactionSignature} = await this.api.postMessage(
-      userAccount,
       newMessage,
-      lastMessageKey,
       userToBan,
     );
 
