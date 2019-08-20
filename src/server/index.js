@@ -91,6 +91,7 @@ app.post('/login', async (req, res) => {
       res.status(500).send('Duplicate account');
       return;
     }
+    // eslint-disable-next-line require-atomic-updates
     users[id] = userAccount.secretKey;
   }
   res
