@@ -44,4 +44,10 @@ impl Tally {
             .collect();
         js_keys.into_boxed_slice()
     }
+
+    #[wasm_bindgen(method, getter)]
+    pub fn values(&self) -> Box<[u64]> {
+        let values: Vec<u64> = self.values.iter().cloned().collect();
+        values.into_boxed_slice()
+    }
 }

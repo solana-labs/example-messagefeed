@@ -14,6 +14,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import {withStyles} from '@material-ui/core/styles';
 import {withRouter, HashRouter} from 'react-router-dom';
+import {PublicKey} from '@solana/web3.js';
 
 import Api from './api';
 import MessageList from './components/message-list';
@@ -50,6 +51,7 @@ class App extends React.Component {
       transactionSignature: null,
       userAccount: null,
       payerBalance: 0,
+      payerKey: null,
       programId: null,
       selectedTab: this.routeToTab(props.location.pathname),
       walletUrl: '',
@@ -102,8 +104,8 @@ class App extends React.Component {
       this.setState(config);
     });
 
-    this.api.subscribeBalance(payerBalance => {
-      this.setState({payerBalance});
+    this.api.subscribeBalance((payerBalance, payerKey) => {
+      this.setState({payerBalance, payerKey});
     });
 
     this.api.subscribeMessages(messages => {
@@ -168,6 +170,7 @@ class App extends React.Component {
               polls={this.state.polls}
               busy={this.busy()}
               payerBalance={this.state.payerBalance}
+              payerKey={this.state.payerKey}
               onVote={(...args) => this.vote(...args)}
               onClaim={(...args) => this.claim(...args)}
               onCreate={(...args) => this.createPoll(...args)}
@@ -358,6 +361,8 @@ class App extends React.Component {
       return false;
     }
 
+    const tallyKey = new PublicKey(tally);
+    console.log(`vote for tally: ${tallyKey.toString()}`);
     this.setState({busyPosting: true});
     const {snackMessage, transactionSignature} = await this.api.vote(
       pollKey,

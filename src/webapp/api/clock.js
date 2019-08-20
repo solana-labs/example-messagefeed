@@ -1,4 +1,3 @@
-/* global BigInt */
 import {refreshClock} from '../../programs/prediction-poll';
 
 export default class PredictionPollApi {
@@ -27,7 +26,7 @@ export default class PredictionPollApi {
     if (this.connection) {
       try {
         const clock = await refreshClock(this.connection);
-        this.clock = BigInt.asUintN(64, clock.slot);
+        this.clock = parseInt(clock.slot.toString());
         if (this.clockCallback) {
           this.clockCallback(this.clock);
         }

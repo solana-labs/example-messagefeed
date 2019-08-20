@@ -119,7 +119,7 @@ export default class Api {
           payerAccount.publicKey,
         );
         if (this.balanceCallback) {
-          this.balanceCallback(payerBalance);
+          this.balanceCallback(payerBalance, payerAccount.publicKey);
         }
       } catch (err) {
         console.error('Failed to refresh balance', err);
@@ -156,7 +156,7 @@ export default class Api {
             method: 'addFunds',
             params: {
               pubkey: payerAccount.publicKey.toString(),
-              amount: 150,
+              amount: 1000,
               network: this.connectionUrl,
             },
           },
@@ -178,7 +178,7 @@ export default class Api {
               method: 'addFunds',
               params: {
                 pubkey: payerAccount.publicKey.toString(),
-                amount: 150,
+                amount: 1000,
                 network: this.connectionUrl,
               },
             },

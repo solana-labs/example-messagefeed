@@ -39,19 +39,17 @@ export async function refreshClock(connection: Connection): Clock {
 export async function refreshPoll(
   connection: Connection,
   pollKey: PublicKey,
-): Poll {
-  console.log(`Refreshing poll ${pollKey.toString()}`);
+): [Poll, number, [Tally, Tally]] {
   const accountInfo = await connection.getAccountInfo(pollKey);
-  console.log('refreshed');
   const poll = Poll.fromData(accountInfo.data);
-  const options = [poll.optionA, poll.optionB];
-  for (const option of options) {
-    const tallyKey = new PublicKey(option.tallyKey);
-    const tallyInfo = await connection.getAccountInfo(tallyKey);
-    const tally = Tally.fromData(tallyInfo.data);
-    console.log({tally: tally.keys, quantity: option.quantity});
-  }
-  return poll;
+  const tallies = await Promise.all(
+    [poll.optionA, poll.optionB].map(async option => {
+      const tallyKey = new PublicKey(option.tallyKey);
+      const tallyInfo = await connection.getAccountInfo(tallyKey);
+      return Tally.fromData(tallyInfo.data);
+    }),
+  );
+  return [poll, accountInfo.lamports, tallies];
 }
 
 /**
@@ -88,7 +86,7 @@ export async function createPoll(
         payerAccount.publicKey,
         tallyAccount.publicKey,
         1,
-        500, // TODO revisit
+        1000, // TODO revisit
         programId,
       ),
     );

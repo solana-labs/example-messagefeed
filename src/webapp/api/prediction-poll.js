@@ -55,26 +55,28 @@ export default class PredictionPollApi {
   async refreshPolls(keys) {
     if (this.refreshingPolls) return;
     this.refreshingPolls = true;
-    try {
-      for (const pollKey of keys) {
-        if (this.pollCallback) {
-          const poll = await refreshPoll(
+    for (const pollKey of keys) {
+      if (this.pollCallback) {
+        const pollPubkey = new PublicKey(pollKey);
+        try {
+          const [poll, balance, tallies] = await refreshPoll(
             this.connection,
-            new PublicKey(pollKey),
+            pollPubkey,
           );
-
           const pollIndex = this.polls.findIndex(([k]) => compare(k, pollKey));
+          const pollTuple = [pollKey, poll, balance, tallies];
           if (pollIndex >= 0) {
-            this.polls.splice(pollIndex, 1, [pollKey, poll]);
+            this.polls.splice(pollIndex, 1, pollTuple);
           } else {
-            this.polls.push([pollKey, poll]);
+            this.polls.push(pollTuple);
           }
           this.pollCallback(this.polls);
+        } catch (err) {
+          console.error(`Failed to fetch poll ${pollPubkey.toString()}`, err);
         }
       }
-    } finally {
-      this.refreshingPolls = false;
     }
+    this.refreshingPolls = false;
   }
 
   updateConfig(connection, config) {

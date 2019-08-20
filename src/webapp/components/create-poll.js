@@ -42,7 +42,9 @@ class CreatePollDialog extends React.Component {
   async submit() {
     const {header, optionA, optionB, timeout} = this.state;
     this.handleClose();
-    if (await this.props.onCreate(header, optionA, optionB, timeout)) {
+    if (
+      await this.props.onCreate(header, optionA, optionB, parseInt(timeout))
+    ) {
       this.setState({
         header: '',
         optionA: '',
