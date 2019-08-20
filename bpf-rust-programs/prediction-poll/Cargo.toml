@@ -1,0 +1,2 @@
+[workspace]
+members = ["program", "program_data", "solana_types", "wasm"]
