@@ -13,6 +13,7 @@ import Snackbar from '@material-ui/core/Snackbar';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import {withStyles} from '@material-ui/core/styles';
+import {withRouter, HashRouter} from 'react-router-dom';
 
 import Api from './api';
 import MessageList from './components/message-list';
@@ -50,11 +51,40 @@ class App extends React.Component {
       userAccount: null,
       payerBalance: 0,
       programId: null,
-      selectedTab: 0,
+      selectedTab: this.routeToTab(props.location.pathname),
       walletUrl: '',
     };
 
     this.api = new Api();
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.location !== this.props.location) {
+      const selectedTab = this.routeToTab(nextProps.location.pathname);
+      this.setState({selectedTab});
+    }
+  }
+
+  routeToTab(route) {
+    switch (route) {
+      case '/polls':
+        return POLLS_TAB;
+      default:
+        return MESSAGES_TAB;
+    }
+  }
+
+  tabToRoute(tab) {
+    switch (tab) {
+      case POLLS_TAB:
+        return '/polls';
+      default:
+        return '/';
+    }
+  }
+
+  onChangeTab(selectedTab) {
+    this.props.history.replace(this.tabToRoute(selectedTab));
   }
 
   componentDidMount() {
@@ -249,7 +279,7 @@ class App extends React.Component {
         <Paper square={true}>
           <Tabs
             value={this.state.selectedTab}
-            onChange={(e, selectedTab) => this.setState({selectedTab})}
+            onChange={(e, selectedTab) => this.onChangeTab(selectedTab)}
             indicatorColor="primary"
             textColor="primary"
             centered
@@ -442,8 +472,15 @@ class App extends React.Component {
 }
 App.propTypes = {
   classes: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired,
 };
 
-const StyledApp = withStyles(styles)(App);
-ReactDOM.render(<StyledApp />, document.getElementById('app'));
+const StyledApp = withStyles(styles)(withRouter(App));
+ReactDOM.render(
+  <HashRouter>
+    <StyledApp />
+  </HashRouter>,
+  document.getElementById('app'),
+);
 module.hot.accept();
