@@ -3,7 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import {Connection} from '@solana/web3.js';
 
-import {url, walletUrl} from '../../urls';
+import {url, urlTls, walletUrl} from '../../urls';
 import {newSystemAccountWithAirdrop} from '../util/new-system-account-with-airdrop';
 import MessageController from './message-feed';
 import PollController from './prediction-poll';
@@ -35,6 +35,7 @@ app.get('/config.json', async (req, res) => {
     loading: !messageMeta || !pollMeta,
     loginMethod,
     url,
+    urlTls,
     walletUrl,
   };
 
@@ -88,23 +89,31 @@ app.post('/login', async (req, res) => {
   } else {
     console.log(`Creating new account for user ${id}`);
     const connection = new Connection(url);
-    const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
-    const payerAccount = await newSystemAccountWithAirdrop(
-      connection,
-      1000 + fee,
-    );
-    const userAccount = await MessageFeedProgram.createUser(
-      connection,
-      meta.programId,
-      payerAccount,
-      meta.firstMessage,
-    );
+    const fee = 200; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
 
-    if (id in users) {
-      res.status(500).send('Duplicate account');
+    try {
+      const payerAccount = await newSystemAccountWithAirdrop(
+        connection,
+        1000 + fee,
+      );
+      const userAccount = await MessageFeedProgram.createUser(
+        connection,
+        meta.programId,
+        payerAccount,
+        meta.firstMessage,
+      );
+
+      if (id in users) {
+        res.status(500).send('Duplicate account');
+        return;
+      }
+
+      users[id] = userAccount.secretKey;
+    } catch (err) {
+      console.error('Failed to create user', err);
+      res.status(500).send('Failed to login, try again');
       return;
     }
-    users[id] = userAccount.secretKey;
   }
   res
     .send(JSON.stringify({userAccount: Buffer.from(users[id]).toString('hex')}))

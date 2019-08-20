@@ -1,14 +1,22 @@
 import React from 'react';
 import Grid from '@material-ui/core/Grid';
 import PropTypes from 'prop-types';
+import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
 
 import Poll from './poll';
 import CreatePollDialog from './create-poll';
 
-const styles = () => ({
+const styles = theme => ({
   root: {
     flexGrow: 1,
+  },
+  empty: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: theme.spacing.unit * 2,
+    borderRadius: 4,
   },
 });
 
@@ -35,9 +43,17 @@ class PollGrid extends React.Component {
 
     return (
       <div className={classes.root}>
-        <Grid container spacing={8} justify="center" alignItems="center">
-          {renderPolls}
-        </Grid>
+        {polls.length > 0 ? (
+          <Grid container spacing={8} justify="center" alignItems="center">
+            {renderPolls}
+          </Grid>
+        ) : (
+          <div className={classes.empty}>
+            <Typography variant="subtitle1" noWrap>
+              No polls yet, create one with the bottom right button!
+            </Typography>
+          </div>
+        )}
         <CreatePollDialog
           disabled={busy || !payerBalance}
           onCreate={(...args) => this.props.onCreate(...args)}

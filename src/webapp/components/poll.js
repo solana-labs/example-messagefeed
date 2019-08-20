@@ -16,7 +16,7 @@ const styles = theme => ({
   root: {
     flexGrow: 1,
   },
-  header: {
+  subtitle: {
     marginBottom: theme.spacing.unit * 2,
   },
   divider: {
@@ -163,7 +163,7 @@ class Poll extends React.Component {
     return null;
   }
 
-  renderHeader() {
+  renderSubtitle() {
     const slotsLeft = this.slotsLeft();
     const expired = slotsLeft === 0;
     const claimed = this.alreadyClaimed();
@@ -210,9 +210,11 @@ class Poll extends React.Component {
 
     return (
       <React.Fragment>
-        {this.renderHeader()}
-        <Typography className={classes.header} variant="h6" noWrap>
+        <Typography variant="h6" noWrap>
           {escapeHtml(poll.header)}
+        </Typography>
+        <Typography className={classes.subtitle} variant="subtitle1" noWrap>
+          {this.renderSubtitle()}
         </Typography>
         <div className={classes.root}>
           <List>

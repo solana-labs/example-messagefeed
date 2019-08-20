@@ -39,6 +39,7 @@ export async function getConfig(configUrl: string): Promise<Config> {
           },
           loginMethod: config.loginMethod,
           url: config.url,
+          urlTls: config.urlTls,
           walletUrl: config.walletUrl,
         };
       }

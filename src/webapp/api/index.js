@@ -76,11 +76,13 @@ export default class Api {
         messageFeed,
         predictionPoll,
         url,
+        urlTls,
         walletUrl,
       } = await getConfig(this.configUrl);
 
       this.connection = new Connection(url);
       this.connectionUrl = url;
+      this.connectionUrlTls = urlTls;
       this.walletUrl = walletUrl;
       this.clock.updateConfig(this.connection);
 
@@ -134,7 +136,7 @@ export default class Api {
     const payerAccount = await this.getPayerAccount();
     const windowName = 'wallet';
     const windowOptions =
-      'toolbar=no, location=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=500, height=600';
+      'toolbar=no, location=no, status=no, menubar=no, scrollbars=yes, resizable=yes, width=500, height=1200';
     if (!this.walletWindow) {
       window.addEventListener('message', e => this.onWalletMessage(e));
       this.walletWindow = window.open(
@@ -157,7 +159,7 @@ export default class Api {
             params: {
               pubkey: payerAccount.publicKey.toString(),
               amount: 1000,
-              network: this.connectionUrl,
+              network: this.connectionUrlTls,
             },
           },
           this.walletUrl,
@@ -179,7 +181,7 @@ export default class Api {
               params: {
                 pubkey: payerAccount.publicKey.toString(),
                 amount: 1000,
-                network: this.connectionUrl,
+                network: this.connectionUrlTls,
               },
             },
             this.walletUrl,
