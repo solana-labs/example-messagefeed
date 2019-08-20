@@ -1,5 +1,5 @@
 use alloc::vec::Vec;
-use solana_sdk_types::SolPubkey;
+use solana_sdk_bpf_utils::entrypoint::SolPubkey;
 
 pub struct CollectionData<'a> {
     poll_count: &'a mut u32,

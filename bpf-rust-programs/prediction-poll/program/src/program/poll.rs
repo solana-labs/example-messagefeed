@@ -1,6 +1,6 @@
 use crate::result::{ProgramError, ProgramResult};
 use prediction_poll_data::PollData;
-use solana_sdk_types::SolPubkey;
+use solana_sdk_bpf_utils::entrypoint::SolPubkey;
 
 pub fn record_wager(
     poll: &mut PollData,

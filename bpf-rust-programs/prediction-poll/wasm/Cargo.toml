@@ -12,8 +12,8 @@ edition = "2018"
 arrayref = "0.3.5"
 console_error_panic_hook = "0.1"
 js-sys = "0.3"
+solana-sdk-bpf-utils = { path = "../../../node_modules/@solana/web3.js/bpf-sdk/rust/rust-utils" }
 prediction-poll-data = { path = "../program_data", default-features = false, features = ["wasm"] }
-solana-sdk-types = { path = "../solana_types" }
 wasm-bindgen = "0.2"
 
 [lib]

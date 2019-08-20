@@ -32,15 +32,15 @@ perform_action() {
          ../../../node_modules/@solana/web3.js/bpf-sdk/rust/clean.sh "$PWD"
         ;;
     test)
-            echo "test $2"
+            echo "test"
             cargo +nightly test
         ;;
     clippy)
-            echo "clippy $2"
+            echo "clippy"
             cargo +nightly clippy
         ;;
     fmt)
-            echo "formatting $2"
+            echo "formatting"
             cargo fmt
         ;;
     help)

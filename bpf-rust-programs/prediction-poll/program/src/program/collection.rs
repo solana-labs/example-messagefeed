@@ -1,6 +1,6 @@
 use crate::result::{ProgramError, ProgramResult};
 use prediction_poll_data::CollectionData;
-use solana_sdk_types::SolPubkey;
+use solana_sdk_bpf_utils::entrypoint::SolPubkey;
 
 pub fn add_poll(collection: &mut CollectionData, poll_pubkey: &SolPubkey) -> ProgramResult<()> {
     if collection.len() >= collection.capacity() {

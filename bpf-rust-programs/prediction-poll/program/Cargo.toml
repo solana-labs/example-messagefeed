@@ -17,7 +17,6 @@ prediction-poll-data = { path = "../program_data" }
 serde = { version = "1.0", default-features = false, features = ["derive"] }
 solana-sdk-bpf-utils = { path = "../../../node_modules/@solana/web3.js/bpf-sdk/rust/rust-utils" }
 solana-sdk-bpf-no-std = { path = "../../../node_modules/@solana/web3.js/bpf-sdk/rust/rust-no-std" }
-solana-sdk-types = { path = "../solana_types" }
 
 [dev_dependencies]
 solana-sdk-bpf-test = { path = "../../../node_modules/@solana/web3.js/bpf-sdk/rust/rust-test" }

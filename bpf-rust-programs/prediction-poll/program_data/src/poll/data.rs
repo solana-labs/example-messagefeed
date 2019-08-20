@@ -1,6 +1,6 @@
 use super::InitPollData;
 use alloc::vec::Vec;
-use solana_sdk_types::SolPubkey;
+use solana_sdk_bpf_utils::entrypoint::SolPubkey;
 
 pub struct PollData<'a> {
     pub creator_key: &'a SolPubkey,

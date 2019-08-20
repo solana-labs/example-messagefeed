@@ -2,7 +2,7 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 use js_sys::Uint8Array;
 use prediction_poll_data::TallyData;
-use solana_sdk_types::SolPubkey;
+use solana_sdk_bpf_utils::entrypoint::SolPubkey;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
