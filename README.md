@@ -116,7 +116,7 @@ $ npm run build:bpf-rust
 The message feed program is deployed by the web server at `src/server/index.js`,
 so start it first:
 ```sh
-$ npm run start-server
+$ npm run server
 ```
 
 ### Run the Command-Line Front End

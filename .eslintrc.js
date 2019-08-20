@@ -11,6 +11,7 @@ module.exports = {
     'plugin:import/errors',
     'plugin:import/warnings',
     'plugin:react/recommended',
+    'plugin:prettier/recommended',
   ],
   parser: 'babel-eslint',
   parserOptions: {
@@ -46,6 +47,7 @@ module.exports = {
       'single',
       {avoidEscape: true, allowTemplateLiterals: true},
     ],
+    'prettier/prettier': 'error',
     'require-await': ['error'],
     semi: ['error', 'always'],
   },
