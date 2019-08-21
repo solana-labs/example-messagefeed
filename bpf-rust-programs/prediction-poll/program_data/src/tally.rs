@@ -6,11 +6,8 @@ pub struct TallyData<'a> {
 }
 
 impl<'a> TallyData<'a> {
-    pub fn length(&self) -> usize {
-        (4 + *self.len * 40) as usize
-    }
-
     pub fn from_bytes(data: &'a mut [u8]) -> Self {
+        let (_, data) = data.split_at_mut(1); // Ignore data type
         let (len, tallies) = data.split_at_mut(4);
         Self {
             len: unsafe { &mut *(&mut len[0] as *mut u8 as *mut u32) },

@@ -56,6 +56,7 @@ impl<'a> PollData<'a> {
     }
 
     pub fn from_bytes(data: &'a [u8]) -> Self {
+        let (_, data) = data.split_at(1); // Ignore data type
         let (creator_key, data) = data.split_at(32);
         let creator_key = array_ref!(creator_key, 0, 32);
 

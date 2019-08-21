@@ -8,6 +8,7 @@ pub struct CollectionData<'a> {
 
 impl<'a> CollectionData<'a> {
     pub fn from_bytes(data: &'a mut [u8]) -> Self {
+        let (_, data) = data.split_at_mut(1); // Ignore data type
         let (poll_count, polls) = data.split_at_mut(4);
         Self {
             poll_count: unsafe { &mut *(&mut poll_count[0] as *mut u8 as *mut u32) },
@@ -17,10 +18,6 @@ impl<'a> CollectionData<'a> {
 }
 
 impl CollectionData<'_> {
-    pub fn init(&mut self) {
-        *self.poll_count = 0;
-    }
-
     pub fn contains(&self, poll: &SolPubkey) -> bool {
         for i in 0..*self.poll_count {
             if self.polls[i as usize] == *poll {

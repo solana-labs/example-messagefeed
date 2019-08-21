@@ -19,8 +19,8 @@ use solana_sdk_bpf_utils::entrypoint;
 use solana_sdk_bpf_utils::entrypoint::{SolClusterInfo, SolKeyedAccount};
 
 entrypoint!(_entrypoint);
-fn _entrypoint(keyed_accounts: &mut [SolKeyedAccount], _: &SolClusterInfo, data: &[u8]) -> bool {
-    match process_instruction(keyed_accounts, data) {
+fn _entrypoint(keyed_accounts: &mut [SolKeyedAccount], info: &SolClusterInfo, data: &[u8]) -> bool {
+    match process_instruction(keyed_accounts, info, data) {
         Err(err) => {
             err.print();
             false
