@@ -85,7 +85,7 @@ For more details on working with a local cluster, see the [full instructions](ht
 Alternatively to connect to the public testnet, `export LIVE=1` in your
 environment.  By default `LIVE=1` will connect to the
 beta testnet.  To use the edge testnet instead define `export CHANNEL=edge` in
-your environment (see [url.js](https://github.com/solana-labs/example-messagefeed/blob/master/url.js) for more)
+your environment (see [urls.js](https://github.com/solana-labs/example-messagefeed/blob/master/urls.js) and [testnet.js](https://github.com/solana-labs/solana-web3.js/blob/master/src/util/testnet.js) for more)
 
 ### Build the on-chain program
 
