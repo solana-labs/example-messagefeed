@@ -47,14 +47,14 @@ impl TallyData<'_> {
 
     pub fn add_tally(&mut self, user_key: &SolPubkey, wager: u64) {
         self.tallies[self.len()][..32].clone_from_slice(user_key);
-        self.tallies[self.len()][32..].clone_from_slice(&wager.to_be_bytes());
+        self.tallies[self.len()][32..].clone_from_slice(&wager.to_le_bytes());
         *self.tally_count += 1;
     }
 
     pub fn iter(&self) -> impl Iterator<Item = (&SolPubkey, u64)> {
         self.tallies[..self.len()].iter().map(|t| {
             let key = array_ref!(t, 0, 32);
-            let wager = u64::from_be_bytes(*array_ref!(t, 32, 8));
+            let wager = u64::from_le_bytes(*array_ref!(t, 32, 8));
             (key, wager)
         })
     }
@@ -82,7 +82,7 @@ mod test {
         assert_eq!(tally.capacity(), 1);
         assert_eq!(
             tally.get_wager_mut(&user_key).copied(),
-            Some(wager.to_be_bytes())
+            Some(wager.to_le_bytes())
         );
         assert_eq!(tally.iter().next(), Some((&user_key, wager)));
     }

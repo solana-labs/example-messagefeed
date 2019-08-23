@@ -8,8 +8,8 @@ pub fn record_wager(
     wager: u64,
 ) -> ProgramResult<()> {
     if let Some(wager_mut_ref) = tally.get_wager_mut(user_pubkey) {
-        let value = u64::from_be_bytes(*wager_mut_ref);
-        *wager_mut_ref = (value + wager).to_be_bytes();
+        let value = u64::from_le_bytes(*wager_mut_ref);
+        *wager_mut_ref = (value + wager).to_le_bytes();
         return Ok(());
     }
 

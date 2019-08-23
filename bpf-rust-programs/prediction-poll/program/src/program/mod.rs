@@ -22,7 +22,7 @@ pub fn process_instruction(
 ) -> ProgramResult<()> {
     let (command, data) = data.split_at(1);
     let command =
-        CommandData::try_from(command[0].to_be()).map_err(|_| ProgramError::InvalidCommand)?;
+        CommandData::try_from(command[0].to_le()).map_err(|_| ProgramError::InvalidCommand)?;
     match command {
         CommandData::InitCollection => init_collection(keyed_accounts, info),
         CommandData::InitPoll => init_poll(keyed_accounts, data, info),

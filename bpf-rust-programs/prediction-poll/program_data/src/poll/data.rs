@@ -25,8 +25,8 @@ impl<'a> PollData<'a> {
         let mut bytes = Vec::with_capacity(self.length());
         bytes.push(self.data_type.clone() as u8);
         bytes.extend_from_slice(self.creator_key);
-        bytes.extend_from_slice(&self.last_block.to_be_bytes());
-        bytes.extend_from_slice(&self.header_len.to_be_bytes());
+        bytes.extend_from_slice(&self.last_block.to_le_bytes());
+        bytes.extend_from_slice(&self.header_len.to_le_bytes());
         bytes.extend_from_slice(self.header);
         bytes.extend(self.option_a.to_bytes().into_iter());
         bytes.extend(self.option_b.to_bytes().into_iter());
@@ -69,10 +69,10 @@ impl<'a> PollData<'a> {
         let creator_key = array_ref!(creator_key, 0, 32);
 
         let (last_block, data) = data.split_at(8);
-        let last_block = u64::from_be_bytes(*array_ref!(last_block, 0, 8));
+        let last_block = u64::from_le_bytes(*array_ref!(last_block, 0, 8));
 
         let (header_len, data) = data.split_at(4);
-        let header_len = u32::from_be_bytes(*array_ref!(header_len, 0, 4));
+        let header_len = u32::from_le_bytes(*array_ref!(header_len, 0, 4));
         let (header, data) = data.split_at(header_len as usize);
 
         let option_a = PollOptionData::from_bytes(data);
@@ -106,23 +106,23 @@ impl<'a> PollOptionData<'a> {
 
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::with_capacity(self.length());
-        bytes.extend_from_slice(&self.text_len.to_be_bytes());
+        bytes.extend_from_slice(&self.text_len.to_le_bytes());
         bytes.extend_from_slice(self.text);
         bytes.extend_from_slice(self.tally_key);
-        bytes.extend_from_slice(&self.quantity.to_be_bytes());
+        bytes.extend_from_slice(&self.quantity.to_le_bytes());
         bytes
     }
 
     pub fn from_bytes(data: &'a [u8]) -> Self {
         let (text_len, data) = data.split_at(4);
-        let text_len = u32::from_be_bytes(*array_ref!(text_len, 0, 4));
+        let text_len = u32::from_le_bytes(*array_ref!(text_len, 0, 4));
         let (text, data) = data.split_at(text_len as usize);
 
         let (tally_key, data) = data.split_at(32);
         let tally_key = array_ref!(tally_key, 0, 32);
 
         let (quantity, _) = data.split_at(8);
-        let quantity = u64::from_be_bytes(*array_ref!(quantity, 0, 8));
+        let quantity = u64::from_le_bytes(*array_ref!(quantity, 0, 8));
 
         Self {
             text_len,
