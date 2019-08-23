@@ -42,12 +42,10 @@ export default class Api {
 
   explorerUrl() {
     let explorerUrl = 'http://localhost:3000';
-    const matches = this.connectionUrl.match(
-      'https://api.(.*)testnet.solana.com',
-    );
+    const matches = this.connectionUrl.match('https://(.*)testnet.solana.com');
     if (matches) {
       const testnet = matches[1];
-      explorerUrl = `http://${testnet}testnet.solana.com`;
+      explorerUrl = `https://${testnet}explorer.solana.com/v1`;
     }
     return explorerUrl;
   }
