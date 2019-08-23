@@ -1,6 +1,7 @@
 use crate::result::{ProgramError, ProgramResult};
 use prediction_poll_data::TallyData;
 use solana_sdk_bpf_utils::entrypoint::{SolKeyedAccount, SolPubkey};
+use core::convert::TryFrom;
 
 pub fn record_wager(
     tally: &mut TallyData,
@@ -31,16 +32,18 @@ pub fn payout(
         return Err(ProgramError::InvalidPayoutList);
     }
 
-    let mut disbursed = 0;
+    let mut remaining = pot;
+    let pot = u128::from(pot);
+    let winning_quantity = u128::from(winning_quantity);
     for (index, (key, wager)) in tally.iter().enumerate() {
         if key != accounts[index].key {
             return Err(ProgramError::InvalidPayoutList);
         }
 
-        let mut portion = pot * wager / winning_quantity;
-        disbursed += portion;
+        let mut portion = u64::try_from(pot * u128::from(wager) / winning_quantity).unwrap();
+        remaining -= portion;
         if index == accounts.len() - 1 {
-            portion += pot - disbursed; // last voter gets the rounding error
+            portion += remaining; // last voter gets the rounding error
         }
         *accounts[index].lamports += portion;
     }
