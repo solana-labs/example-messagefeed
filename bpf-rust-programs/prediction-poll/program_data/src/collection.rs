@@ -1,16 +1,21 @@
+use crate::DataType;
 use alloc::vec::Vec;
 use solana_sdk_bpf_utils::entrypoint::SolPubkey;
 
+pub const MIN_COLLECTION_SIZE: usize = 1 + 4 + 32; // Room for 1 poll
+
 pub struct CollectionData<'a> {
+    pub data_type: DataType,
     poll_count: &'a mut u32,
     polls: &'a mut [SolPubkey],
 }
 
 impl<'a> CollectionData<'a> {
     pub fn from_bytes(data: &'a mut [u8]) -> Self {
-        let (_, data) = data.split_at_mut(1); // Ignore data type
+        let (data_type, data) = data.split_at_mut(1);
         let (poll_count, polls) = data.split_at_mut(4);
         Self {
+            data_type: DataType::from(data_type[0]),
             poll_count: unsafe { &mut *(&mut poll_count[0] as *mut u8 as *mut u32) },
             polls: unsafe { core::mem::transmute::<&mut [u8], &mut [SolPubkey]>(polls) },
         }

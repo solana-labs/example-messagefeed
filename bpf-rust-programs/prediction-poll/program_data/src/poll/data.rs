@@ -1,8 +1,10 @@
 use super::InitPollData;
+use crate::DataType;
 use alloc::vec::Vec;
 use solana_sdk_bpf_utils::entrypoint::SolPubkey;
 
 pub struct PollData<'a> {
+    pub data_type: DataType,
     pub creator_key: &'a SolPubkey,
     pub last_block: u64,
     pub header_len: u32,
@@ -13,11 +15,14 @@ pub struct PollData<'a> {
 
 impl<'a> PollData<'a> {
     pub fn length(&self) -> usize {
-        (32 + 8 + 4 + self.header_len) as usize + self.option_a.length() + self.option_b.length()
+        (1 + 32 + 8 + 4 + self.header_len) as usize
+            + self.option_a.length()
+            + self.option_b.length()
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::with_capacity(self.length());
+        bytes.push(self.data_type.clone() as u8);
         bytes.extend_from_slice(self.creator_key);
         bytes.extend_from_slice(&self.last_block.to_be_bytes());
         bytes.extend_from_slice(&self.header_len.to_be_bytes());
@@ -36,6 +41,7 @@ impl<'a> PollData<'a> {
         slot: u64,
     ) -> Self {
         Self {
+            data_type: DataType::Poll,
             creator_key,
             last_block: slot + init.timeout as u64,
             header_len: init.header_len,
@@ -56,7 +62,9 @@ impl<'a> PollData<'a> {
     }
 
     pub fn from_bytes(data: &'a [u8]) -> Self {
-        let (_, data) = data.split_at(1); // Ignore data type
+        let (data_type, data) = data.split_at(1);
+        let data_type = DataType::from(data_type[0]);
+
         let (creator_key, data) = data.split_at(32);
         let creator_key = array_ref!(creator_key, 0, 32);
 
@@ -72,6 +80,7 @@ impl<'a> PollData<'a> {
         let option_b = PollOptionData::from_bytes(data);
 
         Self {
+            data_type,
             creator_key,
             last_block,
             header_len,

@@ -3,6 +3,7 @@ use solana_sdk_bpf_utils::info;
 #[derive(Debug)]
 pub enum ProgramError {
     AccountNotNew,
+    AccountDataTooSmall,
     CannotPayoutToLosers,
     CannotPayoutToSubset,
     InvalidAccount,
@@ -29,6 +30,7 @@ impl ProgramError {
     pub fn print(&self) {
         match self {
             ProgramError::AccountNotNew => info!("Error: AccountNotNew"),
+            ProgramError::AccountDataTooSmall => info!("Error: AccountDataTooSmall"),
             ProgramError::CannotPayoutToLosers => info!("Error: CannotPayoutToLosers"),
             ProgramError::CannotPayoutToSubset => info!("Error: CannotPayoutToSubset"),
             ProgramError::InvalidAccount => info!("Error: InvalidAccount"),

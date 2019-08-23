@@ -51,3 +51,10 @@ pub fn expect_key(account: &SolKeyedAccount, key: &SolPubkey) -> ProgramResult<(
     }
     Ok(())
 }
+
+pub fn expect_min_size(data: &[u8], min_size: usize) -> ProgramResult<()> {
+    if data.len() < min_size {
+        return Err(ProgramError::AccountDataTooSmall);
+    }
+    Ok(())
+}

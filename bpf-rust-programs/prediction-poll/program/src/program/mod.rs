@@ -4,12 +4,13 @@ mod tally;
 
 use crate::result::{ProgramError, ProgramResult};
 use crate::util::{
-    expect_data_type, expect_key, expect_n_accounts, expect_owned_by, expect_signed, expect_zeroed,
-    CLOCK_KEY,
+    expect_data_type, expect_key, expect_min_size, expect_n_accounts, expect_owned_by,
+    expect_signed, expect_zeroed, CLOCK_KEY,
 };
 use core::convert::TryFrom;
 use prediction_poll_data::{
     ClockData, CollectionData, CommandData, DataType, InitPollData, PollData, TallyData,
+    MIN_COLLECTION_SIZE, MIN_TALLY_SIZE,
 };
 use solana_sdk_bpf_utils::entrypoint::{SolClusterInfo, SolKeyedAccount};
 use solana_sdk_bpf_utils::info;
@@ -41,6 +42,7 @@ fn init_collection(
     expect_signed(collection_account)?;
     expect_owned_by(collection_account, info.program_id)?;
     expect_zeroed(collection_account.data)?;
+    expect_min_size(collection_account.data, MIN_COLLECTION_SIZE)?;
 
     collection_account.data[0] = DataType::Collection as u8;
 
@@ -71,11 +73,13 @@ fn init_poll(
     expect_signed(tally_a_account)?;
     expect_owned_by(tally_a_account, info.program_id)?;
     expect_zeroed(tally_a_account.data)?;
+    expect_min_size(tally_a_account.data, MIN_TALLY_SIZE)?;
 
     let (tally_b_account, keyed_accounts) = keyed_accounts.split_first_mut().unwrap();
     expect_signed(tally_b_account)?;
     expect_owned_by(tally_b_account, info.program_id)?;
     expect_zeroed(tally_b_account.data)?;
+    expect_min_size(tally_b_account.data, MIN_TALLY_SIZE)?;
 
     let (clock_account, _) = keyed_accounts.split_first_mut().unwrap();
     expect_key(clock_account, &CLOCK_KEY)?;
@@ -93,8 +97,7 @@ fn init_poll(
     .to_bytes();
 
     collection::add_poll(&mut collection, poll_account.key)?;
-    poll_account.data[0] = DataType::Poll as u8;
-    poll_account.data[1..poll_data.len() + 1].copy_from_slice(&poll_data);
+    poll_account.data[0..poll_data.len()].copy_from_slice(&poll_data);
     tally_a_account.data[0] = DataType::Tally as u8;
     tally_b_account.data[0] = DataType::Tally as u8;
 
@@ -141,7 +144,7 @@ fn submit_vote(keyed_accounts: &mut [SolKeyedAccount], info: &SolClusterInfo) ->
     *user_account.lamports = 0;
 
     let poll_data = poll.to_bytes();
-    poll_account.data[1..poll_data.len() + 1].copy_from_slice(&poll_data);
+    poll_account.data[0..poll_data.len()].copy_from_slice(&poll_data);
     Ok(())
 }
 

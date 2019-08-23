@@ -21,6 +21,7 @@ pub use poll::*;
 pub use tally::*;
 
 #[repr(u8)]
+#[derive(Clone)]
 pub enum DataType {
     Invalid,
     Collection,
