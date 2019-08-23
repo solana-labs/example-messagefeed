@@ -3,6 +3,7 @@ use crate::DataType;
 use alloc::vec::Vec;
 use solana_sdk_bpf_utils::entrypoint::SolPubkey;
 
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PollData<'a> {
     pub data_type: DataType,
     pub creator_key: &'a SolPubkey,
@@ -32,7 +33,6 @@ impl<'a> PollData<'a> {
         bytes
     }
 
-    // TODO error checking
     pub fn init(
         init: InitPollData<'a>,
         creator_key: &'a SolPubkey,
@@ -91,6 +91,7 @@ impl<'a> PollData<'a> {
     }
 }
 
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PollOptionData<'a> {
     pub text_len: u32,
     pub text: &'a [u8],
@@ -129,5 +130,64 @@ impl<'a> PollOptionData<'a> {
             tally_key,
             quantity,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    pub fn poll_serialization() {
+        let creator_key = [0; 32];
+        let header = "poll".as_bytes();
+        let option_a = "first option".as_bytes();
+        let option_a_key = [1; 32];
+        let option_b = "second option".as_bytes();
+        let option_b_key = [2; 32];
+
+        let data = PollData {
+            data_type: DataType::Poll,
+            creator_key: &creator_key,
+            last_block: 999,
+            header_len: header.len() as u32,
+            header,
+            option_a: PollOptionData {
+                text_len: option_a.len() as u32,
+                text: option_a,
+                tally_key: &option_a_key,
+                quantity: 100,
+            },
+            option_b: PollOptionData {
+                text_len: option_b.len() as u32,
+                text: option_b,
+                tally_key: &option_b_key,
+                quantity: 101,
+            },
+        };
+
+        let bytes = data.to_bytes();
+        let data_copy = PollData::from_bytes(&bytes[..]);
+
+        assert_eq!(data, data_copy);
+        assert_eq!(data.length(), bytes.len());
+    }
+
+    #[test]
+    pub fn option_serialization() {
+        let key = [0; 32];
+        let text = "option text".as_bytes();
+        let data = PollOptionData {
+            text_len: text.len() as u32,
+            text,
+            tally_key: &key,
+            quantity: 100,
+        };
+
+        let bytes = data.to_bytes();
+        let data_copy = PollOptionData::from_bytes(&bytes[..]);
+
+        assert_eq!(data, data_copy);
+        assert_eq!(data.length(), bytes.len());
     }
 }

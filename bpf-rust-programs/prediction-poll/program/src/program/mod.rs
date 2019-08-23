@@ -4,7 +4,7 @@ mod tally;
 
 use crate::result::{ProgramError, ProgramResult};
 use crate::util::{
-    expect_data_type, expect_key, expect_min_size, expect_n_accounts, expect_owned_by,
+    expect_data_type, expect_gt, expect_key, expect_min_size, expect_n_accounts, expect_owned_by,
     expect_signed, expect_zeroed, CLOCK_KEY,
 };
 use core::convert::TryFrom;
@@ -85,8 +85,12 @@ fn init_poll(
     expect_key(clock_account, &CLOCK_KEY)?;
 
     let mut collection = CollectionData::from_bytes(collection_account.data);
-    let init_poll = InitPollData::from_bytes(init_data);
     let clock = ClockData::from_bytes(clock_account.data);
+    let init_poll = InitPollData::from_bytes(init_data);
+    expect_gt(init_poll.header_len, 0)?;
+    expect_gt(init_poll.option_a_len, 0)?;
+    expect_gt(init_poll.option_b_len, 0)?;
+
     let poll_data = PollData::init(
         init_poll,
         creator_account.key,
@@ -179,7 +183,7 @@ fn submit_claim(
         return Err(ProgramError::PollNotFinished);
     }
 
-    expect_n_accounts(keyed_accounts, *tally.len as usize)?;
+    expect_n_accounts(keyed_accounts, tally.len())?;
 
     let pot = *poll_account.lamports - 1;
     *poll_account.lamports = 1;

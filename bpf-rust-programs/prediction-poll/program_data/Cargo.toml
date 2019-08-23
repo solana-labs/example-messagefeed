@@ -21,4 +21,4 @@ default = ["bpf"]
 
 [lib]
 name = "prediction_poll_data"
-crate-type = ["cdylib", "rlib"]
+crate-type = ["rlib"]

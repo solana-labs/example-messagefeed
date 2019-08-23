@@ -1,5 +1,6 @@
 use alloc::vec::Vec;
 
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct InitPollData<'a> {
     pub timeout: u32, // block height
     pub header_len: u32,
@@ -52,5 +53,32 @@ impl<'a> InitPollData<'a> {
             option_b_len,
             option_b,
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    pub fn serialization() {
+        let header = "poll".as_bytes();
+        let option_a = "first option".as_bytes();
+        let option_b = "second option".as_bytes();
+        let data = InitPollData {
+            timeout: 100,
+            header_len: header.len() as u32,
+            header,
+            option_a_len: option_a.len() as u32,
+            option_a,
+            option_b_len: option_b.len() as u32,
+            option_b,
+        };
+
+        let bytes = data.to_bytes();
+        let data_copy = InitPollData::from_bytes(&bytes[..]);
+
+        assert_eq!(data, data_copy);
+        assert_eq!(data.length(), bytes.len());
     }
 }

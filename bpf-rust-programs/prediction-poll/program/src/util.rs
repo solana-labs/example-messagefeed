@@ -1,7 +1,6 @@
 use crate::result::{ProgramError, ProgramResult};
 use prediction_poll_data::DataType;
 use solana_sdk_bpf_utils::entrypoint::{SolKeyedAccount, SolPubkey};
-use solana_sdk_bpf_utils::info;
 
 pub const CLOCK_KEY: [u8; 32] = [
     6, 167, 213, 23, 24, 199, 116, 201, 40, 86, 99, 152, 105, 29, 94, 182, 139, 94, 184, 163, 155,
@@ -10,7 +9,6 @@ pub const CLOCK_KEY: [u8; 32] = [
 
 pub fn expect_n_accounts(info: &mut [SolKeyedAccount], n: usize) -> ProgramResult<()> {
     if info.len() < n {
-        info!("Incorrect number of accounts");
         Err(ProgramError::InvalidInput)
     } else {
         Ok(())
@@ -55,6 +53,13 @@ pub fn expect_key(account: &SolKeyedAccount, key: &SolPubkey) -> ProgramResult<(
 pub fn expect_min_size(data: &[u8], min_size: usize) -> ProgramResult<()> {
     if data.len() < min_size {
         return Err(ProgramError::AccountDataTooSmall);
+    }
+    Ok(())
+}
+
+pub fn expect_gt<T: PartialOrd>(left: T, right: T) -> ProgramResult<()> {
+    if left <= right {
+        return Err(ProgramError::InvalidInput);
     }
     Ok(())
 }

@@ -2,7 +2,6 @@
 
 #[macro_use]
 extern crate alloc;
-#[macro_use]
 extern crate arrayref;
 extern crate console_error_panic_hook;
 

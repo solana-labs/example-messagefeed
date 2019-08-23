@@ -1,10 +1,9 @@
 #![no_std]
 
+#[cfg_attr(test, macro_use)]
 extern crate alloc;
 #[macro_use]
 extern crate arrayref;
-#[cfg(feature = "bpf")]
-extern crate solana_sdk_bpf_no_std;
 #[cfg(feature = "wasm")]
 extern crate wasm_bindgen;
 
@@ -22,6 +21,7 @@ pub use tally::*;
 
 #[repr(u8)]
 #[derive(Clone)]
+#[cfg_attr(test, derive(PartialEq, Debug))]
 pub enum DataType {
     Invalid,
     Collection,

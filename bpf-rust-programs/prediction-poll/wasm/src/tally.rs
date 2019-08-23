@@ -7,23 +7,14 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Tally {
-    keys: Vec<SolPubkey>,
-    values: Vec<u64>,
+    tallies: Vec<(SolPubkey, u64)>,
 }
 
 impl From<TallyData<'_>> for Tally {
     fn from(tally_data: TallyData) -> Self {
-        let mut keys = Vec::with_capacity(*tally_data.len as usize);
-        let mut values = Vec::with_capacity(*tally_data.len as usize);
-        for t in 0..*tally_data.len as usize {
-            let key = *array_ref!(tally_data.tallies[t], 0, 32);
-            let value = array_ref!(tally_data.tallies[t], 32, 8);
-            let value = u64::from_be_bytes(*value);
-            keys.push(key);
-            values.push(value);
+        Self {
+            tallies: tally_data.iter().map(|(k, w)| (*k, w)).collect(),
         }
-
-        Self { keys, values }
     }
 }
 
@@ -38,10 +29,21 @@ impl Tally {
     #[wasm_bindgen(method, getter)]
     pub fn keys(&self) -> Box<[JsValue]> {
         let js_keys: Vec<_> = self
-            .keys
+            .tallies
             .iter()
-            .map(|k| Uint8Array::from(&k[..]).into())
+            .map(|(key, _)| Uint8Array::from(&key[..]).into())
             .collect();
         js_keys.into_boxed_slice()
+    }
+
+    #[wasm_bindgen(method, getter)]
+    pub fn wagers(&self) -> Box<[u64]> {
+        let js_wagers: Vec<_> = self
+            .tallies
+            .iter()
+            .map(|(_, wager)| wager)
+            .cloned()
+            .collect();
+        js_wagers.into_boxed_slice()
     }
 }

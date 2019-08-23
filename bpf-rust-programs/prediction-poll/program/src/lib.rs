@@ -3,7 +3,6 @@
 #![no_std]
 
 extern crate alloc;
-#[macro_use]
 extern crate arrayref;
 #[cfg(not(test))]
 extern crate solana_sdk_bpf_no_std;
@@ -11,7 +10,6 @@ extern crate solana_sdk_bpf_utils;
 
 mod program;
 mod result;
-mod simple_serde;
 mod util;
 
 use program::process_instruction;
