@@ -3,7 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import {Connection} from '@solana/web3.js';
 
-import {url, walletUrl} from '../../urls';
+import {url, urlTls, walletUrl} from '../../urls';
 import {newSystemAccountWithAirdrop} from '../util/new-system-account-with-airdrop';
 import MessageController from './message-feed';
 import * as MessageFeedProgram from '../programs/message-feed';
@@ -31,6 +31,7 @@ app.get('/config.json', async (req, res) => {
     loading: !messageMeta,
     loginMethod,
     url,
+    urlTls,
     walletUrl,
   };
 
