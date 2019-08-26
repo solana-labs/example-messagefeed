@@ -1,0 +1,27 @@
+{
+  "addons": [
+
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "env": {
+    "CHANNEL": {
+      "required": true
+    },
+    "LIVE": {
+      "required": true
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  },
+  "name": "example-messagefeed",
+  "scripts": {
+  },
+  "stack": "heroku-18"
+}
