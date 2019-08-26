@@ -1,7 +1,7 @@
 [package]
-name = "prediction-poll-wasm"
+name = "prediction-poll-wasm-bindings"
 version = "0.16.0"
-description = "Poll feed wasm"
+description = "Poll feed wasm bindings"
 authors = ["Solana Maintainers <maintainers@solana.com>"]
 repository = "https://github.com/solana-labs/solana"
 license = "Apache-2.0"
@@ -17,5 +17,5 @@ prediction-poll-data = { path = "../program_data", default-features = false, fea
 wasm-bindgen = "0.2"
 
 [lib]
-name = "prediction_poll_wasm"
+name = "prediction_poll_wasm_bindings"
 crate-type = ["cdylib", "rlib"]

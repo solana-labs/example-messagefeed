@@ -1,2 +1,2 @@
 [workspace]
-members = ["program", "program_data", "wasm"]
+members = ["program", "program_data", "wasm_bindings"]

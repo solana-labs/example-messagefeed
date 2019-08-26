@@ -4,7 +4,9 @@ use solana_sdk_bpf_utils::entrypoint::SolPubkey;
 
 type Tally = [u8; 40]; // SolPubkey, u64
 
-pub const MIN_TALLY_SIZE: usize = 1 + 4 + 40; // Room for 1 tally
+/// Min data size for a tally
+/// Breakdown: data_type (1) + tally_count (4) + one tally (40)
+pub const MIN_TALLY_SIZE: usize = 1 + 4 + 40;
 
 pub struct TallyData<'a> {
     pub data_type: DataType,

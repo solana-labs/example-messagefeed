@@ -3,7 +3,9 @@ use alloc::slice::from_raw_parts_mut;
 use alloc::vec::Vec;
 use solana_sdk_bpf_utils::entrypoint::SolPubkey;
 
-pub const MIN_COLLECTION_SIZE: usize = 1 + 4 + 32; // Room for 1 poll
+/// Min data size for a poll collection
+/// Breakdown: data_type (1) + poll_count (4) + one poll (32)
+pub const MIN_COLLECTION_SIZE: usize = 1 + 4 + 32;
 
 pub struct CollectionData<'a> {
     pub data_type: DataType,

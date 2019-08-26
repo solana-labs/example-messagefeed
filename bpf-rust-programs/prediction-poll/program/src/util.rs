@@ -2,6 +2,8 @@ use crate::result::{ProgramError, ProgramResult};
 use prediction_poll_data::DataType;
 use solana_sdk_bpf_utils::entrypoint::{SolKeyedAccount, SolPubkey};
 
+// TODO retrieve this key from the `solana-sdk`
+// https://github.com/solana-labs/example-messagefeed/issues/126
 pub const CLOCK_KEY: [u8; 32] = [
     6, 167, 213, 23, 24, 199, 116, 201, 40, 86, 99, 152, 105, 29, 94, 182, 139, 94, 184, 163, 155,
     75, 109, 92, 115, 85, 91, 33, 0, 0, 0, 0,
