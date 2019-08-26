@@ -56,12 +56,12 @@ export default class Api {
     if (callback !== this.configCallback) return;
     console.log('pollConfig');
     try {
-      const {loginMethod, messageFeed, url, walletUrl} = await getConfig(
+      const {loginMethod, messageFeed, urlTls, walletUrl} = await getConfig(
         this.configUrl,
       );
 
-      this.connection = new Connection(url);
-      this.connectionUrl = url;
+      this.connection = new Connection(urlTls);
+      this.connectionUrl = urlTls;
       this.walletUrl = walletUrl;
 
       const explorerUrl = this.explorerUrl(this.connectionUrl);
