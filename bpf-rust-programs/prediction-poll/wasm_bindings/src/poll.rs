@@ -1,6 +1,7 @@
 use alloc::borrow::ToOwned;
 use alloc::string::{String, ToString};
 use core::str::from_utf8;
+use core::convert::TryFrom;
 use js_sys::Uint8Array;
 use prediction_poll_data::PollData;
 use solana_sdk_bpf_utils::entrypoint::SolPubkey;
@@ -12,14 +13,14 @@ pub struct Poll {
     header: String,
     option_a: PollOption,
     option_b: PollOption,
-    pub last_block: u64,
+    pub last_block: u32, // u64, https://caniuse.com/#feat=bigint
 }
 
 #[wasm_bindgen]
 #[derive(Clone)]
 pub struct PollOption {
     text: String,
-    pub quantity: u64,
+    pub quantity: u32, // u64, https://caniuse.com/#feat=bigint
     tally_key: SolPubkey,
 }
 
@@ -30,15 +31,15 @@ impl From<PollData<'_>> for Poll {
             header: from_utf8(poll_data.header).unwrap().to_string(),
             option_a: PollOption {
                 text: from_utf8(poll_data.option_a.text).unwrap().to_string(),
-                quantity: poll_data.option_a.quantity.to_owned(),
+                quantity: u32::try_from(poll_data.option_a.quantity.to_owned()).unwrap(),
                 tally_key: poll_data.option_a.tally_key.to_owned(),
             },
             option_b: PollOption {
                 text: from_utf8(poll_data.option_b.text).unwrap().to_string(),
-                quantity: poll_data.option_b.quantity.to_owned(),
+                quantity: u32::try_from(poll_data.option_b.quantity.to_owned()).unwrap(),
                 tally_key: poll_data.option_b.tally_key.to_owned(),
             },
-            last_block: poll_data.last_block.to_owned(),
+            last_block: u32::try_from(poll_data.last_block.to_owned()).unwrap(),
         }
     }
 }
