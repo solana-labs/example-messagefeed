@@ -3,24 +3,41 @@
 [travis-image]: https://api.travis-ci.org/solana-labs/example-messagefeed.svg?branch=master
 [travis-url]: https://travis-ci.org/solana-labs/example-messagefeed
 
-# Message Feed on Solana
+# Solana Feed
 
 This project demonstrates how to use the [Solana Javascript API](https://github.com/solana-labs/solana-web3.js)
-to build, deploy, and interact with programs on the Solana blockchain, implementing a simple feed of messages
+to build, deploy, and interact with programs on the Solana blockchain, implementing a simple feed of messages and prediction polls.
 To see it running go to https://solana-example-messagefeed.herokuapp.com/
 
-## How it works at a high-level
+## Table of Contents
+* [Overview](#overview)
+* [Message Feed](#message-feed)
+    * [User Login](#user-login)
+    * [Posting a message](#posting-a-message)
+    * [Banning a user](#banning-a-user)
+* [Prediction Polls](#prediction-polls)
+    * [Creating a poll](#creating-a-poll)
+    * [Voting](#voting)
+    * [Claim winnings](#claim-winnings)
+* [Getting Started](#getting-started)
+
+
+## Overview
+
+This project uses two Solana programs and a Node server to power a single webapp. The [Message Feed](#message-feed) program allows users to post messages and ban each other for bad behavior. The [Prediction Poll](#prediction-polls) program allows users to create wager-able polls that reward the winning side.
+
+
+## Message Feed
+
 Messages are represented as a singly-linked list of Solana accounts.
 
 Each Message account contains the message text, public key of the next message, and the public key of the User Account who posted it.
 
-To post a new message, a User Account is required.  The only way to obtain a
-User Account is to present credentials to the Https Server that created the first
-message in the chain.
+To post a new message, a User Account is required.  The only way to obtain a User Account is to present credentials to the Https Server that created the first message in the chain.
 
 A User Account contains a bit which indicates if they have been banned by another user.
 
-### New User sign-up
+### User Login
 Only the mechanism to obtain User Accounts is centralized.  This will ensure
 each User Account is associated with a real person using whatever user
 authentication system (such as Google) is preferred.  The only requirement on
@@ -58,6 +75,36 @@ identify the origin of each post.
 1. The Message Feed program processes the Transaction on chain, confirms the banning user
    is not also banned, and then sets the banned bit on the target user.
 
+## Prediction Polls
+
+Polls propose a question and 2 option to choose from. They allow users to wager tokens on which answer will be the most popular. The winning side gets to split up the losers' wagers!
+
+Polls are stored in a single Collection account on Solana. The Collection account contains a list of public keys for the Poll accounts.
+
+In addition to the display text, each poll also has an expiration block height and 2 tally keys for tracking wagers.
+
+Tally Accounts record wagers for a particular poll option. When the poll expires, they are used to distribute winnings.
+
+### Creating a poll
+To create a new poll, a User Account is required. Similar to posting messages, the user account is retrieved from the server.
+
+1. The user signs in and fetches the prediction poll program id and the current collection key.
+1. The user inputs the poll header and options as well as a block timeout which will be added to the current block height to compute the poll expiration.
+1. A Transaction is constructed with instructions for creating the poll account and 2 tally accounts and an instruction for initializing the poll with the text and timeout.
+1. Solana then creates the accounts and the prediction poll program processes the poll initialization instruction to set the poll account data.
+
+### Voting
+Voting on a poll involves a token wager which will be transferred to the poll account and recorded in the poll account data.
+
+1. A user selects a poll option and chooses an appropriate token wager
+1. A Transaction is constructed with instructions to create a one-off account with a balance equal to the token wager and submit a vote.
+1. The prediction poll program then drains the one-off account balance and records the wager in the poll account and the selected option tally account.
+
+### Claim winnings
+Once the poll expires, anyone can trigger the distribution of the winnings.
+
+1. Transaction is created which references all of the winning wager keys in a claim instruction.
+1. The prediction poll program verifies that the poll has expired and then drains the poll account balance and proportionally distributes the tokens to the winners according to their wagers.
 
 ## Getting Started
 
@@ -87,12 +134,14 @@ environment.  By default `LIVE=1` will connect to the
 beta testnet.  To use the edge testnet instead define `export CHANNEL=edge` in
 your environment (see [urls.js](https://github.com/solana-labs/example-messagefeed/blob/master/urls.js) and [testnet.js](https://github.com/solana-labs/solana-web3.js/blob/master/src/util/testnet.js) for more)
 
-### Build the on-chain program
+### Build the on-chain programs
 
-Two versions of the program are provided, one written in C and the other in
+Two versions of the message feed program are provided, one written in C and the other in
 Rust.  The build processes for each version produce a BPF ELF shared object
 called `dist/programs/messagefeed.so`.  They are interchangeable so just pick one
 to use.
+
+The prediction poll program is only written in Rust. The build command will produce a BPF ELF shared object called `dist/programs/prediction_poll.so`.
 
 #### BPF C
 ```sh
@@ -113,10 +162,10 @@ $ npm run build:bpf-rust
 ```
 
 ### Start the web server
-The message feed program is deployed by the web server at `src/server/index.js`,
+The message feed and prediction poll programs are deployed by the web server at `src/server/index.js`,
 so start it first:
 ```sh
-$ npm run server
+$ npm run dev-server
 ```
 
 ### Run the Command-Line Front End
@@ -124,12 +173,17 @@ After building the program and starting the web server, you can view the current
 message feed by running
 
 ```sh
-$ npm run start
+$ npm run message-cli
 ```
 
 and post a new message with:
 ```sh
-$ npm run start -- "This is a message"
+$ npm run message-cli -- "This is a message"
+```
+
+and can create a test poll by running:
+```sh
+$ npm run poll-cli
 ```
 
 ### Run the WebApp Front End
