@@ -1,10 +1,10 @@
 /* @flow */
 import {Account, Connection} from '@solana/web3.js';
 
-import {refreshMessageFeed, postMessage} from './programs/message-feed';
-import {getConfig, userLogin} from './client';
-import {newSystemAccountWithAirdrop} from './util/new-system-account-with-airdrop';
-import type {Message} from './programs/message-feed';
+import {refreshMessageFeed, postMessage} from '../programs/message-feed';
+import {getConfig, userLogin} from '../client';
+import {newSystemAccountWithAirdrop} from '../util/new-system-account-with-airdrop';
+import type {Message} from '../programs/message-feed';
 
 async function main() {
   const text = process.argv.splice(2).join(' ');
@@ -34,8 +34,8 @@ async function main() {
     console.log('Posting message:', text);
     await postMessage(
       connection,
-      userAccount,
       payerAccount,
+      userAccount,
       text,
       messages[messages.length - 1].publicKey,
     );

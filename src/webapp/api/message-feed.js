@@ -57,6 +57,10 @@ export default class MessageFeedApi {
     return await userBanned(this.connection, userKey);
   }
 
+  getUserAccount() {
+    return this.userAccount;
+  }
+
   async loadUserAccount(programId) {
     try {
       const savedProgramId = await localforage.getItem('programId');
@@ -79,8 +83,6 @@ export default class MessageFeedApi {
   // TODO: Rewrite this function to use the solana-web3.js websocket pubsub
   //       instead of polling
   async pollMessages(callback) {
-    console.log('pollMessages');
-
     const onUpdate = () => {
       console.log('updateMessage');
       if (this.messageCallback) {

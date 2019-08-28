@@ -6,6 +6,7 @@ import {sleep} from './util/sleep';
 
 export type Config = {
   messageFeed: MessageFeedConfig,
+  predictionPoll: PredictionPollConfig,
   loginMethod: string,
   url: string,
   urlTls: string,
@@ -15,6 +16,11 @@ export type Config = {
 export type MessageFeedConfig = {
   programId: PublicKey,
   firstMessage: PublicKey,
+};
+
+export type PredictionPollConfig = {
+  programId: PublicKey,
+  collection: PublicKey,
 };
 
 export async function getConfig(configUrl: string): Promise<Config> {
@@ -28,13 +34,17 @@ export async function getConfig(configUrl: string): Promise<Config> {
             firstMessage: new PublicKey(config.messageFeed.firstMessage),
             programId: new PublicKey(config.messageFeed.programId),
           },
+          predictionPoll: {
+            collection: new PublicKey(config.predictionPoll.collection),
+            programId: new PublicKey(config.predictionPoll.programId),
+          },
           loginMethod: config.loginMethod,
           url: config.url,
           urlTls: config.urlTls,
           walletUrl: config.walletUrl,
         };
       }
-      console.log(`Waiting for message feed program to finish loading...`);
+      console.log(`Waiting for programs to finish loading...`);
     } catch (err) {
       console.error(`${err}`);
     }

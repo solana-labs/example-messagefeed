@@ -26,6 +26,7 @@ install:
   - sudo apt-get install -y clang-7 --allow-unauthenticated
   - clang-7 --version
   - curl https://sh.rustup.rs -sSf | sh -s -- -y
+  - cargo install wasm-pack
   - PATH=$HOME/.cargo/bin:$PATH
   - rustup --version
   - nvm install node
