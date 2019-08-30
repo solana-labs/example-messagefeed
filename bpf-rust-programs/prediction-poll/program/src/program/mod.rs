@@ -4,8 +4,8 @@ mod tally;
 
 use crate::result::{ProgramError, ProgramResult};
 use crate::util::{
-    expect_data_type, expect_gt, expect_key, expect_min_size, expect_n_accounts, expect_owned_by,
-    expect_signed, expect_zeroed, CLOCK_KEY,
+    expect_data_type, expect_gt, expect_key, expect_min_size, expect_n_accounts,
+    expect_new_account, expect_owned_by, expect_signed, CLOCK_KEY,
 };
 use core::convert::TryFrom;
 use prediction_poll_data::{
@@ -41,8 +41,8 @@ fn init_collection(
     let (collection_account, _) = keyed_accounts.split_first_mut().unwrap();
     expect_signed(collection_account)?;
     expect_owned_by(collection_account, info.program_id)?;
-    expect_zeroed(collection_account.data)?;
     expect_min_size(collection_account.data, MIN_COLLECTION_SIZE)?;
+    expect_new_account(collection_account)?;
 
     collection_account.data[0] = DataType::Collection as u8;
 
@@ -63,7 +63,7 @@ fn init_poll(
     let (poll_account, keyed_accounts) = keyed_accounts.split_first_mut().unwrap();
     expect_signed(poll_account)?;
     expect_owned_by(poll_account, info.program_id)?;
-    expect_zeroed(poll_account.data)?;
+    expect_new_account(poll_account)?;
 
     let (collection_account, keyed_accounts) = keyed_accounts.split_first_mut().unwrap();
     expect_owned_by(collection_account, info.program_id)?;
@@ -72,14 +72,14 @@ fn init_poll(
     let (tally_a_account, keyed_accounts) = keyed_accounts.split_first_mut().unwrap();
     expect_signed(tally_a_account)?;
     expect_owned_by(tally_a_account, info.program_id)?;
-    expect_zeroed(tally_a_account.data)?;
     expect_min_size(tally_a_account.data, MIN_TALLY_SIZE)?;
+    expect_new_account(tally_a_account)?;
 
     let (tally_b_account, keyed_accounts) = keyed_accounts.split_first_mut().unwrap();
     expect_signed(tally_b_account)?;
     expect_owned_by(tally_b_account, info.program_id)?;
-    expect_zeroed(tally_b_account.data)?;
     expect_min_size(tally_b_account.data, MIN_TALLY_SIZE)?;
+    expect_new_account(tally_b_account)?;
 
     let (clock_account, _) = keyed_accounts.split_first_mut().unwrap();
     expect_key(clock_account, &CLOCK_KEY)?;

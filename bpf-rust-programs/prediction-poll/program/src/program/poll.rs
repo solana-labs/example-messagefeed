@@ -19,7 +19,8 @@ pub fn record_wager(
         return Err(ProgramError::PollCannotBeEven);
     }
 
-    Ok(selected.quantity += wager)
+    selected.quantity += wager;
+    Ok(())
 }
 
 pub fn check_winning_tally(poll: &PollData, tally_pubkey: &SolPubkey) -> ProgramResult<u64> {

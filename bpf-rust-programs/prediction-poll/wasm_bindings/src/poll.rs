@@ -1,7 +1,7 @@
 use alloc::borrow::ToOwned;
 use alloc::string::{String, ToString};
-use core::str::from_utf8;
 use core::convert::TryFrom;
+use core::str::from_utf8;
 use js_sys::Uint8Array;
 use prediction_poll_data::PollData;
 use solana_sdk_bpf_utils::entrypoint::SolPubkey;

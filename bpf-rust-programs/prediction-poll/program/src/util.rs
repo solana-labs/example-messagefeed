@@ -31,18 +31,15 @@ pub fn expect_owned_by(account: &SolKeyedAccount, key: &SolPubkey) -> ProgramRes
     Ok(())
 }
 
-pub fn expect_zeroed(data: &[u8]) -> ProgramResult<()> {
-    if !data.iter().all(|d| d == &0) {
-        return Err(ProgramError::AccountNotNew);
-    }
-    Ok(())
-}
-
 pub fn expect_data_type(account: &SolKeyedAccount, data_type: DataType) -> ProgramResult<()> {
     if DataType::from(account.data[0]) as u8 != data_type as u8 {
         return Err(ProgramError::InvalidDataType);
     }
     Ok(())
+}
+
+pub fn expect_new_account(account: &SolKeyedAccount) -> ProgramResult<()> {
+    expect_data_type(account, DataType::Unset).map_err(|_| ProgramError::AccountNotNew)
 }
 
 pub fn expect_key(account: &SolKeyedAccount, key: &SolPubkey) -> ProgramResult<()> {

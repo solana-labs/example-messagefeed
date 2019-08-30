@@ -1,7 +1,7 @@
 use crate::result::{ProgramError, ProgramResult};
+use core::convert::TryFrom;
 use prediction_poll_data::TallyData;
 use solana_sdk_bpf_utils::entrypoint::{SolKeyedAccount, SolPubkey};
-use core::convert::TryFrom;
 
 pub fn record_wager(
     tally: &mut TallyData,

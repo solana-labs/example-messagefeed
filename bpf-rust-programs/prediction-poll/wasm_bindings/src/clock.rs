@@ -1,6 +1,6 @@
+use core::convert::TryFrom;
 use prediction_poll_data::ClockData;
 use wasm_bindgen::prelude::*;
-use core::convert::TryFrom;
 
 #[wasm_bindgen]
 pub struct Clock {

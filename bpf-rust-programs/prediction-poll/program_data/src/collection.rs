@@ -17,9 +17,11 @@ impl<'a> CollectionData<'a> {
     pub fn from_bytes(data: &'a mut [u8]) -> Self {
         let (data_type, data) = data.split_at_mut(1);
         let (poll_count, data) = data.split_at_mut(4);
+        #[allow(clippy::cast_ptr_alignment)]
+        let poll_count = unsafe { &mut *(&mut poll_count[0] as *mut u8 as *mut u32) };
         Self {
             data_type: DataType::from(data_type[0]),
-            poll_count: unsafe { &mut *(&mut poll_count[0] as *mut u8 as *mut u32) },
+            poll_count,
             polls: unsafe {
                 from_raw_parts_mut(&mut data[0] as *mut u8 as *mut _, data.len() / 32)
             },
@@ -39,6 +41,10 @@ impl CollectionData<'_> {
 
     pub fn capacity(&self) -> usize {
         self.polls.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     pub fn len(&self) -> usize {

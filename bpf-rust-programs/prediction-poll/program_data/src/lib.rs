@@ -23,15 +23,17 @@ pub use tally::*;
 #[derive(Clone)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub enum DataType {
-    Invalid,
+    Unset,
     Collection,
     Poll,
     Tally,
+    Invalid,
 }
 
 impl From<u8> for DataType {
     fn from(value: u8) -> Self {
         match value {
+            0 => DataType::Unset,
             1 => DataType::Collection,
             2 => DataType::Poll,
             3 => DataType::Tally,

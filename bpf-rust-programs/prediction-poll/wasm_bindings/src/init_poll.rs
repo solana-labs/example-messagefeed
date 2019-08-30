@@ -23,7 +23,7 @@ impl InitPoll {
         }
     }
 
-    pub(crate) fn to_data<'a>(&'a self) -> InitPollData<'a> {
+    pub(crate) fn to_data(&self) -> InitPollData<'_> {
         let timeout = self.timeout;
 
         let header = self.header.as_bytes();

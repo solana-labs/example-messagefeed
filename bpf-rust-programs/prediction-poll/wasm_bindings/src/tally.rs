@@ -1,10 +1,10 @@
 use alloc::boxed::Box;
 use alloc::vec::Vec;
+use core::convert::TryFrom;
 use js_sys::Uint8Array;
 use prediction_poll_data::TallyData;
 use solana_sdk_bpf_utils::entrypoint::SolPubkey;
 use wasm_bindgen::prelude::*;
-use core::convert::TryFrom;
 
 #[wasm_bindgen]
 pub struct Tally {
@@ -14,7 +14,10 @@ pub struct Tally {
 impl From<TallyData<'_>> for Tally {
     fn from(tally_data: TallyData) -> Self {
         Self {
-            tallies: tally_data.iter().map(|(k, w)| (*k, u32::try_from(w).unwrap())).collect(),
+            tallies: tally_data
+                .iter()
+                .map(|(k, w)| (*k, u32::try_from(w).unwrap()))
+                .collect(),
         }
     }
 }
@@ -39,11 +42,7 @@ impl Tally {
 
     #[wasm_bindgen(method, getter)]
     pub fn wagers(&self) -> Box<[u32]> {
-        let js_wagers: Vec<_> = self
-            .tallies
-            .iter()
-            .map(|(_, wager)| *wager)
-            .collect();
+        let js_wagers: Vec<_> = self.tallies.iter().map(|(_, wager)| *wager).collect();
         js_wagers.into_boxed_slice()
     }
 }

@@ -8,6 +8,7 @@ pub fn add_poll(collection: &mut CollectionData, poll_pubkey: &SolPubkey) -> Pro
     } else if collection.contains(poll_pubkey) {
         Err(ProgramError::PollAlreadyCreated)
     } else {
-        Ok(collection.add_poll(poll_pubkey))
+        collection.add_poll(poll_pubkey);
+        Ok(())
     }
 }

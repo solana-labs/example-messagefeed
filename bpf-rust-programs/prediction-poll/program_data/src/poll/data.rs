@@ -43,7 +43,7 @@ impl<'a> PollData<'a> {
         Self {
             data_type: DataType::Poll,
             creator_key,
-            last_block: slot + init.timeout as u64,
+            last_block: slot + u64::from(init.timeout),
             header_len: init.header_len,
             header: init.header,
             option_a: PollOptionData {

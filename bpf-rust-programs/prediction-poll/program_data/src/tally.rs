@@ -18,9 +18,11 @@ impl<'a> TallyData<'a> {
     pub fn from_bytes(data: &'a mut [u8]) -> Self {
         let (data_type, data) = data.split_at_mut(1);
         let (tally_count, data) = data.split_at_mut(4);
+        #[allow(clippy::cast_ptr_alignment)]
+        let tally_count = unsafe { &mut *(&mut tally_count[0] as *mut u8 as *mut u32) };
         Self {
             data_type: DataType::from(data_type[0]),
-            tally_count: unsafe { &mut *(&mut tally_count[0] as *mut u8 as *mut u32) },
+            tally_count,
             tallies: unsafe {
                 from_raw_parts_mut(&mut data[0] as *mut u8 as *mut _, data.len() / 40)
             },
@@ -36,11 +38,15 @@ impl TallyData<'_> {
                 return Some(array_mut_ref!(self.tallies[t], 32, 8));
             }
         }
-        return None;
+        None
     }
 
     pub fn capacity(&self) -> usize {
         self.tallies.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     pub fn len(&self) -> usize {
