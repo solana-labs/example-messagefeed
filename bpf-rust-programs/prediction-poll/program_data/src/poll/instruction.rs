@@ -1,3 +1,4 @@
+#[cfg(any(test, feature = "wasm"))]
 use alloc::vec::Vec;
 
 #[cfg_attr(test, derive(PartialEq, Debug))]
@@ -12,10 +13,12 @@ pub struct InitPollData<'a> {
 }
 
 impl<'a> InitPollData<'a> {
+    #[cfg(any(test, feature = "wasm"))]
     pub fn length(&self) -> usize {
         (4 + 4 + self.header_len + 4 + self.option_a_len + 4 + self.option_b_len) as usize
     }
 
+    #[cfg(any(test, feature = "wasm"))]
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::with_capacity(self.length());
         bytes.extend_from_slice(&self.timeout.to_le_bytes());

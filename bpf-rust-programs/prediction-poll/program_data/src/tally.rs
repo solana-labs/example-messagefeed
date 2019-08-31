@@ -54,8 +54,8 @@ impl TallyData<'_> {
     }
 
     pub fn add_tally(&mut self, user_key: &SolPubkey, wager: u64) {
-        self.tallies[self.len()][..32].clone_from_slice(user_key);
-        self.tallies[self.len()][32..].clone_from_slice(&wager.to_le_bytes());
+        self.tallies[self.len()][..32].copy_from_slice(user_key);
+        self.tallies[self.len()][32..].copy_from_slice(&wager.to_le_bytes());
         *self.tally_count += 1;
     }
 

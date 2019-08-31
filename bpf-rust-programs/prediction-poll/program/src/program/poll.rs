@@ -15,24 +15,24 @@ pub fn record_wager(
         return Err(ProgramError::InvalidTallyKey);
     };
 
-    if selected.quantity + wager == unselected.quantity {
+    if *selected.quantity + wager == *unselected.quantity {
         return Err(ProgramError::PollCannotBeEven);
     }
 
-    selected.quantity += wager;
+    *selected.quantity += wager;
     Ok(())
 }
 
 pub fn check_winning_tally(poll: &PollData, tally_pubkey: &SolPubkey) -> ProgramResult<u64> {
     if poll.option_a.tally_key == tally_pubkey {
-        if poll.option_a.quantity > poll.option_b.quantity {
-            Ok(poll.option_a.quantity)
+        if *poll.option_a.quantity > *poll.option_b.quantity {
+            Ok(*poll.option_a.quantity)
         } else {
             Err(ProgramError::CannotPayoutToLosers)
         }
     } else if poll.option_b.tally_key == tally_pubkey {
-        if poll.option_b.quantity > poll.option_a.quantity {
-            Ok(poll.option_b.quantity)
+        if *poll.option_b.quantity > *poll.option_a.quantity {
+            Ok(*poll.option_b.quantity)
         } else {
             Err(ProgramError::CannotPayoutToLosers)
         }

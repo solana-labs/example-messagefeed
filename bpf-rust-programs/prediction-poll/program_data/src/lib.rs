@@ -20,7 +20,7 @@ pub use poll::*;
 pub use tally::*;
 
 #[repr(u8)]
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub enum DataType {
     Unset,

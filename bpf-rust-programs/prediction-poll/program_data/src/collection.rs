@@ -52,7 +52,7 @@ impl CollectionData<'_> {
     }
 
     pub fn add_poll(&mut self, poll: &SolPubkey) {
-        self.polls[self.len()].clone_from_slice(poll);
+        self.polls[self.len()].copy_from_slice(poll);
         *self.poll_count += 1;
     }
 

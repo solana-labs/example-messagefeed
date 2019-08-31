@@ -91,17 +91,16 @@ fn init_poll(
     expect_gt(init_poll.option_a_len, 0)?;
     expect_gt(init_poll.option_b_len, 0)?;
 
-    let poll_data = PollData::init(
+    collection::add_poll(&mut collection, poll_account.key)?;
+    PollData::copy_to_bytes(
+        poll_account.data,
         init_poll,
         creator_account.key,
         tally_a_account.key,
         tally_b_account.key,
         clock.slot,
-    )
-    .to_bytes();
+    );
 
-    collection::add_poll(&mut collection, poll_account.key)?;
-    poll_account.data[0..poll_data.len()].copy_from_slice(&poll_data);
     tally_a_account.data[0] = DataType::Tally as u8;
     tally_b_account.data[0] = DataType::Tally as u8;
 
@@ -147,8 +146,6 @@ fn submit_vote(keyed_accounts: &mut [SolKeyedAccount], info: &SolClusterInfo) ->
     *poll_account.lamports += wager;
     *user_account.lamports = 0;
 
-    let poll_data = poll.to_bytes();
-    poll_account.data[0..poll_data.len()].copy_from_slice(&poll_data);
     Ok(())
 }
 
