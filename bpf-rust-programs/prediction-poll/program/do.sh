@@ -24,12 +24,12 @@ perform_action() {
     set -e
     case "$1" in
     build)
-         ../../node_modules/@solana/web3.js/bpf-sdk/rust/build.sh "$PWD"
-         mkdir -p ../../dist/programs
-         cp ./target/bpfel-unknown-unknown/release/messagefeed.so ../../dist/programs
+         ../../../node_modules/@solana/web3.js/bpf-sdk/rust/build.sh "$PWD"
+         mkdir -p ../../../dist/programs
+         cp ../target/bpfel-unknown-unknown/release/prediction_poll.so ../../../dist/programs
         ;;
     clean)
-         ../../node_modules/@solana/web3.js/bpf-sdk/rust/clean.sh "$PWD"
+         ../../../node_modules/@solana/web3.js/bpf-sdk/rust/clean.sh "$PWD"
         ;;
     test)
             echo "test"
