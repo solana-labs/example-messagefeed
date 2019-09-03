@@ -19,6 +19,7 @@
     "build:bpf-c": "V=1 make -C bpf-c-programs/messagefeed",
     "clean:bpf-c": "make -C bpf-c-programs/messagefeed clean",
     "build:bpf-rust": "npm run build:bpf-rust-mf && npm run build:bpf-rust-pp",
+    "clean:bpf-rust": "npm run clean:bpf-rust-mf && npm run clean:bpf-rust-pp",
     "build:bpf-rust-mf": "./bpf-rust-programs/messagefeed/do.sh build",
     "clean:bpf-rust-mf": "./bpf-rust-programs/messagefeed/do.sh clean",
     "build:bpf-rust-pp": "./bpf-rust-programs/prediction-poll/program/do.sh build",
