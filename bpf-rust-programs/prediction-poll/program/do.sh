@@ -21,7 +21,8 @@ EOF
 }
 
 sdkDir=../../../node_modules/@solana/web3.js/bpf-sdk
-targetDir="$PWD"/target
+targetDir="$PWD"/../target
+distDir=../../../dist/program
 profile=bpfel-unknown-unknown/release
 
 perform_action() {
@@ -29,16 +30,16 @@ perform_action() {
     case "$1" in
     build)
         "$sdkDir"/rust/build.sh "$PWD"
-        
+
         so_path="$targetDir/$profile"
         so_name="prediction_poll"
         if [ -f "$so_path/${so_name}.so" ]; then
             cp "$so_path/${so_name}.so" "$so_path/${so_name}_debug.so"
             "$sdkDir"/dependencies/llvm-native/bin/llvm-objcopy --strip-all "$so_path/${so_name}.so" "$so_path/$so_name.so"
         fi
-        
-        mkdir -p ../dist/program
-        cp "$so_path/${so_name}.so" ../dist/program
+
+        mkdir -p $distDir
+        cp "$so_path/${so_name}.so" $distDir
         ;;
     clean)
         "$sdkDir"/rust/clean.sh "$PWD"

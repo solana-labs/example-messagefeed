@@ -67,7 +67,7 @@ mod test {
 
     #[test]
     pub fn add_poll() {
-        let poll_key = [0; 32];
+        let poll_key = Pubkey::new(&[0; 32]);
         let mut data = vec![0; MIN_COLLECTION_SIZE];
         let mut collection = CollectionData::from_bytes(&mut data[..]);
 

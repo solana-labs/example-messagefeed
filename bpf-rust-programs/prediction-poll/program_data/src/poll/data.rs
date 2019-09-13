@@ -27,7 +27,7 @@ impl<'a> PollData<'a> {
     pub fn to_bytes(&self) -> Vec<u8> {
         let mut bytes = Vec::with_capacity(self.length());
         bytes.push(self.data_type as u8);
-        bytes.extend_from_slice(self.creator_key);
+        bytes.extend_from_slice(self.creator_key.as_ref());
         bytes.extend_from_slice(&self.last_block.to_le_bytes());
         bytes.extend_from_slice(&self.header_len.to_le_bytes());
         bytes.extend_from_slice(self.header);
@@ -111,7 +111,7 @@ impl<'a> PollOptionData<'a> {
         let mut bytes = Vec::with_capacity(self.length());
         bytes.extend_from_slice(&self.text_len.to_le_bytes());
         bytes.extend_from_slice(self.text);
-        bytes.extend_from_slice(self.tally_key);
+        bytes.extend_from_slice(self.tally_key.as_ref());
         bytes.extend_from_slice(&self.quantity.to_le_bytes());
         bytes
     }
@@ -167,31 +167,31 @@ mod test {
 
     #[test]
     pub fn poll_serialization() {
-        let creator_key = [0; 32];
+        let creator_key = Pubkey::new(&[0; 32]);
         let header = "poll".as_bytes();
         let option_a = "first option".as_bytes();
-        let option_a_key = [1; 32];
+        let option_a_key = Pubkey::new(&[1; 32]);
         let mut quantity_a = 100;
         let option_b = "second option".as_bytes();
-        let option_b_key = [2; 32];
+        let option_b_key = Pubkey::new(&[2; 32]);
         let mut quantity_b = 101;
 
         let data = PollData {
             data_type: DataType::Poll,
-            creator_key: &creator_key,
+            creator_key,
             last_block: 999,
             header_len: header.len() as u32,
             header,
             option_a: PollOptionData {
                 text_len: option_a.len() as u32,
                 text: option_a,
-                tally_key: &option_a_key,
+                tally_key: option_a_key,
                 quantity: &mut quantity_a,
             },
             option_b: PollOptionData {
                 text_len: option_b.len() as u32,
                 text: option_b,
-                tally_key: &option_b_key,
+                tally_key: option_b_key,
                 quantity: &mut quantity_b,
             },
         };
@@ -205,13 +205,13 @@ mod test {
 
     #[test]
     pub fn option_serialization() {
-        let key = [0; 32];
+        let key = Pubkey::new(&[0; 32]);
         let text = "option text".as_bytes();
         let mut quantity = 100;
         let data = PollOptionData {
             text_len: text.len() as u32,
             text,
-            tally_key: &key,
+            tally_key: key,
             quantity: &mut quantity,
         };
 

@@ -9,6 +9,7 @@ homepage = "https://solana.com/"
 edition = "2018"
 
 [dependencies]
+arrayref = "0.3.5"
 console_error_panic_hook = "0.1"
 js-sys = "0.3"
 solana-sdk = { git = "https://github.com/solana-labs/solana", default-features = false }

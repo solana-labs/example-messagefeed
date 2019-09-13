@@ -4,12 +4,12 @@ use core::convert::TryFrom;
 use core::str::from_utf8;
 use js_sys::Uint8Array;
 use prediction_poll_data::PollData;
-use solana_sdk_bpf_utils::entrypoint::SolPubkey;
+use solana_sdk::pubkey::Pubkey;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Poll {
-    creator_key: SolPubkey,
+    creator_key: Pubkey,
     header: String,
     option_a: PollOption,
     option_b: PollOption,
@@ -21,7 +21,7 @@ pub struct Poll {
 pub struct PollOption {
     text: String,
     pub quantity: u32, // u64, https://caniuse.com/#feat=bigint
-    tally_key: SolPubkey,
+    tally_key: Pubkey,
 }
 
 impl From<PollData<'_>> for Poll {
@@ -54,7 +54,7 @@ impl Poll {
 
     #[wasm_bindgen(method, getter, js_name = creatorKey)]
     pub fn creator_key(&self) -> JsValue {
-        Uint8Array::from(&self.creator_key[..]).into()
+        Uint8Array::from(&self.creator_key.as_ref()[..]).into()
     }
 
     #[wasm_bindgen(method, getter)]
@@ -82,6 +82,6 @@ impl PollOption {
 
     #[wasm_bindgen(method, getter, js_name = tallyKey)]
     pub fn tally_key(&self) -> JsValue {
-        Uint8Array::from(&self.tally_key[..]).into()
+        Uint8Array::from(&self.tally_key.as_ref()[..]).into()
     }
 }

@@ -33,7 +33,7 @@ impl<'a> TallyData<'a> {
 impl TallyData<'_> {
     pub fn get_wager_mut(&mut self, user_key: &Pubkey) -> Option<&mut [u8; 8]> {
         for t in 0..self.len() {
-            let key = Pubkey::new(&self.tallies[t]);
+            let key = Pubkey::new(array_ref!(self.tallies[t], 0, 32));
             if key == *user_key {
                 return Some(array_mut_ref!(self.tallies[t], 32, 8));
             }
@@ -54,15 +54,16 @@ impl TallyData<'_> {
     }
 
     pub fn add_tally(&mut self, user_key: &Pubkey, wager: u64) {
-        self.tallies[self.len()][..32].copy_from_slice(user_key.as_ref());
-        self.tallies[self.len()][32..].copy_from_slice(&wager.to_le_bytes());
+        let next_tally = self.len();
+        self.tallies[next_tally][..32].copy_from_slice(user_key.as_ref());
+        self.tallies[next_tally][32..].copy_from_slice(&wager.to_le_bytes());
         *self.tally_count += 1;
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (Pubkey, u64)> {
-        self.tallies[..self.len()].iter().map(|t| {
-            let key = Pubkey::new(&t[0..32]);
-            let wager = u64::from_le_bytes(*array_ref!(t, 32, 8));
+    pub fn iter(&self) -> impl Iterator<Item = (Pubkey, u64)> + '_ {
+        self.tallies[..self.len()].iter().map(|tally| {
+            let key = Pubkey::new(&tally[..32]);
+            let wager = u64::from_le_bytes(*array_ref!(tally, 32, 8));
             (key, wager)
         })
     }
@@ -74,7 +75,7 @@ mod test {
 
     #[test]
     pub fn add_tally() {
-        let user_key = [0; 32];
+        let user_key = Pubkey::new(&[0; 32]);
         let wager = 100;
         let mut data = vec![0; MIN_TALLY_SIZE];
         let mut tally = TallyData::from_bytes(&mut data[..]);
@@ -92,6 +93,9 @@ mod test {
             tally.get_wager_mut(&user_key).copied(),
             Some(wager.to_le_bytes())
         );
-        assert_eq!(tally.iter().next(), Some((&user_key, wager)));
+
+        let mut tally_iter = tally.iter();
+        assert_eq!(tally_iter.next(), Some((user_key, wager)));
+        assert_eq!(tally_iter.next(), None);
     }
 }
