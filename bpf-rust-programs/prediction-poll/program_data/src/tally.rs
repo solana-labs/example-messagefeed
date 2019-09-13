@@ -1,8 +1,8 @@
 use crate::DataType;
 use alloc::slice::from_raw_parts_mut;
-use solana_sdk_bpf_utils::entrypoint::SolPubkey;
+use solana_sdk::pubkey::Pubkey;
 
-type Tally = [u8; 40]; // SolPubkey, u64
+type Tally = [u8; 40]; // Pubkey, u64
 
 /// Min data size for a tally
 /// Breakdown: data_type (1) + tally_count (4) + one tally (40)
@@ -31,10 +31,10 @@ impl<'a> TallyData<'a> {
 }
 
 impl TallyData<'_> {
-    pub fn get_wager_mut(&mut self, user_key: &SolPubkey) -> Option<&mut [u8; 8]> {
+    pub fn get_wager_mut(&mut self, user_key: &Pubkey) -> Option<&mut [u8; 8]> {
         for t in 0..self.len() {
-            let key = array_ref!(self.tallies[t], 0, 32);
-            if key == user_key {
+            let key = Pubkey::new(&self.tallies[t]);
+            if key == *user_key {
                 return Some(array_mut_ref!(self.tallies[t], 32, 8));
             }
         }
@@ -53,15 +53,15 @@ impl TallyData<'_> {
         *self.tally_count as usize
     }
 
-    pub fn add_tally(&mut self, user_key: &SolPubkey, wager: u64) {
-        self.tallies[self.len()][..32].copy_from_slice(user_key);
+    pub fn add_tally(&mut self, user_key: &Pubkey, wager: u64) {
+        self.tallies[self.len()][..32].copy_from_slice(user_key.as_ref());
         self.tallies[self.len()][32..].copy_from_slice(&wager.to_le_bytes());
         *self.tally_count += 1;
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (&SolPubkey, u64)> {
+    pub fn iter(&self) -> impl Iterator<Item = (Pubkey, u64)> {
         self.tallies[..self.len()].iter().map(|t| {
-            let key = array_ref!(t, 0, 32);
+            let key = Pubkey::new(&t[0..32]);
             let wager = u64::from_le_bytes(*array_ref!(t, 32, 8));
             (key, wager)
         })

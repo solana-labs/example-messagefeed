@@ -1,7 +1,7 @@
 use crate::DataType;
 use alloc::slice::from_raw_parts_mut;
 use alloc::vec::Vec;
-use solana_sdk_bpf_utils::entrypoint::SolPubkey;
+use solana_sdk::pubkey::Pubkey;
 
 /// Min data size for a poll collection
 /// Breakdown: data_type (1) + poll_count (4) + one poll (32)
@@ -10,7 +10,7 @@ pub const MIN_COLLECTION_SIZE: usize = 1 + 4 + 32;
 pub struct CollectionData<'a> {
     pub data_type: DataType,
     poll_count: &'a mut u32,
-    polls: &'a mut [SolPubkey],
+    polls: &'a mut [Pubkey],
 }
 
 impl<'a> CollectionData<'a> {
@@ -30,7 +30,7 @@ impl<'a> CollectionData<'a> {
 }
 
 impl CollectionData<'_> {
-    pub fn contains(&self, poll: &SolPubkey) -> bool {
+    pub fn contains(&self, poll: &Pubkey) -> bool {
         for i in 0..self.len() {
             if self.polls[i] == *poll {
                 return true;
@@ -51,12 +51,12 @@ impl CollectionData<'_> {
         *self.poll_count as usize
     }
 
-    pub fn add_poll(&mut self, poll: &SolPubkey) {
-        self.polls[self.len()].copy_from_slice(poll);
+    pub fn add_poll(&mut self, poll: &Pubkey) {
+        self.polls[self.len()] = *poll;
         *self.poll_count += 1;
     }
 
-    pub fn to_vec(&self) -> Vec<SolPubkey> {
+    pub fn to_vec(&self) -> Vec<Pubkey> {
         self.polls[..self.len()].to_vec()
     }
 }

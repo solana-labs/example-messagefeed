@@ -2,12 +2,12 @@ use super::InitPollData;
 use crate::DataType;
 #[cfg(test)]
 use alloc::vec::Vec;
-use solana_sdk_bpf_utils::entrypoint::SolPubkey;
+use solana_sdk::pubkey::Pubkey;
 
 #[cfg_attr(test, derive(PartialEq, Debug))]
 pub struct PollData<'a> {
     pub data_type: DataType,
-    pub creator_key: &'a SolPubkey,
+    pub creator_key: Pubkey,
     pub last_block: u64,
     pub header_len: u32,
     pub header: &'a [u8],
@@ -39,16 +39,16 @@ impl<'a> PollData<'a> {
     pub fn copy_to_bytes(
         dst: &'a mut [u8],
         init: InitPollData<'a>,
-        creator_key: &'a SolPubkey,
-        tally_a_key: &'a SolPubkey,
-        tally_b_key: &'a SolPubkey,
+        creator_key: &'a Pubkey,
+        tally_a_key: &'a Pubkey,
+        tally_b_key: &'a Pubkey,
         slot: u64,
     ) {
         let (data_type, dst) = dst.split_at_mut(1);
         data_type[0] = DataType::Poll as u8;
 
         let (dst_creator_key, dst) = dst.split_at_mut(32);
-        dst_creator_key.copy_from_slice(creator_key);
+        dst_creator_key.copy_from_slice(creator_key.as_ref());
 
         let last_block = slot + u64::from(init.timeout);
         let (dst_last_block, dst) = dst.split_at_mut(8);
@@ -68,7 +68,7 @@ impl<'a> PollData<'a> {
         let data_type = DataType::from(data_type[0]);
 
         let (creator_key, data) = data.split_at_mut(32);
-        let creator_key = array_ref!(creator_key, 0, 32);
+        let creator_key = Pubkey::new(creator_key);
 
         let (last_block, data) = data.split_at_mut(8);
         let last_block = u64::from_le_bytes(*array_ref!(last_block, 0, 8));
@@ -96,7 +96,7 @@ impl<'a> PollData<'a> {
 pub struct PollOptionData<'a> {
     pub text_len: u32,
     pub text: &'a [u8],
-    pub tally_key: &'a SolPubkey,
+    pub tally_key: Pubkey,
     pub quantity: &'a mut u64,
 }
 
@@ -119,7 +119,7 @@ impl<'a> PollOptionData<'a> {
     pub fn copy_to_bytes(
         dst: &'a mut [u8],
         text: &'a [u8],
-        tally_key: &'a SolPubkey,
+        tally_key: &'a Pubkey,
         quantity: u64,
     ) -> &'a mut [u8] {
         let text_len = text.len() as u32;
@@ -130,7 +130,7 @@ impl<'a> PollOptionData<'a> {
         dst_text.copy_from_slice(text);
 
         let (dst_tally_key, dst) = dst.split_at_mut(32);
-        dst_tally_key.copy_from_slice(tally_key);
+        dst_tally_key.copy_from_slice(tally_key.as_ref());
 
         let (dst_quantity, dst) = dst.split_at_mut(8);
         dst_quantity.copy_from_slice(&quantity.to_le_bytes());
@@ -143,7 +143,7 @@ impl<'a> PollOptionData<'a> {
         let (text, data) = data.split_at_mut(text_len as usize);
 
         let (tally_key, data) = data.split_at_mut(32);
-        let tally_key = array_ref!(tally_key, 0, 32);
+        let tally_key = Pubkey::new(tally_key);
 
         let (quantity, data) = data.split_at_mut(8);
         #[allow(clippy::cast_ptr_alignment)]
