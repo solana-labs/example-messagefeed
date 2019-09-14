@@ -78,7 +78,9 @@ fn process_instruction(_program_id: &Pubkey, accounts: &mut [AccountInfo], data:
 
     // No instruction data means that a new user account should be initialized
     if data.is_empty() {
-        user_data.creator.clone_from_slice(message_account[0].key.as_ref());
+        user_data
+            .creator
+            .clone_from_slice(message_account[0].key.as_ref());
         return SUCCESS;
     }
 
@@ -86,7 +88,9 @@ fn process_instruction(_program_id: &Pubkey, accounts: &mut [AccountInfo], data:
     new_message_data.text.clone_from_slice(data);
 
     // Save the pubkey of who posted the message
-    new_message_data.from.clone_from_slice(user_account[0].key.as_ref());
+    new_message_data
+        .from
+        .clone_from_slice(user_account[0].key.as_ref());
 
     if len > 2 {
         let (existing_message_account, rest) = rest.split_at_mut(1);
