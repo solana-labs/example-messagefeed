@@ -2,42 +2,45 @@
 
 extern crate solana_sdk;
 
+use arrayref::array_mut_ref;
 use solana_sdk::{
     account_info::AccountInfo, entrypoint, entrypoint::SUCCESS, info, pubkey::Pubkey,
 };
 use std::mem::size_of;
 
+type PubkeyData = [u8; 32];
+
 const FAILURE: u32 = 1;
 
 struct UserAccountData<'a> {
     pub banned: &'a mut bool,
-    pub creator: Pubkey,
+    pub creator: &'a mut PubkeyData,
 }
 impl<'a> UserAccountData<'a> {
     fn new(data: &'a mut [u8]) -> Self {
         let (banned, creator) = data.split_at_mut(1);
         Self {
             banned: unsafe { &mut *(&mut banned[0] as *mut u8 as *mut bool) },
-            creator: Pubkey::new(creator),
+            creator: array_mut_ref!(creator, 0, size_of::<PubkeyData>()),
         }
     }
 }
 
 struct MessageAccountData<'a> {
-    pub next_message: Pubkey,
-    pub from: Pubkey,
-    pub creator: Pubkey,
+    pub next_message: &'a mut PubkeyData,
+    pub from: &'a mut PubkeyData,
+    pub creator: &'a mut PubkeyData,
     pub text: &'a mut [u8],
 }
 impl<'a> MessageAccountData<'a> {
     fn new(data: &'a mut [u8]) -> Self {
-        let (next_message, rest) = data.split_at_mut(size_of::<Pubkey>());
-        let (from, rest) = rest.split_at_mut(size_of::<Pubkey>());
-        let (creator, text) = rest.split_at_mut(size_of::<Pubkey>());
+        let (next_message, rest) = data.split_at_mut(size_of::<PubkeyData>());
+        let (from, rest) = rest.split_at_mut(size_of::<PubkeyData>());
+        let (creator, text) = rest.split_at_mut(size_of::<PubkeyData>());
         Self {
-            next_message: Pubkey::new(next_message),
-            from: Pubkey::new(from),
-            creator: Pubkey::new(creator),
+            next_message: array_mut_ref!(next_message, 0, size_of::<PubkeyData>()),
+            from: array_mut_ref!(from, 0, size_of::<PubkeyData>()),
+            creator: array_mut_ref!(creator, 0, size_of::<PubkeyData>()),
             text,
         }
     }
@@ -54,10 +57,10 @@ fn process_instruction(_program_id: &Pubkey, accounts: &mut [AccountInfo], data:
     }
 
     let (user_account, rest) = accounts.split_at_mut(1);
-    let mut user_data = UserAccountData::new(user_account[0].data);
+    let user_data = UserAccountData::new(user_account[0].data);
 
     let (message_account, rest) = rest.split_at_mut(1);
-    let mut new_message_data = MessageAccountData::new(message_account[0].data);
+    let new_message_data = MessageAccountData::new(message_account[0].data);
 
     if !user_account[0].is_signer {
         info!("Error: not signed by key 0");
@@ -75,7 +78,7 @@ fn process_instruction(_program_id: &Pubkey, accounts: &mut [AccountInfo], data:
 
     // No instruction data means that a new user account should be initialized
     if data.is_empty() {
-        user_data.creator = *message_account[0].key;
+        user_data.creator.clone_from_slice(message_account[0].key.as_ref());
         return SUCCESS;
     }
 
@@ -83,19 +86,21 @@ fn process_instruction(_program_id: &Pubkey, accounts: &mut [AccountInfo], data:
     new_message_data.text.clone_from_slice(data);
 
     // Save the pubkey of who posted the message
-    new_message_data.from = *user_account[0].key;
+    new_message_data.from.clone_from_slice(user_account[0].key.as_ref());
 
     if len > 2 {
         let (existing_message_account, rest) = rest.split_at_mut(1);
-        let mut existing_message_data = MessageAccountData::new(existing_message_account[0].data);
+        let existing_message_data = MessageAccountData::new(existing_message_account[0].data);
 
-        if existing_message_data.next_message != Pubkey::default() {
+        if existing_message_data.next_message != &[0; size_of::<PubkeyData>()] {
             info!("Error: account 1 already has a next_message");
             return FAILURE;
         }
 
         // Link the new_message to the existing_message
-        existing_message_data.next_message = *message_account[0].key;
+        existing_message_data
+            .next_message
+            .clone_from_slice(message_account[0].key.as_ref());
 
         // Check if a user should be banned
         if len > 3 {
@@ -105,10 +110,14 @@ fn process_instruction(_program_id: &Pubkey, accounts: &mut [AccountInfo], data:
         }
 
         // Propagate the chain creator to the new message
-        new_message_data.creator = existing_message_data.creator;
+        new_message_data
+            .creator
+            .clone_from_slice(existing_message_data.creator.as_ref());
     } else {
         // This is the first message in the chain, it is the "creator"
-        new_message_data.creator = *message_account[0].key;
+        new_message_data
+            .creator
+            .clone_from_slice(message_account[0].key.as_ref());
     }
 
     if user_data.creator != new_message_data.creator {

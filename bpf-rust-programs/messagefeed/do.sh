@@ -22,7 +22,7 @@ EOF
 
 sdkDir=../../node_modules/@solana/web3.js/bpf-sdk
 targetDir="$PWD"/target
-distDir=../../dist/program
+distDir=../../dist/programs
 profile=bpfel-unknown-unknown/release
 
 perform_action() {

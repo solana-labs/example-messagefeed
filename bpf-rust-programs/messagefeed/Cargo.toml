@@ -12,6 +12,7 @@ homepage = "https://solana.com/"
 edition = "2018"
 
 [dependencies]
+arrayref = "0.3.5"
 solana-sdk = { git = "https://github.com/solana-labs/solana", default-features = false }
 
 [features]
