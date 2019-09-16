@@ -1,3 +1,4 @@
 dist/
+wasm/
 node_modules/
 flow-typed/

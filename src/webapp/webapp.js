@@ -5,19 +5,33 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import IdleTimer from 'react-idle-timer';
+import Paper from '@material-ui/core/Paper';
 import PropTypes from 'prop-types';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Snackbar from '@material-ui/core/Snackbar';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 import {withStyles} from '@material-ui/core/styles';
+import {withRouter, HashRouter} from 'react-router-dom';
 
 import Api from './api';
-import MessageList from './message-list';
-import Toolbar from './toolbar';
+import MessageList from './components/message-list';
+import PollGrid from './components/poll-grid';
+import Toolbar from './components/toolbar';
 
-const styles = () => ({
+const MESSAGES_TAB = 0;
+const POLLS_TAB = 1;
+
+const styles = theme => ({
   root: {
     width: '100%',
+    overflow: 'hidden',
+  },
+  snackbar: {
+    [theme.breakpoints.down('sm')]: {
+      bottom: 88, // FAB is 56px with 16px margin
+    },
   },
 });
 
@@ -30,15 +44,22 @@ class App extends React.Component {
       banUserDialogOpen: false,
       banUserMessage: null,
       loadingMessages: true,
+      loadingPolls: true,
       busyLoggingIn: false,
       busyPosting: false,
+      busyCreatingPoll: false,
+      busyVoting: false,
+      busyClaiming: false,
       idle: true,
       loginMethod: 'none',
+      clock: 0,
       messages: [],
+      polls: [],
       snackMessage: '',
       transactionSignature: null,
       userAccount: null,
       payerBalance: 0,
+      payerKey: null,
       programId: null,
       walletUrl: '',
     };
@@ -61,8 +82,8 @@ class App extends React.Component {
       this.setState(config);
     });
 
-    this.api.subscribeBalance(payerBalance => {
-      this.setState({payerBalance});
+    this.api.subscribeBalance((payerBalance, payerKey) => {
+      this.setState({payerBalance, payerKey});
     });
 
     this.api.subscribeMessages(messages => {
@@ -70,6 +91,17 @@ class App extends React.Component {
         loadingMessages: false,
         messages,
       });
+    });
+
+    this.api.subscribePolls(polls => {
+      this.setState({
+        loadingPolls: false,
+        polls,
+      });
+    });
+
+    this.api.subscribeClock(clock => {
+      this.setState({clock});
     });
   }
 
@@ -91,12 +123,17 @@ class App extends React.Component {
     }
   }
 
+  onChangeTab(newTab) {
+    this.props.history.replace(this.tabToRoute(newTab));
+  }
+
   requestFunds() {
     this.api.requestFunds(res => this.setState(res));
   }
 
   render() {
     const {classes} = this.props;
+    const selectedTab = this.selectedTab();
 
     let banUserDialog;
     if (this.state.banUserMessage !== null) {
@@ -158,11 +195,10 @@ class App extends React.Component {
       }
     }
 
-    const {loadingMessages, busyPosting, busyLoggingIn} = this.state;
     return (
       <div className={classes.root}>
         <Toolbar
-          busy={loadingMessages || busyPosting || busyLoggingIn}
+          busy={this.busy()}
           explorerUrl={this.blockExplorerTransactionsByProgramUrl()}
           idle={this.state.idle}
           loginDisabled={this.state.loginMethod === 'none'}
@@ -173,6 +209,7 @@ class App extends React.Component {
           payerBalance={this.state.payerBalance}
           userAuthenticated={!!this.state.userAccount}
           walletDisabled={!this.state.walletUrl}
+          showMessageInput={selectedTab === MESSAGES_TAB}
         />
         <IdleTimer
           element={document}
@@ -181,19 +218,30 @@ class App extends React.Component {
           debounce={250}
           timeout={1000 * 60 * 15}
         />
-        <MessageList
-          messages={this.state.messages}
-          onBanUser={msg => this.onBanUser(msg)}
-          payerBalance={this.state.payerBalance}
-          userAccount={this.state.userAccount}
-          userAuthenticated={!!this.state.userAccount}
-        />
+        <Paper square={true}>
+          <Tabs
+            value={selectedTab}
+            onChange={(e, newTab) => this.onChangeTab(newTab)}
+            indicatorColor="primary"
+            textColor="primary"
+            centered
+          >
+            <Tab label="Messages" />
+            <Tab label="Polls" />
+          </Tabs>
+        </Paper>
+        {this.showTabPage()}
         <Snackbar
           open={this.state.snackMessage !== ''}
           anchorOrigin={{
             vertical: 'bottom',
             horizontal: 'left',
           }}
+          classes={
+            selectedTab === POLLS_TAB
+              ? {anchorOriginBottomLeft: classes.snackbar}
+              : null
+          }
           autoHideDuration={6000}
           onClose={this.onSnackClose}
           ContentProps={{
@@ -217,6 +265,82 @@ class App extends React.Component {
         {banUserDialog}
       </div>
     );
+  }
+
+  showTabPage() {
+    switch (this.selectedTab()) {
+      case MESSAGES_TAB: {
+        return (
+          <MessageList
+            messages={this.state.messages}
+            onBanUser={msg => this.onBanUser(msg)}
+            payerBalance={this.state.payerBalance}
+            userAccount={this.state.userAccount}
+            userAuthenticated={!!this.state.userAccount}
+          />
+        );
+      }
+      case POLLS_TAB: {
+        return (
+          <React.Fragment>
+            <PollGrid
+              clock={this.state.clock}
+              polls={this.state.polls}
+              busy={this.busy()}
+              payerBalance={this.state.payerBalance}
+              payerKey={this.state.payerKey}
+              onVote={(...args) => this.vote(...args)}
+              onClaim={(...args) => this.claim(...args)}
+              onCreate={(...args) => this.createPoll(...args)}
+            />
+          </React.Fragment>
+        );
+      }
+      default:
+        return null;
+    }
+  }
+
+  busy() {
+    const {
+      loadingMessages,
+      loadingPolls,
+      busyPosting,
+      busyLoggingIn,
+      busyCreatingPoll,
+      busyVoting,
+      busyClaiming,
+    } = this.state;
+    return (
+      loadingMessages ||
+      loadingPolls ||
+      busyPosting ||
+      busyLoggingIn ||
+      busyCreatingPoll ||
+      busyVoting ||
+      busyClaiming
+    );
+  }
+
+  selectedTab() {
+    const route = this.props.location.pathname;
+    switch (route) {
+      case '/polls':
+        return POLLS_TAB;
+      default:
+        return MESSAGES_TAB;
+    }
+  }
+
+  tabToRoute(tab) {
+    switch (tab) {
+      case POLLS_TAB:
+        return '/polls';
+      case MESSAGES_TAB:
+        return '/messages';
+      default:
+        return '/';
+    }
   }
 
   async postMessage(newMessage: string, userToBan = null) {
@@ -245,7 +369,80 @@ class App extends React.Component {
       transactionSignature,
     });
 
-    return true;
+    return !!transactionSignature;
+  }
+
+  async vote(pollKey, wager, tally) {
+    if (this.state.busyVoting) {
+      this.setState({
+        snackMessage: 'Unable to vote, please retry when not busy',
+        transactionSignature: null,
+      });
+      return false;
+    }
+
+    this.setState({busyVoting: true});
+    const {snackMessage, transactionSignature} = await this.api.vote(
+      pollKey,
+      wager,
+      tally,
+    );
+
+    this.setState({
+      busyVoting: false,
+      snackMessage,
+      transactionSignature,
+    });
+
+    return !!transactionSignature;
+  }
+
+  async claim(poll, pollKey) {
+    if (this.state.busyClaiming) {
+      this.setState({
+        snackMessage: 'Unable to submit claim, please retry when not busy',
+        transactionSignature: null,
+      });
+      return false;
+    }
+
+    this.setState({busyClaiming: true});
+    const {snackMessage, transactionSignature} = await this.api.claim(
+      poll,
+      pollKey,
+    );
+
+    this.setState({
+      busyClaiming: false,
+      snackMessage,
+      transactionSignature,
+    });
+
+    return !!transactionSignature;
+  }
+
+  async createPoll(...args) {
+    if (this.state.busyCreatingPoll) {
+      this.setState({
+        snackMessage: 'Unable to create poll, please retry when not busy',
+        transactionSignature: null,
+      });
+      return false;
+    }
+
+    this.setState({busyCreatingPoll: true});
+
+    const {snackMessage, transactionSignature} = await this.api.createPoll(
+      ...args,
+    );
+
+    this.setState({
+      busyCreatingPoll: false,
+      snackMessage,
+      transactionSignature,
+    });
+
+    return !!transactionSignature;
   }
 
   onSnackClose = () => {
@@ -297,8 +494,15 @@ class App extends React.Component {
 }
 App.propTypes = {
   classes: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired,
 };
 
-const StyledApp = withStyles(styles)(App);
-ReactDOM.render(<StyledApp />, document.getElementById('app'));
+const StyledApp = withStyles(styles)(withRouter(App));
+ReactDOM.render(
+  <HashRouter>
+    <StyledApp />
+  </HashRouter>,
+  document.getElementById('app'),
+);
 module.hot.accept();

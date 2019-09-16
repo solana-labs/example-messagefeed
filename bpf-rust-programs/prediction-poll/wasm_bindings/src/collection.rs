@@ -25,7 +25,7 @@ impl Collection {
         let js_polls: Vec<_> = self
             .polls
             .iter()
-            .map(|k| Uint8Array::from(&k.as_ref()[..]).into())
+            .map(|k| Uint8Array::from(k.as_ref()).into())
             .collect();
         js_polls.into_boxed_slice()
     }
