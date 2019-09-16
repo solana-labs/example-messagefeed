@@ -1,7 +1,10 @@
 use crate::DataType;
 use alloc::slice::from_raw_parts_mut;
+#[cfg(any(test, feature = "wasm"))]
 use alloc::vec::Vec;
-use solana_sdk_bpf_utils::entrypoint::SolPubkey;
+use solana_sdk::pubkey::Pubkey;
+
+type PubkeyData = [u8; 32];
 
 /// Min data size for a poll collection
 /// Breakdown: data_type (1) + poll_count (4) + one poll (32)
@@ -10,7 +13,7 @@ pub const MIN_COLLECTION_SIZE: usize = 1 + 4 + 32;
 pub struct CollectionData<'a> {
     pub data_type: DataType,
     poll_count: &'a mut u32,
-    polls: &'a mut [SolPubkey],
+    polls: &'a mut [PubkeyData],
 }
 
 impl<'a> CollectionData<'a> {
@@ -30,9 +33,10 @@ impl<'a> CollectionData<'a> {
 }
 
 impl CollectionData<'_> {
-    pub fn contains(&self, poll: &SolPubkey) -> bool {
+    pub fn contains(&self, poll: &Pubkey) -> bool {
+        let poll_key_data = array_ref!(poll.as_ref(), 0, 32);
         for i in 0..self.len() {
-            if self.polls[i] == *poll {
+            if self.polls[i] == *poll_key_data {
                 return true;
             }
         }
@@ -51,13 +55,17 @@ impl CollectionData<'_> {
         *self.poll_count as usize
     }
 
-    pub fn add_poll(&mut self, poll: &SolPubkey) {
-        self.polls[self.len()].copy_from_slice(poll);
+    pub fn add_poll(&mut self, poll: &Pubkey) {
+        self.polls[self.len()].copy_from_slice(poll.as_ref());
         *self.poll_count += 1;
     }
 
-    pub fn to_vec(&self) -> Vec<SolPubkey> {
-        self.polls[..self.len()].to_vec()
+    #[cfg(any(test, feature = "wasm"))]
+    pub fn to_vec(&self) -> Vec<Pubkey> {
+        self.polls[..self.len()]
+            .iter()
+            .map(|poll| Pubkey::new(&poll[..]))
+            .collect()
     }
 }
 
@@ -67,7 +75,7 @@ mod test {
 
     #[test]
     pub fn add_poll() {
-        let poll_key = [0; 32];
+        let poll_key = Pubkey::new(&[0; 32]);
         let mut data = vec![0; MIN_COLLECTION_SIZE];
         let mut collection = CollectionData::from_bytes(&mut data[..]);
 

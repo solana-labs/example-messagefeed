@@ -1,4 +1,4 @@
-use solana_sdk_bpf_utils::info;
+use solana_sdk::info;
 
 #[derive(Debug)]
 pub enum ProgramError {

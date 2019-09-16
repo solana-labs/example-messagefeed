@@ -1,13 +1,9 @@
 use crate::result::{ProgramError, ProgramResult};
-use core::convert::TryFrom;
 use prediction_poll_data::TallyData;
-use solana_sdk_bpf_utils::entrypoint::{SolKeyedAccount, SolPubkey};
+use solana_sdk::{account_info::AccountInfo, pubkey::Pubkey};
+use std::convert::TryFrom;
 
-pub fn record_wager(
-    tally: &mut TallyData,
-    user_pubkey: &SolPubkey,
-    wager: u64,
-) -> ProgramResult<()> {
+pub fn record_wager(tally: &mut TallyData, user_pubkey: &Pubkey, wager: u64) -> ProgramResult<()> {
     if let Some(wager_mut_ref) = tally.get_wager_mut(user_pubkey) {
         let value = u64::from_le_bytes(*wager_mut_ref);
         *wager_mut_ref = (value + wager).to_le_bytes();
@@ -24,7 +20,7 @@ pub fn record_wager(
 
 pub fn payout(
     tally: &TallyData,
-    accounts: &mut [SolKeyedAccount],
+    accounts: &mut [AccountInfo],
     winning_quantity: u64,
     pot: u64,
 ) -> ProgramResult<()> {
@@ -36,7 +32,7 @@ pub fn payout(
     let pot = u128::from(pot);
     let winning_quantity = u128::from(winning_quantity);
     for (index, (key, wager)) in tally.iter().enumerate() {
-        if key != accounts[index].key {
+        if key != *accounts[index].key {
             return Err(ProgramError::InvalidPayoutList);
         }
 

@@ -2,12 +2,12 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 use js_sys::Uint8Array;
 use prediction_poll_data::CollectionData;
-use solana_sdk_bpf_utils::entrypoint::SolPubkey;
+use solana_sdk::pubkey::Pubkey;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Collection {
-    polls: Vec<SolPubkey>,
+    polls: Vec<Pubkey>,
 }
 
 impl From<CollectionData<'_>> for Collection {
@@ -25,7 +25,7 @@ impl Collection {
         let js_polls: Vec<_> = self
             .polls
             .iter()
-            .map(|k| Uint8Array::from(&k[..]).into())
+            .map(|k| Uint8Array::from(&k.as_ref()[..]).into())
             .collect();
         js_polls.into_boxed_slice()
     }

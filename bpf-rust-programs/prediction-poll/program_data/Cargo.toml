@@ -10,14 +10,13 @@ edition = "2018"
 
 [dependencies]
 arrayref = "0.3.5"
-solana-sdk-bpf-utils = { path = "../../../node_modules/@solana/web3.js/bpf-sdk/rust/rust-utils" }
-solana-sdk-bpf-no-std = { path = "../../../node_modules/@solana/web3.js/bpf-sdk/rust/rust-no-std", optional = true }
+solana-sdk = { git = "https://github.com/solana-labs/solana", default-features = false }
 wasm-bindgen = { version = "0.2", optional = true }
 
 [features]
-bpf = ["solana-sdk-bpf-no-std"]
+program = ["solana-sdk/program"]
 wasm = ["wasm-bindgen"]
-default = ["bpf"]
+default = ["program"]
 
 [lib]
 name = "prediction_poll_data"

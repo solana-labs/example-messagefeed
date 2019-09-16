@@ -3,12 +3,12 @@ use alloc::vec::Vec;
 use core::convert::TryFrom;
 use js_sys::Uint8Array;
 use prediction_poll_data::TallyData;
-use solana_sdk_bpf_utils::entrypoint::SolPubkey;
+use solana_sdk::pubkey::Pubkey;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Tally {
-    tallies: Vec<(SolPubkey, u32)>, // u64, https://caniuse.com/#feat=bigint
+    tallies: Vec<(Pubkey, u32)>, // u64, https://caniuse.com/#feat=bigint
 }
 
 impl From<TallyData<'_>> for Tally {
@@ -16,7 +16,7 @@ impl From<TallyData<'_>> for Tally {
         Self {
             tallies: tally_data
                 .iter()
-                .map(|(k, w)| (*k, u32::try_from(w).unwrap()))
+                .map(|(k, w)| (k, u32::try_from(w).unwrap()))
                 .collect(),
         }
     }
@@ -35,7 +35,7 @@ impl Tally {
         let js_keys: Vec<_> = self
             .tallies
             .iter()
-            .map(|(key, _)| Uint8Array::from(&key[..]).into())
+            .map(|(key, _)| Uint8Array::from(&key.as_ref()[..]).into())
             .collect();
         js_keys.into_boxed_slice()
     }

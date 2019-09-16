@@ -1,5 +1,6 @@
 #include <solana_sdk.h>
 
+#define FAILURE 1
 
 typedef struct {
   uint8_t banned;
@@ -42,7 +43,7 @@ SOL_FN_PREFIX bool SolPubkey_default(const SolPubkey *pubkey) {
   return true;
 }
 
-extern bool entrypoint(const uint8_t *input) {
+extern uint32_t entrypoint(const uint8_t *input) {
   SolKeyedAccount ka[5];
   SolParameters params = (SolParameters) { .ka = ka };
 
@@ -50,39 +51,39 @@ extern bool entrypoint(const uint8_t *input) {
 
   if (!sol_deserialize(input, &params, SOL_ARRAY_SIZE(ka))) {
     sol_log("Error: deserialize failed");
-    return false;
+    return FAILURE;
   }
 
   if (!params.ka[0].is_signer) {
     sol_log("Error: not signed by key 0");
-    return false;
+    return FAILURE;
   }
   if (!params.ka[1].is_signer) {
     sol_log("Error: not signed by key 1");
-    return false;
+    return FAILURE;
   }
 
   UserAccountData *user_data = NULL;
   if (!deserialize_user_account_data(&params.ka[0], &user_data)) {
     sol_log("Error: unable to deserialize account 0 state");
-    return false;
+    return FAILURE;
   }
 
   if (user_data->banned) {
     sol_log("Error: user is banned");
-    return false;
+    return FAILURE;
   }
 
   MessageAccountData *new_message_data = NULL;
   if (!deserialize_message_account_data(&params.ka[1], &new_message_data)) {
     sol_log("Error: unable to deserialize account 1 state");
-    return false;
+    return FAILURE;
   }
 
   // No instruction data means that a new user account should be initialized
   if (params.data_len == 0) {
     sol_memcpy(&user_data->creator, params.ka[1].key, sizeof(SolPubkey));
-    return true;
+    return SUCCESS;
   }
 
   // Write the message text into new_message_data
@@ -95,12 +96,12 @@ extern bool entrypoint(const uint8_t *input) {
     MessageAccountData *existing_message_data = NULL;
     if (!deserialize_message_account_data(&params.ka[2], &existing_message_data)) {
       sol_log("Error: unable to deserialize account 1 state");
-      return false;
+      return FAILURE;
     }
 
     if (!SolPubkey_default(&existing_message_data->next_message)) {
       sol_log("Error: account 1 already has a next_message");
-      return false;
+      return FAILURE;
     }
 
     // Link the new_message to the existing_message
@@ -118,7 +119,7 @@ extern bool entrypoint(const uint8_t *input) {
 
   if (!SolPubkey_same(&user_data->creator, &new_message_data->creator)) {
     sol_log("user_data/new_message_data creator mismatch");
-    return false;
+    return FAILURE;
   }
 
   // Check if a user should be banned
@@ -126,11 +127,11 @@ extern bool entrypoint(const uint8_t *input) {
     UserAccountData *ban_user_data = NULL;
     if (!deserialize_user_account_data(&params.ka[3], &ban_user_data)) {
       sol_log("Error: unable to deserialize account 3 state");
-      return false;
+      return FAILURE;
     }
 
     ban_user_data->banned = true;
   }
 
-  return true;
+  return SUCCESS;
 }
