@@ -83,8 +83,6 @@ const serverConfig = {
     ],
   },
   plugins: [
-    // Server also relies on the poll program wasm bindings but does not use
-    // the WasmPackPlugin here to avoid redundancy with the client config.
     new FilterWarningsPlugin({
       exclude: [
         /Critical dependency: the request of a dependency is an expression/,
