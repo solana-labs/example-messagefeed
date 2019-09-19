@@ -65,7 +65,7 @@
     "cors": "^2.8.5",
     "css-loader": "^3.2.0",
     "escape-html": "^1.0.3",
-    "eslint": "^6.3.0",
+    "eslint": "^6.4.0",
     "eslint-loader": "^3.0.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-react": "^7.14.3",
