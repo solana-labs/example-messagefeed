@@ -185,7 +185,8 @@ $ npm run build:bpf-c
 
 #### BPF Rust
 ```sh
-$ ./program-bpf-rust/build.sh
+$ ./bpf-rust-programs/messagefeed/do.sh build
+$ ./bpf-rust-programs/prediction-poll/do.sh build
 ```
 or
 ```
