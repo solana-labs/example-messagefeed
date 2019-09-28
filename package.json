@@ -80,7 +80,7 @@
     "moment": "^2.22.2",
     "mz": "^2.7.0",
     "node-fetch": "^2.6.0",
-    "react": "^16.10.0",
+    "react": "^16.10.1",
     "react-dom": "^16.10.0",
     "react-idle-timer": "^4.2.9",
     "react-router-dom": "^5.1.1",
