@@ -71,7 +71,7 @@
     "eslint-plugin-react": "^7.15.1",
     "event-emitter": "^0.3.5",
     "express": "^4.17.1",
-    "flow-bin": "0.108.0",
+    "flow-bin": "0.109.0",
     "flow-typed": "^2.6.1",
     "haikunator": "^2.1.1",
     "http-server": "^0.11.1",
