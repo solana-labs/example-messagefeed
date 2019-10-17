@@ -82,7 +82,7 @@
     "node-fetch": "^2.6.0",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",
-    "react-idle-timer": "^4.2.9",
+    "react-idle-timer": "^4.2.10",
     "react-router-dom": "^5.1.2",
     "readline-promise": "^1.0.3",
     "superstruct": "^0.8.2",
