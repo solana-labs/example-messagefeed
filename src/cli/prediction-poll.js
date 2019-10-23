@@ -21,7 +21,14 @@ async function main() {
 
   const credentials = {id: new Account().publicKey.toString()};
   const creatorAccount = await userLogin(baseUrl + '/login', credentials);
-  const payerAccount = await newSystemAccountWithAirdrop(connection, 1000);
+  const [, feeCalculator] = await connection.getRecentBlockhash();
+  const wager = 100;
+  const systemAccountBalances = 3;
+  const fee = feeCalculator.lamportsPerSignature * 8; // 1 payer + 7 signer key
+  const payerAccount = await newSystemAccountWithAirdrop(
+    connection,
+    wager + systemAccountBalances + fee,
+  );
 
   console.log(`
 Creating new poll...
@@ -44,7 +51,6 @@ Q. What's your favorite color?
   );
 
   let [poll] = await refreshPoll(connection, pollAccount.publicKey);
-  const wager = 100;
   console.log(`Wagering ${wager} tokens for "${poll.optionA.text}"...`);
   await vote(
     connection,

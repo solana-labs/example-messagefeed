@@ -58,10 +58,11 @@ export default class MessageFeedController {
     console.log('Message feed program:', programId.toString());
     console.log('Posting first message...');
 
-    const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
+    const [, feeCalculator] = await this.connection.getRecentBlockhash();
+    const fee = feeCalculator.lamportsPerSignature * 6; // 1 payer + 5 signer keys
     const payerAccount = await newSystemAccountWithAirdrop(
       this.connection,
-      1000 + fee,
+      fee,
     );
     const firstMessage = new Account();
     await Program.postMessageWithProgramId(
@@ -83,6 +84,7 @@ export default class MessageFeedController {
    * Load a new instance of the Message Feed program
    */
   async loadProgram(): Promise<PublicKey> {
+    const NUM_RETRIES = 100; /* allow some number of retries */
     const elfFile = path.join(
       __dirname,
       '..',
@@ -94,10 +96,14 @@ export default class MessageFeedController {
     console.log(`Reading ${elfFile}...`);
     const elfData = await fs.readFile(elfFile);
 
-    console.log('Loading program...');
+    console.log('Loading Message feed program...');
+    const [, feeCalculator] = await this.connection.getRecentBlockhash();
+    const fees =
+      feeCalculator.lamportsPerSignature *
+      (BpfLoader.getMinNumSignatures(elfData.length) + NUM_RETRIES);
     const loaderAccount = await newSystemAccountWithAirdrop(
       this.connection,
-      100000,
+      fees,
     );
     return BpfLoader.load(this.connection, loaderAccount, elfData);
   }
