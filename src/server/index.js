@@ -89,12 +89,13 @@ app.post('/login', async (req, res) => {
   } else {
     console.log(`Creating new account for user ${id}`);
     const connection = new Connection(url);
-    const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
+    const [, feeCalculator] = await connection.getRecentBlockhash();
+    const fee = feeCalculator.lamportsPerSignature * 2; // 1 payer + 1 signer keys
 
     try {
       const payerAccount = await newSystemAccountWithAirdrop(
         connection,
-        1000 + fee,
+        100000000 + fee,
       );
       const userAccount = await MessageFeedProgram.createUser(
         connection,

@@ -75,7 +75,8 @@ export default class PollController {
    * Creates a new Prediction Poll collection.
    */
   async createCollection(programId: PublicKey): Promise<Account> {
-    const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
+    const [, feeCalculator] = await this.connection.getRecentBlockhash();
+    const fee = feeCalculator.lamportsPerSignature * 2; // 1 payer + 1 signer key
     const programFunds = 1000;
     const payerAccount = await newSystemAccountWithAirdrop(
       this.connection,
@@ -120,6 +121,7 @@ export default class PollController {
    * Load a new instance of the Prediction Poll program
    */
   async loadProgram(): Promise<PublicKey> {
+    const NUM_RETRIES = 500; /* allow some number of retries */
     const elfFile = path.join(
       __dirname,
       '..',
@@ -131,10 +133,15 @@ export default class PollController {
     console.log(`Reading ${elfFile}...`);
     const elfData = await fs.readFile(elfFile);
 
-    console.log('Loading program...');
+    const [, feeCalculator] = await this.connection.getRecentBlockhash();
+    const fees =
+      feeCalculator.lamportsPerSignature *
+      (BpfLoader.getMinNumSignatures(elfData.length) + NUM_RETRIES);
+
+    console.log('Loading Poll program...');
     const loaderAccount = await newSystemAccountWithAirdrop(
       this.connection,
-      100000,
+      fees,
     );
     return BpfLoader.load(this.connection, loaderAccount, elfData);
   }

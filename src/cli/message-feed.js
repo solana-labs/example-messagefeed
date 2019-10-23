@@ -26,11 +26,9 @@ async function main() {
     }
     const credentials = {id: new Account().publicKey.toString()};
     const userAccount = await userLogin(baseUrl + '/login', credentials);
-    const fee = 100; // TODO: Use the FeeCalculator to determine the current cluster transaction fee
-    const payerAccount = await newSystemAccountWithAirdrop(
-      connection,
-      1000 + fee,
-    );
+    const [, feeCalculator] = await connection.getRecentBlockhash();
+    const fee = feeCalculator.lamportsPerSignature * 6; // 1 payer + 5 signer keys
+    const payerAccount = await newSystemAccountWithAirdrop(connection, fee);
     console.log('Posting message:', text);
     await postMessage(
       connection,
