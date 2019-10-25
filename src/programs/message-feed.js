@@ -2,6 +2,7 @@
 import {
   Account,
   Connection,
+  Loader,
   SystemProgram,
   PublicKey,
   Transaction,
@@ -55,10 +56,12 @@ function createUserAccount(
     {pubkey: userAccount.publicKey, isSigner: true, isDebitable: false},
     {pubkey: messageAccount.publicKey, isSigner: true, isDebitable: false},
   ];
-  transaction.add({
-    keys,
-    programId,
-  });
+  transaction.add(
+    Loader.invokeMainInstruction({
+      keys,
+      programId,
+    }),
+  );
 
   return userAccount;
 }
@@ -141,31 +144,29 @@ export async function refreshMessageFeed(
   onNewMessage: Function | null,
   message: PublicKey | null = null,
 ): Promise<void> {
+  var currentMessage = message;
   const emptyMessage = new PublicKey(0);
   for (;;) {
-    if (message === null) {
-      if (messages.length === 0) {
-        return;
-      }
+    if (currentMessage === null) {
       const lastMessage = messages[messages.length - 1].publicKey;
       const lastMessageData = await readMessage(connection, lastMessage);
-      message = lastMessageData.nextMessage;
+      currentMessage = lastMessageData.nextMessage;
     }
 
-    if (message.equals(emptyMessage)) {
+    if (currentMessage.equals(emptyMessage)) {
       return;
     }
 
-    console.log(`Loading message ${message}`);
-    const messageData = await readMessage(connection, message);
+    console.log(`Loading message ${currentMessage.toString()}`);
+    const messageData = await readMessage(connection, currentMessage);
     messages.push({
-      publicKey: message,
+      publicKey: currentMessage,
       from: messageData.from,
       name: publicKeyToName(messageData.from),
       text: messageData.text,
     });
     onNewMessage && onNewMessage();
-    message = messageData.nextMessage;
+    currentMessage = messageData.nextMessage;
   }
 }
 
@@ -246,11 +247,13 @@ export async function postMessageWithProgramId(
       keys.push({pubkey: userToBan, isSigner: false, isDebitable: true});
     }
   }
-  transaction.add({
-    keys,
-    programId,
-    data: textBuffer,
-  });
+  transaction.add(
+    Loader.invokeMainInstruction({
+      keys,
+      programId,
+      data: textBuffer,
+    }),
+  );
   return await sendAndConfirmTransaction(
     connection,
     transaction,

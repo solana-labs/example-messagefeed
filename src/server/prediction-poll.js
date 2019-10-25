@@ -5,6 +5,7 @@ import {
   Account,
   BpfLoader,
   Connection,
+  Loader,
   PublicKey,
   Transaction,
   SystemProgram,
@@ -95,17 +96,19 @@ export default class PollController {
       ),
     );
 
-    transaction.add({
-      keys: [
-        {
-          pubkey: collectionAccount.publicKey,
-          isSigner: true,
-          isDebitable: true,
-        },
-      ],
-      programId,
-      data: Command.initCollection(),
-    });
+    transaction.add(
+      Loader.invokeMainInstruction({
+        keys: [
+          {
+            pubkey: collectionAccount.publicKey,
+            isSigner: true,
+            isDebitable: true,
+          },
+        ],
+        programId,
+        data: Command.initCollection(),
+      }),
+    );
 
     await sendAndConfirmTransaction(
       this.connection,

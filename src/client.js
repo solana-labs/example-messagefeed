@@ -62,5 +62,5 @@ export async function userLogin(
     body: JSON.stringify(credentials),
   });
   const json = await response.json();
-  return new Account(Uint8Array.from(Buffer.from(json.userAccount, 'hex')));
+  return new Account(Buffer.from(json.userAccount, 'hex'));
 }
