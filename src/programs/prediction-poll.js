@@ -1,8 +1,8 @@
 /* @flow */
 import {
   Account,
+  BpfLoader,
   Connection,
-  Loader,
   PublicKey,
   SystemProgram,
   Transaction,
@@ -92,7 +92,7 @@ export async function createPoll(
   }
 
   transaction.add(
-    Loader.invokeMainInstruction({
+    BpfLoader.invokeMainInstruction({
       keys: [
         {pubkey: creatorAccount.publicKey, isSigner: true, isDebitable: false},
         {pubkey: pollAccount.publicKey, isSigner: true, isDebitable: true},
@@ -148,7 +148,7 @@ export async function vote(
   );
 
   transaction.add(
-    Loader.invokeMainInstruction({
+    BpfLoader.invokeMainInstruction({
       keys: [
         {pubkey: userAccount.publicKey, isSigner: true, isDebitable: true},
         {pubkey: poll, isSigner: false, isDebitable: true},
@@ -199,7 +199,7 @@ export async function claim(
   });
 
   transaction.add(
-    Loader.invokeMainInstruction({
+    BpfLoader.invokeMainInstruction({
       keys: [
         {pubkey: pollKey, isSigner: false, isDebitable: true},
         {pubkey: tallyKey, isSigner: false, isDebitable: false},

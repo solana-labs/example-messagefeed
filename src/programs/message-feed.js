@@ -1,8 +1,8 @@
 /* @flow */
 import {
   Account,
+  BpfLoader,
   Connection,
-  Loader,
   SystemProgram,
   PublicKey,
   Transaction,
@@ -57,7 +57,7 @@ function createUserAccount(
     {pubkey: messageAccount.publicKey, isSigner: true, isDebitable: false},
   ];
   transaction.add(
-    Loader.invokeMainInstruction({
+    BpfLoader.invokeMainInstruction({
       keys,
       programId,
     }),
@@ -248,7 +248,7 @@ export async function postMessageWithProgramId(
     }
   }
   transaction.add(
-    Loader.invokeMainInstruction({
+    BpfLoader.invokeMainInstruction({
       keys,
       programId,
       data: textBuffer,

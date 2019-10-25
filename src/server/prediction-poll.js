@@ -5,7 +5,6 @@ import {
   Account,
   BpfLoader,
   Connection,
-  Loader,
   PublicKey,
   Transaction,
   SystemProgram,
@@ -97,7 +96,7 @@ export default class PollController {
     );
 
     transaction.add(
-      Loader.invokeMainInstruction({
+      BpfLoader.invokeMainInstruction({
         keys: [
           {
             pubkey: collectionAccount.publicKey,
