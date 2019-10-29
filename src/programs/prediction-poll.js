@@ -1,6 +1,7 @@
 /* @flow */
 import {
   Account,
+  BpfLoader,
   Connection,
   PublicKey,
   SystemProgram,
@@ -90,22 +91,24 @@ export async function createPoll(
     );
   }
 
-  transaction.add({
-    keys: [
-      {pubkey: creatorAccount.publicKey, isSigner: true, isDebitable: false},
-      {pubkey: pollAccount.publicKey, isSigner: true, isDebitable: true},
-      {pubkey: collectionKey, isSigner: false, isDebitable: true},
-      {pubkey: tallyAccounts[0].publicKey, isSigner: true, isDebitable: true},
-      {pubkey: tallyAccounts[1].publicKey, isSigner: true, isDebitable: true},
-      {
-        pubkey: getSysvarClockPublicKey(),
-        isSigner: false,
-        isDebitable: false,
-      },
-    ],
-    programId,
-    data: Command.initPoll(new InitPoll(header, optionA, optionB, timeout)),
-  });
+  transaction.add(
+    BpfLoader.invokeMainInstruction({
+      keys: [
+        {pubkey: creatorAccount.publicKey, isSigner: true, isDebitable: false},
+        {pubkey: pollAccount.publicKey, isSigner: true, isDebitable: true},
+        {pubkey: collectionKey, isSigner: false, isDebitable: true},
+        {pubkey: tallyAccounts[0].publicKey, isSigner: true, isDebitable: true},
+        {pubkey: tallyAccounts[1].publicKey, isSigner: true, isDebitable: true},
+        {
+          pubkey: getSysvarClockPublicKey(),
+          isSigner: false,
+          isDebitable: false,
+        },
+      ],
+      programId,
+      data: Command.initPoll(new InitPoll(header, optionA, optionB, timeout)),
+    }),
+  );
 
   const signature = await sendAndConfirmTransaction(
     connection,
@@ -144,21 +147,23 @@ export async function vote(
     ),
   );
 
-  transaction.add({
-    keys: [
-      {pubkey: userAccount.publicKey, isSigner: true, isDebitable: true},
-      {pubkey: poll, isSigner: false, isDebitable: true},
-      {pubkey: tally, isSigner: false, isDebitable: true},
-      {pubkey: payerAccount.publicKey, isSigner: false, isDebitable: false},
-      {
-        pubkey: getSysvarClockPublicKey(),
-        isSigner: false,
-        isDebitable: false,
-      },
-    ],
-    programId,
-    data: Command.submitVote(),
-  });
+  transaction.add(
+    BpfLoader.invokeMainInstruction({
+      keys: [
+        {pubkey: userAccount.publicKey, isSigner: true, isDebitable: true},
+        {pubkey: poll, isSigner: false, isDebitable: true},
+        {pubkey: tally, isSigner: false, isDebitable: true},
+        {pubkey: payerAccount.publicKey, isSigner: false, isDebitable: false},
+        {
+          pubkey: getSysvarClockPublicKey(),
+          isSigner: false,
+          isDebitable: false,
+        },
+      ],
+      programId,
+      data: Command.submitVote(),
+    }),
+  );
 
   return await sendAndConfirmTransaction(
     connection,
@@ -193,16 +198,18 @@ export async function claim(
     return {pubkey, isSigner: false, isDebitable: false};
   });
 
-  transaction.add({
-    keys: [
-      {pubkey: pollKey, isSigner: false, isDebitable: true},
-      {pubkey: tallyKey, isSigner: false, isDebitable: false},
-      {pubkey: clockKey, isSigner: false, isDebitable: false},
-      ...payoutKeys,
-    ],
-    programId,
-    data: Command.submitClaim(),
-  });
+  transaction.add(
+    BpfLoader.invokeMainInstruction({
+      keys: [
+        {pubkey: pollKey, isSigner: false, isDebitable: true},
+        {pubkey: tallyKey, isSigner: false, isDebitable: false},
+        {pubkey: clockKey, isSigner: false, isDebitable: false},
+        ...payoutKeys,
+      ],
+      programId,
+      data: Command.submitClaim(),
+    }),
+  );
 
   return await sendAndConfirmTransaction(connection, transaction, payerAccount);
 }

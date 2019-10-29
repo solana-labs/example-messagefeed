@@ -95,17 +95,19 @@ export default class PollController {
       ),
     );
 
-    transaction.add({
-      keys: [
-        {
-          pubkey: collectionAccount.publicKey,
-          isSigner: true,
-          isDebitable: true,
-        },
-      ],
-      programId,
-      data: Command.initCollection(),
-    });
+    transaction.add(
+      BpfLoader.invokeMainInstruction({
+        keys: [
+          {
+            pubkey: collectionAccount.publicKey,
+            isSigner: true,
+            isDebitable: true,
+          },
+        ],
+        programId,
+        data: Command.initCollection(),
+      }),
+    );
 
     await sendAndConfirmTransaction(
       this.connection,
