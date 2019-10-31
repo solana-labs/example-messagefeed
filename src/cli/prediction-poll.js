@@ -23,11 +23,14 @@ async function main() {
   const creatorAccount = await userLogin(baseUrl + '/login', credentials);
   const [, feeCalculator] = await connection.getRecentBlockhash();
   const wager = 100;
-  const systemAccountBalances = 3;
-  const fee = feeCalculator.lamportsPerSignature * 8; // 1 payer + 7 signer key
+  const minAccountBalances = 4; // 1 poll + 2 tally + 1 user
+  const createPollFee = feeCalculator.lamportsPerSignature * 5; // 1 payer + 4 signer keys
+  const voteFee = feeCalculator.lamportsPerSignature * 2; // 1 payer + 1 signer key
+  const claimFee = feeCalculator.lamportsPerSignature; // 1 payer
+  const fees = createPollFee + voteFee + claimFee;
   const payerAccount = await newSystemAccountWithAirdrop(
     connection,
-    wager + systemAccountBalances + fee,
+    wager + fees + minAccountBalances,
   );
 
   console.log(`
@@ -62,17 +65,12 @@ Q. What's your favorite color?
   );
   await sleep(3000);
 
-  let payerBalance = await connection.getBalance(payerAccount.publicKey);
-
   console.log('Refreshing poll...');
   [poll] = await refreshPoll(connection, pollAccount.publicKey);
 
   console.log('Claiming winnings...');
   await claim(connection, programId, payerAccount, pollAccount.publicKey, poll);
-
-  let newBalance = await connection.getBalance(payerAccount.publicKey);
-  const fees = wager - (newBalance - payerBalance);
-  console.log(`You won ${wager} tokens (and spent ${fees} in fees)`);
+  console.log(`You won ${wager} tokens (and spent ${fees} lamports in fees)`);
 }
 
 main()

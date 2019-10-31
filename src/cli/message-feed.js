@@ -27,8 +27,12 @@ async function main() {
     const credentials = {id: new Account().publicKey.toString()};
     const userAccount = await userLogin(baseUrl + '/login', credentials);
     const [, feeCalculator] = await connection.getRecentBlockhash();
-    const fee = feeCalculator.lamportsPerSignature * 6; // 1 payer + 5 signer keys
-    const payerAccount = await newSystemAccountWithAirdrop(connection, fee);
+    const postMessageFee = feeCalculator.lamportsPerSignature * 3; // 1 payer and 2 signer keys
+    const minAccountBalance = 1; // 1 message account
+    const payerAccount = await newSystemAccountWithAirdrop(
+      connection,
+      postMessageFee + minAccountBalance,
+    );
     console.log('Posting message:', text);
     await postMessage(
       connection,

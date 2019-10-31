@@ -59,10 +59,11 @@ export default class MessageFeedController {
     console.log('Posting first message...');
 
     const [, feeCalculator] = await this.connection.getRecentBlockhash();
-    const fee = feeCalculator.lamportsPerSignature * 6; // 1 payer + 5 signer keys
+    const postMessageFee = feeCalculator.lamportsPerSignature * 3; // 1 payer + 2 signer keys
+    const minAccountBalances = 2; // 1 message + 1 user account
     const payerAccount = await newSystemAccountWithAirdrop(
       this.connection,
-      fee,
+      postMessageFee + minAccountBalances,
     );
     const firstMessage = new Account();
     await Program.postMessageWithProgramId(
