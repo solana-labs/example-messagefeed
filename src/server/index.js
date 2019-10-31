@@ -90,12 +90,13 @@ app.post('/login', async (req, res) => {
     console.log(`Creating new account for user ${id}`);
     const connection = new Connection(url);
     const [, feeCalculator] = await connection.getRecentBlockhash();
-    const fee = feeCalculator.lamportsPerSignature * 2; // 1 payer + 1 signer keys
+    const fee = feeCalculator.lamportsPerSignature * 3; // 1 payer + 2 signer keys
+    const minAccountBalance = 1; // 1 user account
 
     try {
       const payerAccount = await newSystemAccountWithAirdrop(
         connection,
-        100000000 + fee,
+        100000000 + fee + minAccountBalance,
       );
       const userAccount = await MessageFeedProgram.createUser(
         connection,
