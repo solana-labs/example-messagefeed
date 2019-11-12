@@ -75,9 +75,10 @@ export default class Api {
         predictionPoll,
         urlTls,
         walletUrl,
+        commitment,
       } = await getConfig(this.configUrl);
 
-      this.connection = new Connection(urlTls);
+      this.connection = new Connection(urlTls, commitment);
       this.connectionUrl = urlTls;
       this.walletUrl = walletUrl;
       this.clock.updateConfig(this.connection);

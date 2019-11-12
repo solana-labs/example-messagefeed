@@ -12,7 +12,6 @@ import {
 } from '@solana/web3.js';
 
 import {newSystemAccountWithAirdrop} from '../util/new-system-account-with-airdrop';
-import {url} from '../../urls';
 import {Command} from '../../wasm';
 
 export type PollMeta = {
@@ -24,9 +23,12 @@ export type PollMeta = {
  * Manages the active instance of a Prediction Poll program
  */
 export default class PollController {
-  connection = new Connection(url);
   meta: ?PollMeta;
   loading: boolean;
+
+  constructor(connection: Connection) {
+    this.connection = connection;
+  }
 
   async getMeta(): Promise<?PollMeta> {
     if (this.loading) return;
@@ -100,7 +102,7 @@ export default class PollController {
         {
           pubkey: collectionAccount.publicKey,
           isSigner: true,
-          isDebitable: true,
+          isWritable: true,
         },
       ],
       programId,
