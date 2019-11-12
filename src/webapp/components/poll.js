@@ -7,7 +7,6 @@ import PropTypes from 'prop-types';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
-import escapeHtml from 'escape-html';
 import {PublicKey} from '@solana/web3.js';
 
 import PollOption from './poll-option';
@@ -73,7 +72,7 @@ class Poll extends React.Component {
     return (
       <React.Fragment>
         <Typography variant="h6" noWrap>
-          {escapeHtml(poll.header)}
+          {poll.header}
         </Typography>
         <Typography className={classes.subtitle} variant="subtitle1" noWrap>
           {this.renderSubtitle()}

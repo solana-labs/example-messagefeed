@@ -6,7 +6,6 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import StarsIcon from '@material-ui/icons/Stars';
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
 import PropTypes from 'prop-types';
-import escapeHtml from 'escape-html';
 
 class PollOption extends React.Component {
   render() {
@@ -52,9 +51,7 @@ class PollOption extends React.Component {
     if (wager > 0) {
       secondary += `, My wager: ${wager}`;
     }
-    return (
-      <ListItemText primary={escapeHtml(option.text)} secondary={secondary} />
-    );
+    return <ListItemText primary={option.text} secondary={secondary} />;
   }
 }
 

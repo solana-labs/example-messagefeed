@@ -8,7 +8,6 @@ import Paper from '@material-ui/core/Paper';
 import PropTypes from 'prop-types';
 import ReportIcon from '@material-ui/icons/Report';
 import {withStyles} from '@material-ui/core/styles';
-import escapeHtml from 'escape-html';
 
 const styles = theme => ({
   message: {
@@ -55,10 +54,7 @@ class MessageList extends React.Component {
     return (
       <ListItem key={index}>
         <Paper className={classes.message}>
-          <ListItemText
-            primary={escapeHtml(message.text)}
-            secondary={postedBy}
-          />
+          <ListItemText primary={message.text} secondary={postedBy} />
           {reportAction}
         </Paper>
       </ListItem>
