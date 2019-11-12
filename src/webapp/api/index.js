@@ -82,6 +82,9 @@ export default class Api {
       this.connectionUrl = urlTls;
       this.walletUrl = walletUrl;
       this.clock.updateConfig(this.connection);
+      this.connection.getRecentBlockhash().then(([, feeCalculator]) => {
+        this.feeCalculator = feeCalculator;
+      });
 
       const explorerUrl = this.explorerUrl(this.connectionUrl);
       const response = {explorerUrl, loginMethod, walletUrl};
@@ -127,6 +130,13 @@ export default class Api {
     setTimeout(() => this.pollBalance(callback), 1000);
   }
 
+  amountToRequest() {
+    if (this.feeCalculator && this.feeCalculator.targetLamportsPerSignature) {
+      return 10 * this.feeCalculator.targetLamportsPerSignature;
+    }
+    return 1000000;
+  }
+
   async requestFunds(callback) {
     this.walletCallback = callback;
 
@@ -155,7 +165,7 @@ export default class Api {
             method: 'addFunds',
             params: {
               pubkey: payerAccount.publicKey.toString(),
-              amount: 500,
+              amount: this.amountToRequest(),
               network: this.connectionUrl,
             },
           },
@@ -177,7 +187,7 @@ export default class Api {
               method: 'addFunds',
               params: {
                 pubkey: payerAccount.publicKey.toString(),
-                amount: 500,
+                amount: this.amountToRequest(),
                 network: this.connectionUrl,
               },
             },
