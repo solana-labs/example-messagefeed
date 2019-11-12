@@ -16,7 +16,6 @@ async function main() {
   const {firstMessage} = messageFeed;
 
   console.log('Cluster RPC URL:', url);
-  console.log('Cluster commitment:', commitment);
   const connection = new Connection(url, commitment);
 
   const messages: Array<Message> = [];
