@@ -4,7 +4,6 @@ import path from 'path';
 import {Account, BpfLoader, Connection, PublicKey} from '@solana/web3.js';
 
 import {newSystemAccountWithAirdrop} from '../util/new-system-account-with-airdrop';
-import {url} from '../../urls';
 import * as Program from '../programs/message-feed';
 
 export type MessageFeedMeta = {
@@ -16,9 +15,12 @@ export type MessageFeedMeta = {
  * Manages the active instance of a Message Feed program
  */
 export default class MessageFeedController {
-  connection = new Connection(url);
   meta: ?MessageFeedMeta;
   loading: boolean;
+
+  constructor(connection: Connection) {
+    this.connection = connection;
+  }
 
   async getMeta(): Promise<?MessageFeedMeta> {
     if (this.loading) return;

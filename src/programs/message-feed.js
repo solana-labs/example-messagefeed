@@ -52,8 +52,8 @@ function createUserAccount(
 
   // Initialize the user account
   const keys = [
-    {pubkey: userAccount.publicKey, isSigner: true, isDebitable: false},
-    {pubkey: messageAccount.publicKey, isSigner: true, isDebitable: false},
+    {pubkey: userAccount.publicKey, isSigner: true, isWritable: false},
+    {pubkey: messageAccount.publicKey, isSigner: true, isWritable: false},
   ];
   transaction.add({
     keys,
@@ -232,18 +232,18 @@ export async function postMessageWithProgramId(
   // The second instruction in the transaction posts the message, optionally
   // links it to the previous message and optionally bans another user
   const keys = [
-    {pubkey: userAccount.publicKey, isSigner: true, isDebitable: false},
-    {pubkey: messageAccount.publicKey, isSigner: true, isDebitable: false},
+    {pubkey: userAccount.publicKey, isSigner: true, isWritable: false},
+    {pubkey: messageAccount.publicKey, isSigner: true, isWritable: false},
   ];
   if (previousMessagePublicKey) {
     keys.push({
       pubkey: previousMessagePublicKey,
       isSigner: false,
-      isDebitable: true,
+      isWritable: true,
     });
 
     if (userToBan) {
-      keys.push({pubkey: userToBan, isSigner: false, isDebitable: true});
+      keys.push({pubkey: userToBan, isSigner: false, isWritable: true});
     }
   }
   transaction.add({

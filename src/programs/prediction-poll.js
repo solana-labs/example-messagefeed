@@ -92,15 +92,15 @@ export async function createPoll(
 
   transaction.add({
     keys: [
-      {pubkey: creatorAccount.publicKey, isSigner: true, isDebitable: false},
-      {pubkey: pollAccount.publicKey, isSigner: true, isDebitable: true},
-      {pubkey: collectionKey, isSigner: false, isDebitable: true},
-      {pubkey: tallyAccounts[0].publicKey, isSigner: true, isDebitable: true},
-      {pubkey: tallyAccounts[1].publicKey, isSigner: true, isDebitable: true},
+      {pubkey: creatorAccount.publicKey, isSigner: true, isWritable: false},
+      {pubkey: pollAccount.publicKey, isSigner: true, isWritable: true},
+      {pubkey: collectionKey, isSigner: false, isWritable: true},
+      {pubkey: tallyAccounts[0].publicKey, isSigner: true, isWritable: true},
+      {pubkey: tallyAccounts[1].publicKey, isSigner: true, isWritable: true},
       {
         pubkey: getSysvarClockPublicKey(),
         isSigner: false,
-        isDebitable: false,
+        isWritable: false,
       },
     ],
     programId,
@@ -146,14 +146,14 @@ export async function vote(
 
   transaction.add({
     keys: [
-      {pubkey: userAccount.publicKey, isSigner: true, isDebitable: true},
-      {pubkey: poll, isSigner: false, isDebitable: true},
-      {pubkey: tally, isSigner: false, isDebitable: true},
-      {pubkey: payerAccount.publicKey, isSigner: false, isDebitable: false},
+      {pubkey: userAccount.publicKey, isSigner: true, isWritable: true},
+      {pubkey: poll, isSigner: false, isWritable: true},
+      {pubkey: tally, isSigner: false, isWritable: true},
+      {pubkey: payerAccount.publicKey, isSigner: false, isWritable: false},
       {
         pubkey: getSysvarClockPublicKey(),
         isSigner: false,
-        isDebitable: false,
+        isWritable: false,
       },
     ],
     programId,
@@ -190,14 +190,14 @@ export async function claim(
   const transaction = new Transaction();
   const payoutKeys = tally.keys.map(k => {
     const pubkey = new PublicKey(k);
-    return {pubkey, isSigner: false, isDebitable: false};
+    return {pubkey, isSigner: false, isWritable: false};
   });
 
   transaction.add({
     keys: [
-      {pubkey: pollKey, isSigner: false, isDebitable: true},
-      {pubkey: tallyKey, isSigner: false, isDebitable: false},
-      {pubkey: clockKey, isSigner: false, isDebitable: false},
+      {pubkey: pollKey, isSigner: false, isWritable: true},
+      {pubkey: tallyKey, isSigner: false, isWritable: false},
+      {pubkey: clockKey, isSigner: false, isWritable: false},
       ...payoutKeys,
     ],
     programId,

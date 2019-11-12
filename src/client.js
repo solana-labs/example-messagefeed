@@ -1,5 +1,5 @@
 // @flow
-import {Account, PublicKey} from '@solana/web3.js';
+import {Account, Commitment, PublicKey} from '@solana/web3.js';
 import fetch from 'node-fetch';
 
 import {sleep} from './util/sleep';
@@ -11,6 +11,7 @@ export type Config = {
   url: string,
   urlTls: string,
   walletUrl: string,
+  commitment: ?Commitment,
 };
 
 export type MessageFeedConfig = {
@@ -42,6 +43,7 @@ export async function getConfig(configUrl: string): Promise<Config> {
           url: config.url,
           urlTls: config.urlTls,
           walletUrl: config.walletUrl,
+          commitment: config.commitment,
         };
       }
       console.log(`Waiting for programs to finish loading...`);

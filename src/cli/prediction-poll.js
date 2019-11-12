@@ -13,11 +13,13 @@ import {sleep} from '../util/sleep';
 
 async function main() {
   const baseUrl = 'http://localhost:8081';
-  const {predictionPoll, url} = await getConfig(baseUrl + '/config.json');
+  const {predictionPoll, url, commitment} = await getConfig(
+    baseUrl + '/config.json',
+  );
   const {collection: collectionKey, programId} = predictionPoll;
 
   console.log('Cluster RPC URL:', url);
-  const connection = new Connection(url);
+  const connection = new Connection(url, commitment);
 
   const credentials = {id: new Account().publicKey.toString()};
   const creatorAccount = await userLogin(baseUrl + '/login', credentials);

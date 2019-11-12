@@ -10,13 +10,13 @@ async function main() {
   const text = process.argv.splice(2).join(' ');
 
   const baseUrl = 'http://localhost:8081';
-  const {messageFeed, loginMethod, url} = await getConfig(
+  const {messageFeed, loginMethod, url, commitment} = await getConfig(
     baseUrl + '/config.json',
   );
   const {firstMessage} = messageFeed;
 
   console.log('Cluster RPC URL:', url);
-  const connection = new Connection(url);
+  const connection = new Connection(url, commitment);
   const messages: Array<Message> = [];
   await refreshMessageFeed(connection, messages, null, firstMessage);
 
