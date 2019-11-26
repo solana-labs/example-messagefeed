@@ -73,7 +73,7 @@
     "flow-bin": "0.112.0",
     "flow-typed": "^2.6.2",
     "haikunator": "^2.1.1",
-    "http-server": "^0.11.1",
+    "http-server": "^0.12.0",
     "localforage": "^1.7.3",
     "mkdirp-promise": "^5.0.1",
     "moment": "^2.22.2",
