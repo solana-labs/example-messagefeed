@@ -2,9 +2,6 @@ dist: xenial
 sudo: required
 language: rust
 
-addons:
-  artifacts: true
-
 services:
 - docker
 
