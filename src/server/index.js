@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
-import semver from 'semver';
+import gte from 'semver/functions/gte';
 import {Connection} from '@solana/web3.js';
 
 import {url, urlTls, walletUrl} from '../../urls';
@@ -19,7 +19,7 @@ const port = process.env.PORT || 8081;
 
   // commitment params are only supported >= 0.21.0
   const solanaCoreVersion = version['solana-core'].split(' ')[0];
-  if (semver.gte(solanaCoreVersion, '0.21.0')) {
+  if (gte(solanaCoreVersion, '0.21.0')) {
     commitment = 'recent';
     // eslint-disable-next-line require-atomic-updates
     connection = new Connection(url, commitment);
