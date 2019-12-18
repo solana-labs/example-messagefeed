@@ -1,20 +1,13 @@
 dist: xenial
 sudo: required
 language: rust
-
 services:
 - docker
-
 cache:
   directories:
   - "~/.npm"
-
 notifications:
   email: false
-
-branches:
-  only:
-    - master
 
 install:
   - cargo --version
@@ -50,3 +43,4 @@ deploy:
     strategy: git
     on:
       repo: solana-labs/example-messagefeed
+      branch: v0.21
