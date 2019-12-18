@@ -11,16 +11,25 @@ implementing a simple feed of messages and prediction polls.
 To see it running go to https://solana-example-messagefeed.herokuapp.com/
 
 ## Table of Contents
-* [Overview](#overview)
-* [Message Feed](#message-feed)
-    * [User Login](#user-login)
-    * [Posting a message](#posting-a-message)
-    * [Banning a user](#banning-a-user)
-* [Prediction Polls](#prediction-polls)
-    * [Creating a poll](#creating-a-poll)
-    * [Voting](#voting)
-    * [Claim winnings](#claim-winnings)
-* [Getting Started](#getting-started)
+- [Solana Feed](#solana-feed)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Message Feed](#message-feed)
+    - [User Login](#user-login)
+    - [Posting a message](#posting-a-message)
+    - [Banning a user](#banning-a-user)
+  - [Learn about Solana](#learn-about-solana)
+  - [Prediction Polls](#prediction-polls)
+    - [Creating a poll](#creating-a-poll)
+    - [Voting](#voting)
+    - [Claim winnings](#claim-winnings)
+    - [Limitations](#limitations)
+  - [Getting Started](#getting-started)
+    - [Select a Cluster](#select-a-cluster)
+    - [Build the BPF program](#build-the-bpf-program)
+    - [Start the web server](#start-the-web-server)
+    - [Run the Command-Line Front End](#run-the-command-line-front-end)
+    - [Run the WebApp Front End](#run-the-webapp-front-end)
 
 
 ## Overview
@@ -80,6 +89,10 @@ identify the origin of each post.
    private key, then submitted to the Solana cluster.
 1. The Message Feed program processes the Transaction on chain, confirms the banning user
    is not also banned, and then sets the banned bit on the target user.
+
+## Learn about Solana
+
+More information about how Solana works is available in the [Book](https://docs.solana.com/book/)
 
 ## Prediction Polls
 
@@ -146,6 +159,11 @@ $ npm install
 ### Select a Cluster
 The example connects to a local Solana cluster by default.
 
+To enable on-chain program logs, set the `RUST_LOG` environment variable:
+```bash
+$ export RUST_LOG=${RUST_LOG:-solana_runtime=info,solana_bpf_loader=debug,solana_rbpf=debug}
+```
+
 To start a local Solana cluster run:
 ```bash
 $ npm run localnet:update
@@ -157,40 +175,28 @@ Solana cluster logs are available with:
 $ npm run localnet:logs
 ```
 
+To stop the local solana cluster run:
+```bash
+$ npm run localnet:down
+```
+
 For more details on working with a local cluster, see the [full instructions](https://github.com/solana-labs/solana-web3.js#local-network).
 
-Alternatively to connect to the public testnet, `export LIVE=1` in your
-environment.  By default `LIVE=1` will connect to the
-beta testnet.  To use the edge testnet instead define `export CHANNEL=edge` in
-your environment (see [urls.js](https://github.com/solana-labs/example-messagefeed/blob/master/urls.js) and [testnet.js](https://github.com/solana-labs/solana-web3.js/blob/master/src/util/testnet.js) for more)
+Alternatively, to connect to a public testnet, set `export LIVE=1` in your
+environment. By default, `LIVE=1` will connect to the beta testnet.
 
-### Build the on-chain programs
 
-Two versions of the message feed program are provided, one written in C and the other in
-Rust.  The build processes for each version produce a BPF ELF shared object
-called `dist/programs/messagefeed.so`.  They are interchangeable so just pick one
-to use.
 
+### Build the BPF program
 The prediction poll program is only written in Rust. The build command will
 produce a BPF ELF shared object called `dist/programs/prediction_poll.so`.
 
-#### BPF C
 ```sh
-$ V=1 make -C program-bpf-c
-```
-or
-```
-$ npm run build:bpf-c
-```
-
-#### BPF Rust
-```sh
-$ ./bpf-rust-programs/messagefeed/do.sh build
-$ ./bpf-rust-programs/prediction-poll/do.sh build
-```
-or
-```
 $ npm run build:bpf-rust
+```
+or
+```sh
+$ npm run build:bpf-c
 ```
 
 ### Start the web server
