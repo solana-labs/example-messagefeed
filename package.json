@@ -6,7 +6,7 @@
   "scripts": {
     "message-cli": "babel-node src/cli/message-feed.js",
     "poll-cli": "npm run build:poll-cli && node dist/cli/prediction-poll.js",
-    "lint": "eslint .",
+    "lint": "npm run pretty && eslint .",
     "lint:fix": "npm run lint -- --fix",
     "flow": "flow",
     "server": "node dist/server.js",
@@ -29,9 +29,9 @@
     "clean:bpf-rust-pp": "./bpf-rust-programs/prediction-poll/program/do.sh clean",
     "localnet:update": "solana-localnet update",
     "localnet:up": "set -x; solana-localnet down; set -e; solana-localnet up",
-    "localnet:deploy": "./program-native/deploy.sh",
     "localnet:down": "solana-localnet down",
     "localnet:logs": "solana-localnet logs -f",
+    "pretty": "prettier --write '{,src/**/}*.js'",
     "postinstall": "npm run build; npm run bpf-sdk:update"
   },
   "keywords": [],
