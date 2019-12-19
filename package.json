@@ -86,7 +86,7 @@
     "react-router-dom": "^5.1.2",
     "readline-promise": "^1.0.3",
     "semver": "^7.1.1",
-    "superstruct": "^0.8.2",
+    "superstruct": "^0.8.3",
     "watch": "^1.0.2",
     "webpack": "^4.41.4",
     "webpack-cli": "^3.3.10",
