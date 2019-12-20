@@ -10,7 +10,7 @@ edition = "2018"
 
 [dependencies]
 arrayref = "0.3.5"
-solana-sdk = { git = "https://github.com/solana-labs/solana", default-features = false }
+solana-sdk = { version = "0.21.0", default-features = false }
 wasm-bindgen = { version = "0.2", optional = true }
 
 [features]
