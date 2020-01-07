@@ -1,7 +1,11 @@
 /* @flow */
 import {Account, Connection} from '@solana/web3.js';
 
-import {refreshMessageFeed, postMessage} from '../programs/message-feed';
+import {
+  refreshMessageFeed,
+  postMessage,
+  messageAccountSize,
+} from '../programs/message-feed';
 import {getConfig, userLogin} from '../client';
 import {newSystemAccountWithAirdrop} from '../util/new-system-account-with-airdrop';
 import type {Message} from '../programs/message-feed';
@@ -13,12 +17,12 @@ async function main() {
   const {messageFeed, loginMethod, url, commitment} = await getConfig(
     baseUrl + '/config.json',
   );
-  const {firstMessage} = messageFeed;
+  const {firstMessageKey} = messageFeed;
 
   console.log('Cluster RPC URL:', url);
   const connection = new Connection(url, commitment);
   const messages: Array<Message> = [];
-  await refreshMessageFeed(connection, messages, null, firstMessage);
+  await refreshMessageFeed(connection, messages, null, firstMessageKey);
 
   if (text.length > 0) {
     if (loginMethod !== 'local') {
@@ -28,7 +32,9 @@ async function main() {
     const userAccount = await userLogin(baseUrl + '/login', credentials);
     const [, feeCalculator] = await connection.getRecentBlockhash();
     const postMessageFee = feeCalculator.lamportsPerSignature * 3; // 1 payer and 2 signer keys
-    const minAccountBalance = 1; // 1 message account
+    const minAccountBalance = await connection.getMinimumBalanceForRentExemption(
+      messageAccountSize(text),
+    );
     const payerAccount = await newSystemAccountWithAirdrop(
       connection,
       postMessageFee + minAccountBalance,

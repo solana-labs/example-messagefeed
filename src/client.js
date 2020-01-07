@@ -16,7 +16,7 @@ export type Config = {
 
 export type MessageFeedConfig = {
   programId: PublicKey,
-  firstMessage: PublicKey,
+  firstMessageKey: PublicKey,
 };
 
 export type PredictionPollConfig = {
@@ -32,7 +32,7 @@ export async function getConfig(configUrl: string): Promise<Config> {
       if (!config.loading) {
         return {
           messageFeed: {
-            firstMessage: new PublicKey(config.messageFeed.firstMessage),
+            firstMessageKey: new PublicKey(config.messageFeed.firstMessageKey),
             programId: new PublicKey(config.messageFeed.programId),
           },
           predictionPoll: {

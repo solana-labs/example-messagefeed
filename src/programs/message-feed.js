@@ -30,13 +30,19 @@ const publicKeyLayout = (property: string = 'publicKey'): Object => {
   return BufferLayout.blob(32, property);
 };
 
-function createUserAccount(
+export const userAccountSize = 1 + 32; // 32 = size of a public key
+export function messageAccountSize(text: string): number {
+  const textBuffer = Buffer.from(text);
+  return 32 + 32 + 32 + textBuffer.length; // 32 = size of a public key
+}
+
+async function createUserAccount(
   connection: Connection,
   programId: PublicKey,
   payerAccount: Account,
   messageAccount: Account,
   transaction: Transaction,
-): Account {
+): Promise<Account> {
   const userAccount = new Account();
 
   // Allocate the user account
@@ -44,8 +50,8 @@ function createUserAccount(
     SystemProgram.createAccount(
       payerAccount.publicKey,
       userAccount.publicKey,
-      1,
-      1 + 32, // 32 = size of a public key
+      await connection.getMinimumBalanceForRentExemption(userAccountSize),
+      userAccountSize,
       programId,
     ),
   );
@@ -70,7 +76,7 @@ export async function createUser(
   messageAccount: Account,
 ): Promise<Account> {
   const transaction = new Transaction();
-  const userAccount = createUserAccount(
+  const userAccount = await createUserAccount(
     connection,
     programId,
     payerAccount,
@@ -205,6 +211,7 @@ export async function postMessageWithProgramId(
   userToBan: PublicKey | null = null,
 ): Promise<TransactionSignature> {
   const transaction = new Transaction();
+  const dataSize = messageAccountSize(text);
   const textBuffer = Buffer.from(text);
 
   // Allocate the message account
@@ -212,15 +219,15 @@ export async function postMessageWithProgramId(
     SystemProgram.createAccount(
       payerAccount.publicKey,
       messageAccount.publicKey,
-      1,
-      32 + 32 + 32 + textBuffer.length, // 32 = size of a public key
+      await connection.getMinimumBalanceForRentExemption(dataSize),
+      dataSize,
       programId,
     ),
   );
 
   let userAccount = userAccountArg;
   if (userAccount === null) {
-    userAccount = createUserAccount(
+    userAccount = await createUserAccount(
       connection,
       programId,
       payerAccount,

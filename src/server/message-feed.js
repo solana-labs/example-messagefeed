@@ -8,7 +8,7 @@ import * as Program from '../programs/message-feed';
 
 export type MessageFeedMeta = {
   programId: PublicKey,
-  firstMessage: Account,
+  firstMessageAccount: Account,
 };
 
 /**
@@ -25,13 +25,13 @@ export default class MessageFeedController {
   async getMeta(): Promise<?MessageFeedMeta> {
     if (this.loading) return;
     if (this.meta) {
-      const {firstMessage} = this.meta;
+      const {firstMessageAccount} = this.meta;
       try {
-        await this.connection.getAccountInfo(firstMessage.publicKey);
+        await this.connection.getAccountInfo(firstMessageAccount.publicKey);
         return this.meta;
       } catch (err) {
         console.error(
-          `getAccountInfo of ${firstMessage.publicKey.toString()} failed: ${err}`,
+          `getAccountInfo of ${firstMessageAccount.publicKey.toString()} failed: ${err}`,
         );
         this.meta = undefined;
       }
@@ -60,26 +60,38 @@ export default class MessageFeedController {
     console.log('Message feed program:', programId.toString());
     console.log('Posting first message...');
 
+    const firstMessage = 'First post! 💫';
+
     const [, feeCalculator] = await this.connection.getRecentBlockhash();
-    const postMessageFee = feeCalculator.lamportsPerSignature * 3; // 1 payer + 2 signer keys
-    const minAccountBalances = 2; // 1 message + 1 user account
+    const postMessageFee =
+      feeCalculator.lamportsPerSignature * 3; /* 1 payer + 2 signer keys */
+    const minAccountBalances =
+      (await this.connection.getMinimumBalanceForRentExemption(
+        Program.userAccountSize,
+      )) +
+      (await this.connection.getMinimumBalanceForRentExemption(
+        Program.messageAccountSize(firstMessage),
+      ));
     const payerAccount = await newSystemAccountWithAirdrop(
       this.connection,
       postMessageFee + minAccountBalances,
     );
-    const firstMessage = new Account();
+    const firstMessageAccount = new Account();
     await Program.postMessageWithProgramId(
       this.connection,
       programId,
       payerAccount,
       null,
+      firstMessageAccount,
       firstMessage,
-      'First post! 💫',
     );
-    console.log('First message public key:', firstMessage.publicKey.toString());
+    console.log(
+      'First message public key:',
+      firstMessageAccount.publicKey.toString(),
+    );
     return {
       programId,
-      firstMessage,
+      firstMessageAccount,
     };
   }
 
@@ -103,7 +115,8 @@ export default class MessageFeedController {
     const [, feeCalculator] = await this.connection.getRecentBlockhash();
     const fees =
       feeCalculator.lamportsPerSignature *
-      (BpfLoader.getMinNumSignatures(elfData.length) + NUM_RETRIES);
+        (BpfLoader.getMinNumSignatures(elfData.length) + NUM_RETRIES) +
+      (await this.connection.getMinimumBalanceForRentExemption(elfData.length));
     const loaderAccount = await newSystemAccountWithAirdrop(
       this.connection,
       fees,
