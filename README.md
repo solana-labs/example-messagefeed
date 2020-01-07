@@ -25,7 +25,7 @@ To see it running go to https://solana-example-messagefeed.herokuapp.com/
     - [Claim winnings](#claim-winnings)
     - [Limitations](#limitations)
   - [Getting Started](#getting-started)
-    - [Select a Cluster](#select-a-cluster)
+    - [Select a Network](#select-a-network)
     - [Build the BPF program](#build-the-bpf-program)
     - [Start the web server](#start-the-web-server)
     - [Run the Command-Line Front End](#run-the-command-line-front-end)
@@ -156,36 +156,31 @@ First fetch the npm dependencies, including `@solana/web3.js`, by running:
 $ npm install
 ```
 
-### Select a Cluster
+### Select a Network
 The example connects to a local Solana cluster by default.
 
 To enable on-chain program logs, set the `RUST_LOG` environment variable:
-```bash
-$ export RUST_LOG=${RUST_LOG:-solana_runtime=info,solana_bpf_loader=debug,solana_rbpf=debug}
+```sh
+$ export RUST_LOG=solana_runtime::bank=debug,solana_bpf_loader=debug,solana_rbpf=debug
 ```
 
 To start a local Solana cluster run:
-```bash
+```sh
 $ npm run localnet:update
 $ npm run localnet:up
 ```
 
 Solana cluster logs are available with:
-```bash
+```sh
 $ npm run localnet:logs
 ```
 
 To stop the local solana cluster run:
-```bash
+```sh
 $ npm run localnet:down
 ```
 
 For more details on working with a local cluster, see the [full instructions](https://github.com/solana-labs/solana-web3.js#local-network).
-
-Alternatively, to connect to a public testnet, set `export LIVE=1` in your
-environment. By default, `LIVE=1` will connect to the beta testnet.
-
-
 
 ### Build the BPF program
 The prediction poll program is only written in Rust. The build command will
