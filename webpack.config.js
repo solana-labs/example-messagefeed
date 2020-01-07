@@ -31,6 +31,9 @@ const clientConfig = {
     extensions: ['*', '.js', '.jsx'],
     mainFiles: ['index'],
   },
+  node: {
+    fs: 'empty',
+  },
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
