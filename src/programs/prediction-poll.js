@@ -71,7 +71,7 @@ export async function createPoll(
     SystemProgram.createAccount(
       payerAccount.publicKey,
       pollAccount.publicKey,
-      1,
+      2000,
       1000, // 150 for keys and numbers + 850 for text
       programId,
     ),
@@ -83,7 +83,7 @@ export async function createPoll(
       SystemProgram.createAccount(
         payerAccount.publicKey,
         tallyAccount.publicKey,
-        1,
+        2000,
         1000, // 30+ votes
         programId,
       ),
@@ -139,7 +139,7 @@ export async function vote(
       payerAccount.publicKey,
       userAccount.publicKey,
       wager,
-      1,
+      2000,
       programId,
     ),
   );

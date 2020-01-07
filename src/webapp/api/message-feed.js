@@ -27,10 +27,10 @@ export default class MessageFeedApi {
 
   async updateConfig(connection, config) {
     this.connection = connection;
-    const {programId, firstMessage} = config;
+    const {programId, firstMessageAccount} = config;
     if (!this.programId || !programId.equals(this.programId)) {
       this.programId = programId;
-      this.firstMessage = firstMessage;
+      this.firstMessageAccount = firstMessageAccount;
       this.messages = [];
       this.userAccount = await this.loadUserAccount(programId);
       return {
@@ -99,7 +99,7 @@ export default class MessageFeedApi {
           this.connection,
           this.messages,
           () => onUpdate(),
-          this.messages.length === 0 ? this.firstMessage : null,
+          this.messages.length === 0 ? this.firstMessageAccount : null,
         );
         if (postCount === this.postCount) {
           break;

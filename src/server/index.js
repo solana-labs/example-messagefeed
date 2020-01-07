@@ -70,7 +70,7 @@ const port = process.env.PORT || 8081;
       Object.assign(response, {
         messageFeed: {
           programId: messageMeta.programId.toString(),
-          firstMessage: messageMeta.firstMessage.publicKey.toString(),
+          firstMessageKey: messageMeta.firstMessageAccount.publicKey.toString(),
         },
       });
     }
@@ -119,7 +119,7 @@ const port = process.env.PORT || 8081;
           connection,
           meta.programId,
           payerAccount,
-          meta.firstMessage,
+          meta.firstMessageAccount,
         );
 
         if (id in users) {

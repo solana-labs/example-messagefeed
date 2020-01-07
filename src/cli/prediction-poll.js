@@ -25,7 +25,7 @@ async function main() {
   const creatorAccount = await userLogin(baseUrl + '/login', credentials);
   const [, feeCalculator] = await connection.getRecentBlockhash();
   const wager = 100;
-  const minAccountBalances = 4; // 1 poll + 2 tally + 1 user
+  const minAccountBalances = 2000 * 5; // payer + 1 poll + 2 tally + 1 user
   const createPollFee = feeCalculator.lamportsPerSignature * 5; // 1 payer + 4 signer keys
   const voteFee = feeCalculator.lamportsPerSignature * 2; // 1 payer + 1 signer key
   const claimFee = feeCalculator.lamportsPerSignature; // 1 payer
@@ -72,7 +72,7 @@ Q. What's your favorite color?
 
   console.log('Claiming winnings...');
   await claim(connection, programId, payerAccount, pollAccount.publicKey, poll);
-  console.log(`You won ${wager} tokens (and spent ${fees} lamports in fees)`);
+  console.log(`You won ${wager} tokens`);
 }
 
 main()

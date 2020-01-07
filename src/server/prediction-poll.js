@@ -77,12 +77,16 @@ export default class PollController {
    * Creates a new Prediction Poll collection.
    */
   async createCollection(programId: PublicKey): Promise<Account> {
+    const dataSize = 1500; // 50+ polls
     const [, feeCalculator] = await this.connection.getRecentBlockhash();
     const fee = feeCalculator.lamportsPerSignature * 2; // 1 payer + 1 signer key
-    const programFunds = 1000;
+    const minimumBalance = await this.connection.getMinimumBalanceForRentExemption(
+      dataSize,
+    );
+    const programFunds = 2000 * 1000; // 1000 Polls
     const payerAccount = await newSystemAccountWithAirdrop(
       this.connection,
-      programFunds + fee,
+      minimumBalance + programFunds + fee,
     );
 
     const collectionAccount = new Account();
@@ -91,8 +95,8 @@ export default class PollController {
       SystemProgram.createAccount(
         payerAccount.publicKey,
         collectionAccount.publicKey,
-        1,
-        1500, // 50+ polls
+        minimumBalance,
+        dataSize,
         programId,
       ),
     );
@@ -138,7 +142,8 @@ export default class PollController {
     const [, feeCalculator] = await this.connection.getRecentBlockhash();
     const fees =
       feeCalculator.lamportsPerSignature *
-      (BpfLoader.getMinNumSignatures(elfData.length) + NUM_RETRIES);
+        (BpfLoader.getMinNumSignatures(elfData.length) + NUM_RETRIES) +
+      (await this.connection.getMinimumBalanceForRentExemption(elfData.length));
 
     console.log('Loading Poll program...');
     const loaderAccount = await newSystemAccountWithAirdrop(
