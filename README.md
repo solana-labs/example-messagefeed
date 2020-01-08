@@ -151,7 +151,17 @@ transactions must fit inside the MTU size of 1280 bytes.
 
 ## Getting Started
 
-First fetch the npm dependencies, including `@solana/web3.js`, by running:
+The following dependencies are required to build and run this example, 
+depending on your OS they may already be installed:
+
+```sh
+$ npm --version
+$ docker -v
+$ wget --version
+$ rustc --version
+```
+
+Next fetch the npm dependencies, including `@solana/web3.js`, by running:
 ```sh
 $ npm install
 ```
