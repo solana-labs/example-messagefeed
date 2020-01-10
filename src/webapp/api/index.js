@@ -85,6 +85,12 @@ export default class Api {
       this.connection.getRecentBlockhash().then(([, feeCalculator]) => {
         this.feeCalculator = feeCalculator;
       });
+      const accountStorageOverhead = 128;
+      this.connection
+        .getMinimumBalanceForRentExemption(accountStorageOverhead)
+        .then(minimumBalanceForRentExemption => {
+          this.minimumBalanceForRentExemption = minimumBalanceForRentExemption;
+        });
 
       const explorerUrl = this.explorerUrl(this.connectionUrl);
       const response = {explorerUrl, loginMethod, walletUrl};
@@ -131,10 +137,17 @@ export default class Api {
   }
 
   amountToRequest() {
-    if (this.feeCalculator && this.feeCalculator.targetLamportsPerSignature) {
-      return 10 * this.feeCalculator.targetLamportsPerSignature;
+    // Request enough to create 100 rent exempt message accounts, that should be plenty
+    if (this.feeCalculator && this.feeCalculator.lamportsPerSignature) {
+      return (
+        100 *
+          (this.feeCalculator.lamportsPerSignature +
+            this.minimumBalanceForRentExemption) -
+        this.feeCalculator.lamportsPerSignature
+      );
     }
-    return 1000000;
+    // Otherwise some large number
+    return 10000000 - 5000; // - default fee used to transfer
   }
 
   async requestFunds(callback) {
