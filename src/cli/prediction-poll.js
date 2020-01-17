@@ -23,7 +23,7 @@ async function main() {
 
   const credentials = {id: new Account().publicKey.toString()};
   const creatorAccount = await userLogin(baseUrl + '/login', credentials);
-  const [, feeCalculator] = await connection.getRecentBlockhash();
+  const {feeCalculator} = await connection.getRecentBlockhash();
   const wager = 100;
   const minAccountBalances = 2000 * 5; // payer + 1 poll + 2 tally + 1 user
   const createPollFee = feeCalculator.lamportsPerSignature * 5; // 1 payer + 4 signer keys
