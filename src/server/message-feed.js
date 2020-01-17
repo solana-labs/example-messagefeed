@@ -62,7 +62,7 @@ export default class MessageFeedController {
 
     const firstMessage = 'First post! 💫';
 
-    const [, feeCalculator] = await this.connection.getRecentBlockhash();
+    const {feeCalculator} = await this.connection.getRecentBlockhash();
     const postMessageFee =
       feeCalculator.lamportsPerSignature * 3; /* 1 payer + 2 signer keys */
     const minAccountBalances =
@@ -112,7 +112,7 @@ export default class MessageFeedController {
     const elfData = await fs.readFile(elfFile);
 
     console.log('Loading Message feed program...');
-    const [, feeCalculator] = await this.connection.getRecentBlockhash();
+    const {feeCalculator} = await this.connection.getRecentBlockhash();
     const fees =
       feeCalculator.lamportsPerSignature *
         (BpfLoader.getMinNumSignatures(elfData.length) + NUM_RETRIES) +

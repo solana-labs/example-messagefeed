@@ -82,7 +82,7 @@ export default class Api {
       this.connectionUrl = urlTls;
       this.walletUrl = walletUrl;
       this.clock.updateConfig(this.connection);
-      this.connection.getRecentBlockhash().then(([, feeCalculator]) => {
+      this.connection.getRecentBlockhash().then(({feeCalculator}) => {
         this.feeCalculator = feeCalculator;
       });
       const accountStorageOverhead = 128;

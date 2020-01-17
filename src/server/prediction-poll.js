@@ -78,7 +78,7 @@ export default class PollController {
    */
   async createCollection(programId: PublicKey): Promise<Account> {
     const dataSize = 1500; // 50+ polls
-    const [, feeCalculator] = await this.connection.getRecentBlockhash();
+    const {feeCalculator} = await this.connection.getRecentBlockhash();
     const fee = feeCalculator.lamportsPerSignature * 2; // 1 payer + 1 signer key
     const minimumBalance = await this.connection.getMinimumBalanceForRentExemption(
       dataSize,
@@ -139,7 +139,7 @@ export default class PollController {
     console.log(`Reading ${elfFile}...`);
     const elfData = await fs.readFile(elfFile);
 
-    const [, feeCalculator] = await this.connection.getRecentBlockhash();
+    const {feeCalculator} = await this.connection.getRecentBlockhash();
     const fees =
       feeCalculator.lamportsPerSignature *
         (BpfLoader.getMinNumSignatures(elfData.length) + NUM_RETRIES) +
