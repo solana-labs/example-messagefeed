@@ -30,7 +30,7 @@ async function main() {
     }
     const credentials = {id: new Account().publicKey.toString()};
     const userAccount = await userLogin(baseUrl + '/login', credentials);
-    const [, feeCalculator] = await connection.getRecentBlockhash();
+    const {feeCalculator} = await connection.getRecentBlockhash();
     const postMessageFee = feeCalculator.lamportsPerSignature * 3; // 1 payer and 2 signer keys
     const minAccountBalance = await connection.getMinimumBalanceForRentExemption(
       messageAccountSize(text),

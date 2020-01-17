@@ -106,7 +106,7 @@ const port = process.env.PORT || 8081;
       console.log(`Account already exists for user ${id}`);
     } else {
       console.log(`Creating new account for user ${id}`);
-      const [, feeCalculator] = await connection.getRecentBlockhash();
+      const {feeCalculator} = await connection.getRecentBlockhash();
       const fee = feeCalculator.lamportsPerSignature * 3; // 1 payer + 2 signer keys
       const minAccountBalance = 1; // 1 user account
 
