@@ -25,6 +25,7 @@ export type PollMeta = {
 export default class PollController {
   meta: ?PollMeta;
   loading: boolean;
+  connection: Connection;
 
   constructor(connection: Connection) {
     this.connection = connection;
@@ -34,13 +35,13 @@ export default class PollController {
     if (this.loading) return;
 
     if (this.meta) {
-      const {programId} = this.meta;
+      const {collection} = this.meta;
       try {
-        await this.connection.getAccountInfo(programId);
+        await this.connection.getAccountInfo(collection.publicKey);
         return this.meta;
       } catch (err) {
         console.error(
-          `getAccountInfo of programId ${programId.toString()} failed: ${err}`,
+          `getAccountInfo of programId ${collection.publicKey.toString()} failed: ${err}`,
         );
         this.meta = undefined;
       }
