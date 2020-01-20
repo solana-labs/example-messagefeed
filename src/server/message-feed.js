@@ -17,6 +17,7 @@ export type MessageFeedMeta = {
 export default class MessageFeedController {
   meta: ?MessageFeedMeta;
   loading: boolean;
+  connection: Connection;
 
   constructor(connection: Connection) {
     this.connection = connection;
