@@ -13,7 +13,7 @@ edition = "2018"
 
 [dependencies]
 arrayref = "0.3.5"
-solana-sdk = { version = "0.23.0", default-features = false }
+solana-sdk = { git = "https://github.com/solana-labs/solana", default-features = false }
 
 [features]
 program = ["solana-sdk/program"]

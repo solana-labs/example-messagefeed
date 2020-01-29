@@ -20,7 +20,7 @@ pub fn record_wager(tally: &mut TallyData, user_pubkey: &Pubkey, wager: u64) -> 
 
 pub fn payout(
     tally: &TallyData,
-    accounts: &mut [AccountInfo],
+    accounts: &[AccountInfo],
     winning_quantity: u64,
     pot: u64,
 ) -> ProgramResult<()> {

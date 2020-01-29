@@ -16,7 +16,7 @@ use solana_sdk::{account_info::AccountInfo, info, pubkey::Pubkey, sysvar::clock}
 
 pub fn process_instruction(
     program_id: &Pubkey,
-    accounts: &mut [AccountInfo],
+    accounts: &[AccountInfo],
     data: &[u8],
 ) -> ProgramResult<()> {
     let (command, data) = data.split_at(1);
@@ -30,11 +30,11 @@ pub fn process_instruction(
     }
 }
 
-fn init_collection(program_id: &Pubkey, accounts: &mut [AccountInfo]) -> ProgramResult<()> {
+fn init_collection(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult<()> {
     info!("init collection");
     expect_n_accounts(accounts, 1)?;
 
-    let (collection_account, _) = accounts.split_first_mut().unwrap();
+    let (collection_account, _) = accounts.split_first().unwrap();
     expect_signed(collection_account)?;
     expect_owned_by(collection_account, program_id)?;
     expect_min_size(collection_account.borrow().data, MIN_COLLECTION_SIZE)?;
@@ -45,39 +45,35 @@ fn init_collection(program_id: &Pubkey, accounts: &mut [AccountInfo]) -> Program
     Ok(())
 }
 
-fn init_poll(
-    program_id: &Pubkey,
-    accounts: &mut [AccountInfo],
-    init_data: &[u8],
-) -> ProgramResult<()> {
+fn init_poll(program_id: &Pubkey, accounts: &[AccountInfo], init_data: &[u8]) -> ProgramResult<()> {
     info!("init poll");
     expect_n_accounts(accounts, 6)?;
 
-    let (creator_account, accounts) = accounts.split_first_mut().unwrap();
+    let (creator_account, accounts) = accounts.split_first().unwrap();
     expect_signed(creator_account)?;
 
-    let (poll_account, accounts) = accounts.split_first_mut().unwrap();
+    let (poll_account, accounts) = accounts.split_first().unwrap();
     expect_signed(poll_account)?;
     expect_owned_by(poll_account, program_id)?;
     expect_new_account(poll_account)?;
 
-    let (collection_account, accounts) = accounts.split_first_mut().unwrap();
+    let (collection_account, accounts) = accounts.split_first().unwrap();
     expect_owned_by(collection_account, program_id)?;
     expect_data_type(collection_account, DataType::Collection)?;
 
-    let (tally_a_account, accounts) = accounts.split_first_mut().unwrap();
+    let (tally_a_account, accounts) = accounts.split_first().unwrap();
     expect_signed(tally_a_account)?;
     expect_owned_by(tally_a_account, program_id)?;
     expect_min_size(tally_a_account.borrow().data, MIN_TALLY_SIZE)?;
     expect_new_account(tally_a_account)?;
 
-    let (tally_b_account, accounts) = accounts.split_first_mut().unwrap();
+    let (tally_b_account, accounts) = accounts.split_first().unwrap();
     expect_signed(tally_b_account)?;
     expect_owned_by(tally_b_account, program_id)?;
     expect_min_size(tally_b_account.borrow().data, MIN_TALLY_SIZE)?;
     expect_new_account(tally_b_account)?;
 
-    let (clock_account, _) = accounts.split_first_mut().unwrap();
+    let (clock_account, _) = accounts.split_first().unwrap();
     expect_key(clock_account, &clock::id())?;
 
     let mut collection_account_borrow = collection_account.borrow_mut();
@@ -105,28 +101,28 @@ fn init_poll(
     Ok(())
 }
 
-fn submit_vote(program_id: &Pubkey, accounts: &mut [AccountInfo]) -> ProgramResult<()> {
+fn submit_vote(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult<()> {
     info!("submit vote");
     expect_n_accounts(accounts, 5)?;
 
-    let (user_account, accounts) = accounts.split_first_mut().unwrap();
+    let (user_account, accounts) = accounts.split_first().unwrap();
     expect_signed(user_account)?;
     expect_owned_by(user_account, program_id)?;
 
-    let (poll_account, accounts) = accounts.split_first_mut().unwrap();
+    let (poll_account, accounts) = accounts.split_first().unwrap();
     expect_owned_by(poll_account, program_id)?;
     expect_data_type(poll_account, DataType::Poll)?;
 
-    let (tally_account, accounts) = accounts.split_first_mut().unwrap();
+    let (tally_account, accounts) = accounts.split_first().unwrap();
     expect_owned_by(tally_account, program_id)?;
     expect_data_type(tally_account, DataType::Tally)?;
 
-    let (payout_account, accounts) = accounts.split_first_mut().unwrap();
-    let (clock_account, _) = accounts.split_first_mut().unwrap();
+    let (payout_account, accounts) = accounts.split_first().unwrap();
+    let (clock_account, _) = accounts.split_first().unwrap();
     expect_key(clock_account, &clock::id())?;
 
-    let mut clock_borrow = tally_account.borrow_mut();
-    let clock = ClockData::from_bytes(&mut clock_borrow.data);
+    let clock_borrow = tally_account.borrow_mut();
+    let clock = ClockData::from_bytes(&clock_borrow.data);
     let mut poll_borrow = tally_account.borrow_mut();
     let mut poll = PollData::from_bytes(&mut poll_borrow.data);
     let mut tally_borrow = tally_account.borrow_mut();
@@ -150,28 +146,28 @@ fn submit_vote(program_id: &Pubkey, accounts: &mut [AccountInfo]) -> ProgramResu
     Ok(())
 }
 
-fn submit_claim(program_id: &Pubkey, accounts: &mut [AccountInfo]) -> ProgramResult<()> {
+fn submit_claim(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult<()> {
     info!("submit claim");
     // No signer needed
     expect_n_accounts(accounts, 3)?;
 
-    let (poll_account, accounts) = accounts.split_first_mut().unwrap();
+    let (poll_account, accounts) = accounts.split_first().unwrap();
     expect_owned_by(poll_account, program_id)?;
     expect_data_type(poll_account, DataType::Poll)?;
 
-    let (tally_account, accounts) = accounts.split_first_mut().unwrap();
+    let (tally_account, accounts) = accounts.split_first().unwrap();
     expect_owned_by(tally_account, program_id)?;
     expect_data_type(tally_account, DataType::Tally)?;
 
-    let (clock_account, accounts) = accounts.split_first_mut().unwrap();
+    let (clock_account, accounts) = accounts.split_first().unwrap();
     expect_key(clock_account, &clock::id())?;
 
     if poll_account.lamports() <= 1 {
         return Err(ProgramError::PollHasNoFunds);
     }
 
-    let mut clock_borrow = tally_account.borrow_mut();
-    let clock = ClockData::from_bytes(&mut clock_borrow.data);
+    let clock_borrow = tally_account.borrow_mut();
+    let clock = ClockData::from_bytes(&clock_borrow.data);
     let mut poll_borrow = tally_account.borrow_mut();
     let poll = PollData::from_bytes(&mut poll_borrow.data);
     let mut tally_borrow = tally_account.borrow_mut();

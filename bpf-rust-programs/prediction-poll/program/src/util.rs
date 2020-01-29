@@ -2,7 +2,7 @@ use crate::result::{ProgramError, ProgramResult};
 use prediction_poll_data::DataType;
 use solana_sdk::{account_info::AccountInfo, pubkey::Pubkey};
 
-pub fn expect_n_accounts(info: &mut [AccountInfo], n: usize) -> ProgramResult<()> {
+pub fn expect_n_accounts(info: &[AccountInfo], n: usize) -> ProgramResult<()> {
     if info.len() < n {
         Err(ProgramError::InvalidInput)
     } else {

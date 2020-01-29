@@ -47,7 +47,7 @@ impl<'a> MessageAccountData<'a> {
 }
 
 entrypoint!(process_instruction);
-fn process_instruction(_program_id: &Pubkey, accounts: &mut [AccountInfo], data: &[u8]) -> u32 {
+fn process_instruction(_program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) -> u32 {
     info!("message feed entrypoint");
 
     let len = accounts.len();
@@ -56,11 +56,11 @@ fn process_instruction(_program_id: &Pubkey, accounts: &mut [AccountInfo], data:
         return FAILURE;
     }
 
-    let (user_account, rest) = accounts.split_at_mut(1);
+    let (user_account, rest) = accounts.split_at(1);
     let mut user_borrow = user_account[0].borrow_mut();
     let user_data = UserAccountData::new(&mut user_borrow.data);
 
-    let (message_account, rest) = rest.split_at_mut(1);
+    let (message_account, rest) = rest.split_at(1);
     let mut new_message_borrow = message_account[0].borrow_mut();
     let new_message_data = MessageAccountData::new(&mut new_message_borrow.data);
 
@@ -95,7 +95,7 @@ fn process_instruction(_program_id: &Pubkey, accounts: &mut [AccountInfo], data:
         .clone_from_slice(user_account[0].key.as_ref());
 
     if len > 2 {
-        let (existing_message_account, rest) = rest.split_at_mut(1);
+        let (existing_message_account, rest) = rest.split_at(1);
         let mut existing_message_borrow = existing_message_account[0].borrow_mut();
         let existing_message_data = MessageAccountData::new(&mut existing_message_borrow.data);
 
@@ -111,7 +111,7 @@ fn process_instruction(_program_id: &Pubkey, accounts: &mut [AccountInfo], data:
 
         // Check if a user should be banned
         if len > 3 {
-            let (ban_user_account, _) = rest.split_at_mut(1);
+            let (ban_user_account, _) = rest.split_at(1);
             let mut ban_user_borrow = ban_user_account[0].borrow_mut();
             let ban_user_data = UserAccountData::new(&mut ban_user_borrow.data);
             *ban_user_data.banned = true;
