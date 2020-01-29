@@ -2,7 +2,7 @@
   "name": "messagefeed",
   "version": "0.0.1",
   "description": "",
-  "testnetDefaultChannel": "beta",
+  "testnetDefaultChannel": "v0.23.0",
   "scripts": {
     "message-cli": "babel-node src/cli/message-feed.js",
     "poll-cli": "npm run build:poll-cli && node dist/cli/prediction-poll.js",

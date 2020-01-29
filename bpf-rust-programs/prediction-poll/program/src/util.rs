@@ -25,7 +25,7 @@ pub fn expect_owned_by(account: &AccountInfo, key: &Pubkey) -> ProgramResult<()>
 }
 
 pub fn expect_data_type(account: &AccountInfo, data_type: DataType) -> ProgramResult<()> {
-    if DataType::from(account.data[0]) as u8 != data_type as u8 {
+    if DataType::from(account.borrow().data[0]) as u8 != data_type as u8 {
         return Err(ProgramError::InvalidDataType);
     }
     Ok(())

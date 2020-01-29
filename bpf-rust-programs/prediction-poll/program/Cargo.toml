@@ -13,7 +13,7 @@ edition = "2018"
 
 [dependencies]
 prediction-poll-data = { path = "../program_data" }
-solana-sdk = { git = "https://github.com/solana-labs/solana", default-features = false }
+solana-sdk = { version = "0.23.0", default-features = false }
 
 [features]
 program = ["solana-sdk/program"]

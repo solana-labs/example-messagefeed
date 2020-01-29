@@ -41,7 +41,7 @@ pub fn payout(
         if index == accounts.len() - 1 {
             portion += remaining; // last voter gets the rounding error
         }
-        *accounts[index].lamports += portion;
+        *accounts[index].borrow_mut().lamports += portion;
     }
 
     Ok(())

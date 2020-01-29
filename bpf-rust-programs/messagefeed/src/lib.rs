@@ -57,10 +57,12 @@ fn process_instruction(_program_id: &Pubkey, accounts: &mut [AccountInfo], data:
     }
 
     let (user_account, rest) = accounts.split_at_mut(1);
-    let user_data = UserAccountData::new(user_account[0].data);
+    let mut user_borrow = user_account[0].borrow_mut();
+    let user_data = UserAccountData::new(&mut user_borrow.data);
 
     let (message_account, rest) = rest.split_at_mut(1);
-    let new_message_data = MessageAccountData::new(message_account[0].data);
+    let mut new_message_borrow = message_account[0].borrow_mut();
+    let new_message_data = MessageAccountData::new(&mut new_message_borrow.data);
 
     if !user_account[0].is_signer {
         info!("Error: not signed by key 0");
@@ -94,7 +96,8 @@ fn process_instruction(_program_id: &Pubkey, accounts: &mut [AccountInfo], data:
 
     if len > 2 {
         let (existing_message_account, rest) = rest.split_at_mut(1);
-        let existing_message_data = MessageAccountData::new(existing_message_account[0].data);
+        let mut existing_message_borrow = existing_message_account[0].borrow_mut();
+        let existing_message_data = MessageAccountData::new(&mut existing_message_borrow.data);
 
         if existing_message_data.next_message != &[0; size_of::<PubkeyData>()] {
             info!("Error: account 1 already has a next_message");
@@ -109,7 +112,8 @@ fn process_instruction(_program_id: &Pubkey, accounts: &mut [AccountInfo], data:
         // Check if a user should be banned
         if len > 3 {
             let (ban_user_account, _) = rest.split_at_mut(1);
-            let ban_user_data = UserAccountData::new(ban_user_account[0].data);
+            let mut ban_user_borrow = ban_user_account[0].borrow_mut();
+            let ban_user_data = UserAccountData::new(&mut ban_user_borrow.data);
             *ban_user_data.banned = true;
         }
 
