@@ -1,6 +1,6 @@
 [![Build status][travis-image]][travis-url]
 
-[travis-image]: https://api.travis-ci.org/solana-labs/example-messagefeed.svg?branch=master
+[travis-image]: https://api.travis-ci.org/solana-labs/example-messagefeed.svg?branch=v0.23
 [travis-url]: https://travis-ci.org/solana-labs/example-messagefeed
 
 # Solana Feed
