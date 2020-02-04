@@ -124,20 +124,12 @@ fn submit_vote(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     let clock_account = next_account_info(account_info_iter)?;
     expect_key(clock_account, &clock::id())?;
 
-    info!(0, 0, 0, 0, line!());
+    let clock = ClockData::from_bytes(clock_account.borrow().data);
+    let mut poll_borrow = poll_account.borrow_mut();
+    let mut poll = PollData::from_bytes(&mut poll_borrow.data);
+    let mut tally_borrow = tally_account.borrow_mut();
+    let mut tally = TallyData::from_bytes(&mut tally_borrow.data);
 
-    let clock_data = clock_account.data.borrow_mut();
-    info!(0, 0, 0, 0, line!());
-    let clock = ClockData::from_bytes(&clock_data);
-    info!(0, 0, 0, 0, line!());
-    let mut poll_data = poll_account.data.borrow_mut();
-    info!(0, 0, 0, 0, line!());
-    let mut poll = PollData::from_bytes(&mut poll_data);
-    info!(0, 0, 0, 0, line!());
-    let mut tally_data = tally_account.data.borrow_mut();
-    let mut tally = TallyData::from_bytes(&mut tally_data);
-
-    info!(0, 0, 0, 0, line!());
     if poll.last_block < clock.slot {
         return Err(PollError::PollAlreadyFinished.into());
     }
@@ -145,16 +137,13 @@ fn submit_vote(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     if user_account.lamports() == 0 {
         return Err(PollError::WagerHasNoFunds.into());
     }
-    info!(0, 0, 0, 0, line!());
 
     let wager = user_account.lamports();
     poll::record_wager(&mut poll, tally_account.key, wager)?;
     tally::record_wager(&mut tally, payout_account.key, wager)?;
-    info!(0, 0, 0, 0, line!());
 
-    **poll_account.lamports.borrow_mut() += wager;
-    **user_account.lamports.borrow_mut() = 0;
-    info!(0, 0, 0, 0, line!());
+    *poll_borrow.lamports += wager;
+    *user_account.borrow_mut().lamports = 0;
 
     Ok(())
 }
@@ -179,19 +168,20 @@ fn submit_claim(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult 
         return Err(PollError::PollHasNoFunds.into());
     }
 
-    let clock_data = clock_account.data.borrow_mut();
-    let clock = ClockData::from_bytes(&clock_data);
-    let mut poll_data = poll_account.data.borrow_mut();
-    let poll = PollData::from_bytes(&mut poll_data);
-    let mut tally_data = tally_account.data.borrow_mut();
-    let tally = TallyData::from_bytes(&mut tally_data);
+    let mut poll_borrow = poll_account.borrow_mut();
+    let pot = *poll_borrow.lamports - 1;
+    *poll_borrow.lamports = 1;
+
+    let clock = ClockData::from_bytes(clock_account.borrow().data);
+    let poll = PollData::from_bytes(&mut poll_borrow.data);
+    let mut tally_borrow = tally_account.borrow_mut();
+    let tally = TallyData::from_bytes(&mut tally_borrow.data);
 
     if poll.last_block > clock.slot {
         return Err(PollError::PollNotFinished.into());
     }
 
-    let pot = **poll_account.lamports.borrow_mut() - 1;
-    **poll_account.lamports.borrow_mut() = 1;
+    expect_n_accounts(accounts, tally.len())?;
 
     let winning_quantity = poll::check_winning_tally(&poll, tally_account.key)?;
     tally::payout(&tally, account_info_iter.as_slice(), winning_quantity, pot)?;
