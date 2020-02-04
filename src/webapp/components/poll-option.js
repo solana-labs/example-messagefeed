@@ -7,6 +7,8 @@ import StarsIcon from '@material-ui/icons/Stars';
 import CheckCircleOutlineIcon from '@material-ui/icons/CheckCircleOutline';
 import PropTypes from 'prop-types';
 
+import Balance from './balance';
+
 class PollOption extends React.Component {
   render() {
     if (this.props.expired) {
@@ -47,10 +49,27 @@ class PollOption extends React.Component {
 
   renderText() {
     const {option, wager} = this.props;
-    let secondary = `Wager total: ${option.quantity}`;
-    if (wager > 0) {
-      secondary += `, My wager: ${wager}`;
-    }
+    let totalWager = (
+      <>
+        {`Wager total: `}
+        <Balance balance={option.quantity} />
+      </>
+    );
+
+    let myWager = (
+      <>
+        {`, My wager: `}
+        <Balance balance={wager} />
+      </>
+    );
+
+    let secondary = (
+      <>
+        {totalWager}
+        {wager > 0 ? myWager : undefined}
+      </>
+    );
+
     return <ListItemText primary={option.text} secondary={secondary} />;
   }
 }

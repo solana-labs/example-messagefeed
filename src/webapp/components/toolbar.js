@@ -12,6 +12,8 @@ import Typography from '@material-ui/core/Typography';
 import {fade} from '@material-ui/core/styles/colorManipulator';
 import {withStyles} from '@material-ui/core/styles';
 
+import Balance from './balance';
+
 const styles = theme => ({
   bar: {
     overflow: 'hidden',
@@ -225,10 +227,7 @@ class Toolbar extends React.Component {
 
   renderBalanceButton() {
     const {classes, payerBalance, onRequestFunds, walletDisabled} = this.props;
-    const text = [`Balance: ${payerBalance}`, 'Add Funds'];
-    if (payerBalance === 0 || this.state.balanceHovered) {
-      text.reverse();
-    }
+    const showBalance = payerBalance > 0 && !this.state.balanceHovered;
     let className = classes.funds;
     if (this.state.messageInputFocused) {
       className += ` ${classes.fundsHidden}`;
@@ -245,8 +244,15 @@ class Toolbar extends React.Component {
         >
           {/* Ensures that button width is not changed on hover  */}
           <div className={classes.fundsText}>
-            <span>{text[0]}</span>
-            <span className={classes.hiddenFundsText}>{text[1]}</span>
+            <span
+              className={!showBalance ? classes.hiddenFundsText : undefined}
+            >
+              {'Balance: '}
+              <Balance balance={payerBalance} />
+            </span>
+            <span className={showBalance ? classes.hiddenFundsText : undefined}>
+              Add Funds
+            </span>
           </div>
         </Button>
       </div>
