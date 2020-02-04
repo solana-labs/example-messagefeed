@@ -125,9 +125,8 @@ fn submit_vote(program_id: &Pubkey, accounts: &mut [AccountInfo]) -> ProgramResu
     let (clock_account, _) = accounts.split_first_mut().unwrap();
     expect_key(clock_account, &clock::id())?;
 
-    let mut clock_borrow = tally_account.borrow_mut();
-    let clock = ClockData::from_bytes(&mut clock_borrow.data);
-    let mut poll_borrow = tally_account.borrow_mut();
+    let clock = ClockData::from_bytes(clock_account.borrow().data);
+    let mut poll_borrow = poll_account.borrow_mut();
     let mut poll = PollData::from_bytes(&mut poll_borrow.data);
     let mut tally_borrow = tally_account.borrow_mut();
     let mut tally = TallyData::from_bytes(&mut tally_borrow.data);
@@ -144,7 +143,7 @@ fn submit_vote(program_id: &Pubkey, accounts: &mut [AccountInfo]) -> ProgramResu
     poll::record_wager(&mut poll, tally_account.key, wager)?;
     tally::record_wager(&mut tally, payout_account.key, wager)?;
 
-    *poll_account.borrow_mut().lamports += wager;
+    *poll_borrow.lamports += wager;
     *user_account.borrow_mut().lamports = 0;
 
     Ok(())
@@ -170,9 +169,11 @@ fn submit_claim(program_id: &Pubkey, accounts: &mut [AccountInfo]) -> ProgramRes
         return Err(ProgramError::PollHasNoFunds);
     }
 
-    let mut clock_borrow = tally_account.borrow_mut();
-    let clock = ClockData::from_bytes(&mut clock_borrow.data);
-    let mut poll_borrow = tally_account.borrow_mut();
+    let mut poll_borrow = poll_account.borrow_mut();
+    let pot = *poll_borrow.lamports - 1;
+    *poll_borrow.lamports = 1;
+
+    let clock = ClockData::from_bytes(clock_account.borrow().data);
     let poll = PollData::from_bytes(&mut poll_borrow.data);
     let mut tally_borrow = tally_account.borrow_mut();
     let tally = TallyData::from_bytes(&mut tally_borrow.data);
@@ -182,9 +183,6 @@ fn submit_claim(program_id: &Pubkey, accounts: &mut [AccountInfo]) -> ProgramRes
     }
 
     expect_n_accounts(accounts, tally.len())?;
-
-    let pot = *poll_account.borrow_mut().lamports - 1;
-    *poll_account.borrow_mut().lamports = 1;
 
     let winning_quantity = poll::check_winning_tally(&poll, tally_account.key)?;
     tally::payout(&tally, accounts, winning_quantity, pot)?;
