@@ -7,7 +7,7 @@ import PropTypes from 'prop-types';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
-import {PublicKey} from '@solana/web3.js';
+import {PublicKey, LAMPORTS_PER_SOL} from '@solana/web3.js';
 
 import PollOption from './poll-option';
 
@@ -49,7 +49,7 @@ class Poll extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      wager: '100',
+      wager: '0.01',
     };
   }
 
@@ -140,8 +140,9 @@ class Poll extends React.Component {
 
   renderWagerInput() {
     const {classes, onSubmit, poll, payerBalance} = this.props;
-    const wager = parseInt(this.state.wager);
-    const validWager = Number.isInteger(wager) && wager > 0;
+    const wager = parseFloat(this.state.wager);
+    const wagerLamports = parseInt((wager * LAMPORTS_PER_SOL).toFixed(0));
+    const validWager = wager > 0;
 
     let optionAQuantity = parseInt(poll.optionA.quantity.toString());
     let optionBQuantity = parseInt(poll.optionB.quantity.toString());
@@ -185,7 +186,7 @@ class Poll extends React.Component {
           color="primary"
           disabled={!validWager || noSelection || !!wagerError}
           className={`${classes.button} ${classes.submit}`}
-          onClick={() => onSubmit(wager, tallyKey)}
+          onClick={() => onSubmit(wagerLamports, tallyKey)}
         >
           Submit
         </Button>
