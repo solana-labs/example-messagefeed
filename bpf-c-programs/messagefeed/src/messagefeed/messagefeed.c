@@ -15,22 +15,22 @@ typedef struct {
 } MessageAccountData;
 
 SOL_FN_PREFIX bool deserialize_user_account_data(SolKeyedAccount *ka, UserAccountData **data) {
-  if (ka->userdata_len != sizeof(UserAccountData)) {
-    sol_log("Error: invalid user account userdata_len");
-    sol_log_64(ka->userdata_len, sizeof(UserAccountData), 0, 0, 0);
+  if (ka->data_len != sizeof(UserAccountData)) {
+    sol_log("Error: invalid user account data_len");
+    sol_log_64(ka->data_len, sizeof(UserAccountData), 0, 0, 0);
     return false;
   }
-  *data = (UserAccountData *) ka->userdata;
+  *data = (UserAccountData *) ka->data;
   return true;
 }
 
 SOL_FN_PREFIX bool deserialize_message_account_data(SolKeyedAccount *ka, MessageAccountData **data) {
-  if (ka->userdata_len < sizeof(MessageAccountData)) {
-    sol_log("Error: invalid message account userdata_len");
-    sol_log_64(ka->userdata_len, sizeof(MessageAccountData), 0, 0, 0);
+  if (ka->data_len < sizeof(MessageAccountData)) {
+    sol_log("Error: invalid message account data_len");
+    sol_log_64(ka->data_len, sizeof(MessageAccountData), 0, 0, 0);
     return false;
   }
-  *data = (MessageAccountData *) ka->userdata;
+  *data = (MessageAccountData *) ka->data;
   return true;
 }
 
@@ -43,7 +43,7 @@ SOL_FN_PREFIX bool SolPubkey_default(const SolPubkey *pubkey) {
   return true;
 }
 
-extern uint32_t entrypoint(const uint8_t *input) {
+extern uint64_t entrypoint(const uint8_t *input) {
   SolKeyedAccount ka[5];
   SolParameters params = (SolParameters) { .ka = ka };
 

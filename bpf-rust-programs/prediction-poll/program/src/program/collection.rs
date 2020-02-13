@@ -1,12 +1,12 @@
-use crate::result::{ProgramError, ProgramResult};
+use crate::result::PollError;
 use prediction_poll_data::CollectionData;
-use solana_sdk::pubkey::Pubkey;
+use solana_sdk::{entrypoint::ProgramResult, pubkey::Pubkey};
 
-pub fn add_poll(collection: &mut CollectionData, poll_pubkey: &Pubkey) -> ProgramResult<()> {
+pub fn add_poll(collection: &mut CollectionData, poll_pubkey: &Pubkey) -> ProgramResult {
     if collection.len() >= collection.capacity() {
-        Err(ProgramError::MaxPollCapacity)
+        Err(PollError::MaxPollCapacity.into())
     } else if collection.contains(poll_pubkey) {
-        Err(ProgramError::PollAlreadyCreated)
+        Err(PollError::PollAlreadyCreated.into())
     } else {
         collection.add_poll(poll_pubkey);
         Ok(())
