@@ -1,52 +1,82 @@
-use solana_sdk::info;
+use num_derive::FromPrimitive;
+use num_traits::FromPrimitive;
+use solana_sdk::{
+    info,
+    program_error::{PrintProgramError, ProgramError},
+    program_utils::DecodeError,
+};
+use thiserror::Error;
 
-#[derive(Debug)]
-pub enum ProgramError {
+#[derive(Clone, Debug, Eq, Error, FromPrimitive, PartialEq)]
+pub enum PollError {
+    #[error("todo")]
     AccountNotNew,
-    AccountDataTooSmall,
+    #[error("todo")]
     CannotPayoutToLosers,
+    #[error("todo")]
     InvalidAccount,
+    #[error("todo")]
     InvalidDataType,
+    #[error("todo")]
     InvalidInput,
+    #[error("todo")]
     InvalidKey,
+    #[error("todo")]
     InvalidCommand,
+    #[error("todo")]
     InvalidTallyKey,
+    #[error("todo")]
     InvalidPayoutList,
+    #[error("todo")]
     MaxPollCapacity,
+    #[error("todo")]
     MaxTallyCapacity,
-    MissingSigner,
+    #[error("todo")]
     PollAlreadyCreated,
+    #[error("todo")]
     PollAlreadyFinished,
+    #[error("todo")]
     PollNotFinished,
+    #[error("todo")]
     PollHasNoFunds,
+    #[error("todo")]
     PollCannotBeEven,
+    #[error("todo")]
     WagerHasNoFunds,
 }
-
-pub type ProgramResult<T> = core::result::Result<T, ProgramError>;
-
-impl ProgramError {
-    pub fn print(&self) {
+impl From<PollError> for ProgramError {
+    fn from(e: PollError) -> Self {
+        ProgramError::CustomError(e as u32)
+    }
+}
+impl<T> DecodeError<T> for PollError {
+    fn type_of() -> &'static str {
+        "ProgramError"
+    }
+}
+impl PrintProgramError for PollError {
+    fn print<E>(&self)
+    where
+        E: 'static + std::error::Error + DecodeError<E> + PrintProgramError + FromPrimitive,
+    {
         match self {
-            ProgramError::AccountNotNew => info!("Error: AccountNotNew"),
-            ProgramError::AccountDataTooSmall => info!("Error: AccountDataTooSmall"),
-            ProgramError::CannotPayoutToLosers => info!("Error: CannotPayoutToLosers"),
-            ProgramError::InvalidAccount => info!("Error: InvalidAccount"),
-            ProgramError::InvalidDataType => info!("Error: InvalidDataType"),
-            ProgramError::InvalidInput => info!("Error: InvalidInput"),
-            ProgramError::InvalidCommand => info!("Error: InvalidCommand"),
-            ProgramError::InvalidKey => info!("Error: InvalidKey"),
-            ProgramError::InvalidTallyKey => info!("Error: InvalidTallyKey"),
-            ProgramError::InvalidPayoutList => info!("Error: InvalidPayoutList"),
-            ProgramError::MaxPollCapacity => info!("Error: MaxPollCapacity"),
-            ProgramError::MaxTallyCapacity => info!("Error: MaxTallyCapacity"),
-            ProgramError::MissingSigner => info!("Error: MissingSigner"),
-            ProgramError::PollAlreadyCreated => info!("Error: PollAlreadyCreated"),
-            ProgramError::PollAlreadyFinished => info!("Error: PollAlreadyFinished"),
-            ProgramError::PollNotFinished => info!("Error: PollNotFinished"),
-            ProgramError::PollHasNoFunds => info!("Error: PollHasNoFunds"),
-            ProgramError::PollCannotBeEven => info!("Error: PollCannotBeEven"),
-            ProgramError::WagerHasNoFunds => info!("Error: WagerHasNoFunds"),
+            PollError::AccountNotNew => info!("Error: todo"),
+            PollError::CannotPayoutToLosers => info!("Error: todo"),
+            PollError::InvalidAccount => info!("Error: todo"),
+            PollError::InvalidDataType => info!("Error: todo"),
+            PollError::InvalidInput => info!("Error: todo"),
+            PollError::InvalidKey => info!("Error: todo"),
+            PollError::InvalidCommand => info!("Error: todo"),
+            PollError::InvalidTallyKey => info!("Error: todo"),
+            PollError::InvalidPayoutList => info!("Error: todo"),
+            PollError::MaxPollCapacity => info!("Error: todo"),
+            PollError::MaxTallyCapacity => info!("Error: todo"),
+            PollError::PollAlreadyCreated => info!("Error: todo"),
+            PollError::PollAlreadyFinished => info!("Error: todo"),
+            PollError::PollNotFinished => info!("Error: todo"),
+            PollError::PollHasNoFunds => info!("Error: todo"),
+            PollError::PollCannotBeEven => info!("Error: todo"),
+            PollError::WagerHasNoFunds => info!("Error: todo"),
         }
     }
 }

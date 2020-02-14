@@ -1,16 +1,40 @@
 //! @brief Example message feed app
 
-extern crate solana_sdk;
-
 use arrayref::array_mut_ref;
+use num_derive::FromPrimitive;
 use solana_sdk::{
-    account_info::AccountInfo, entrypoint, entrypoint::SUCCESS, info, pubkey::Pubkey,
+    account_info::AccountInfo,
+    entrypoint,
+    entrypoint::ProgramResult,
+    info,
+    program_error::ProgramError,
+    program_utils::{next_account_info, DecodeError},
+    pubkey::Pubkey,
 };
 use std::mem::size_of;
+use thiserror::Error;
+
+#[derive(Clone, Debug, Eq, Error, FromPrimitive, PartialEq)]
+pub enum MessageFeedError {
+    #[error("User is banned")]
+    BannedUser,
+    #[error("Next message already exists")]
+    NextMessageExists,
+    #[error("Creator mismatch")]
+    CreatorMismatch,
+}
+impl From<MessageFeedError> for ProgramError {
+    fn from(e: MessageFeedError) -> Self {
+        ProgramError::CustomError(e as u32)
+    }
+}
+impl<T> DecodeError<T> for MessageFeedError {
+    fn type_of() -> &'static str {
+        "MessageFeedError"
+    }
+}
 
 type PubkeyData = [u8; 32];
-
-const FAILURE: u32 = 1;
 
 struct UserAccountData<'a> {
     pub banned: &'a mut bool,
@@ -47,92 +71,89 @@ impl<'a> MessageAccountData<'a> {
 }
 
 entrypoint!(process_instruction);
-fn process_instruction(_program_id: &Pubkey, accounts: &[AccountInfo], data: &[u8]) -> u32 {
+fn process_instruction(
+    _program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    instruction_data: &[u8],
+) -> ProgramResult {
     info!("message feed entrypoint");
 
-    let len = accounts.len();
-    if len < 2 {
-        info!("Error: Expected at least two keys");
-        return FAILURE;
-    }
+    let account_info_iter = &mut accounts.iter();
 
-    let (user_account, rest) = accounts.split_at(1);
-    let mut user_borrow = user_account[0].borrow_mut();
-    let user_data = UserAccountData::new(&mut user_borrow.data);
+    let user_account = next_account_info(account_info_iter)?;
+    let mut user_data = user_account.data.borrow_mut();
+    let user_data = UserAccountData::new(&mut user_data);
 
-    let (message_account, rest) = rest.split_at(1);
-    let mut new_message_borrow = message_account[0].borrow_mut();
-    let new_message_data = MessageAccountData::new(&mut new_message_borrow.data);
+    let message_account = next_account_info(account_info_iter)?;
+    let mut new_message_data = message_account.data.borrow_mut();
+    let new_message_data = MessageAccountData::new(&mut new_message_data);
 
-    if !user_account[0].is_signer {
+    if !user_account.is_signer {
         info!("Error: not signed by key 0");
-        return FAILURE;
+        return Err(ProgramError::MissingRequiredSignature);
     }
-    if !message_account[0].is_signer {
+    if !message_account.is_signer {
         info!("Error: not signed by key 1");
-        return FAILURE;
+        return Err(ProgramError::MissingRequiredSignature);
     }
 
     if *user_data.banned {
         info!("Error: user is banned");
-        return FAILURE;
+        return Err(MessageFeedError::BannedUser.into());
     }
 
     // No instruction data means that a new user account should be initialized
-    if data.is_empty() {
+    if instruction_data.is_empty() {
         user_data
             .creator
-            .clone_from_slice(message_account[0].key.as_ref());
-        return SUCCESS;
-    }
-
-    // Write the message text into new_message_data
-    new_message_data.text.clone_from_slice(data);
-
-    // Save the pubkey of who posted the message
-    new_message_data
-        .from
-        .clone_from_slice(user_account[0].key.as_ref());
-
-    if len > 2 {
-        let (existing_message_account, rest) = rest.split_at(1);
-        let mut existing_message_borrow = existing_message_account[0].borrow_mut();
-        let existing_message_data = MessageAccountData::new(&mut existing_message_borrow.data);
-
-        if existing_message_data.next_message != &[0; size_of::<PubkeyData>()] {
-            info!("Error: account 1 already has a next_message");
-            return FAILURE;
-        }
-
-        // Link the new_message to the existing_message
-        existing_message_data
-            .next_message
-            .clone_from_slice(message_account[0].key.as_ref());
-
-        // Check if a user should be banned
-        if len > 3 {
-            let (ban_user_account, _) = rest.split_at(1);
-            let mut ban_user_borrow = ban_user_account[0].borrow_mut();
-            let ban_user_data = UserAccountData::new(&mut ban_user_borrow.data);
-            *ban_user_data.banned = true;
-        }
-
-        // Propagate the chain creator to the new message
-        new_message_data
-            .creator
-            .clone_from_slice(existing_message_data.creator.as_ref());
+            .clone_from_slice(message_account.key.as_ref());
     } else {
-        // This is the first message in the chain, it is the "creator"
-        new_message_data
-            .creator
-            .clone_from_slice(message_account[0].key.as_ref());
-    }
+        // Write the message text into new_message_data
+        new_message_data.text.clone_from_slice(instruction_data);
 
-    if user_data.creator != new_message_data.creator {
-        info!("user_data/new_message_data creator mismatch");
-        return FAILURE;
+        // Save the pubkey of who posted the message
+        new_message_data
+            .from
+            .clone_from_slice(user_account.key.as_ref());
+
+        if let Ok(existing_message_account) = next_account_info(account_info_iter) {
+            let mut existing_message_data = existing_message_account.data.borrow_mut();
+            let existing_message_data = MessageAccountData::new(&mut existing_message_data);
+
+            if existing_message_data.next_message != &[0; size_of::<PubkeyData>()] {
+                info!("Error: account 1 already has a next_message");
+                return Err(MessageFeedError::NextMessageExists.into());
+            }
+
+            // Link the new_message to the existing_message
+            existing_message_data
+                .next_message
+                .clone_from_slice(message_account.key.as_ref());
+
+            // Check if a user should be banned
+            if let Ok(ban_user_account) = next_account_info(account_info_iter) {
+                let mut ban_user_data = ban_user_account.data.borrow_mut();
+                let ban_user_data = UserAccountData::new(&mut ban_user_data);
+                *ban_user_data.banned = true;
+            }
+
+            // Propagate the chain creator to the new message
+            new_message_data
+                .creator
+                .clone_from_slice(existing_message_data.creator.as_ref());
+        } else {
+            // This is the first message in the chain, it is the "creator"
+            new_message_data
+                .creator
+                .clone_from_slice(message_account.key.as_ref());
+        }
+
+        if user_data.creator != new_message_data.creator {
+            info!("user_data/new_message_data creator mismatch");
+            return Err(MessageFeedError::CreatorMismatch.into());
+        }
     }
 
     info!("Success");
-    SUCCESS
+    Ok(())
 }
