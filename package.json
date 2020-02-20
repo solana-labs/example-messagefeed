@@ -2,7 +2,7 @@
   "name": "messagefeed",
   "version": "0.0.1",
   "description": "",
-  "testnetDefaultChannel": "v0.23.0",
+  "testnetDefaultChannel": "v0.23.5",
   "scripts": {
     "message-cli": "babel-node src/cli/message-feed.js",
     "poll-cli": "npm run build:poll-cli && node dist/cli/prediction-poll.js",
@@ -14,7 +14,7 @@
     "flow:watch": "watch 'flow' . --wait=1 --ignoreDirectoryPattern=/doc/",
     "lint:watch": "watch 'npm run lint:fix' . --wait=1",
     "test": "npm run lint && echo TODO enable: npm run flow",
-    "bpf-sdk:update": "solana-bpf-sdk-install",
+    "bpf-sdk:update": "solana-bpf-sdk-install node_modules/@solana/web3.js",
     "build": "webpack --mode=production",
     "builddev": "webpack --mode=development",
     "dev": "webpack-dev-server --config ./webpack.config.js --mode development",
@@ -69,7 +69,7 @@
   "dependencies": {
     "@material-ui/core": "^4.9.0",
     "@material-ui/icons": "^4.5.1",
-    "@solana/web3.js": "^0.29.6",
+    "@solana/web3.js": "^0.30.9",
     "buffer-layout": "^1.2.0",
     "cors": "^2.8.5",
     "event-emitter": "^0.3.5",
