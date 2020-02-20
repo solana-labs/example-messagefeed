@@ -14,7 +14,7 @@
     "flow:watch": "watch 'flow' . --wait=1 --ignoreDirectoryPattern=/doc/",
     "lint:watch": "watch 'npm run lint:fix' . --wait=1",
     "test": "npm run lint && echo TODO enable: npm run flow",
-    "bpf-sdk:update": "solana-bpf-sdk-install",
+    "bpf-sdk:update": "solana-bpf-sdk-install node_modules/@solana/web3.js",
     "build": "webpack --mode=production",
     "builddev": "webpack --mode=development",
     "dev": "webpack-dev-server --config ./webpack.config.js --mode development",
