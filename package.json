@@ -61,7 +61,7 @@
     "flow-typed": "^2.6.2",
     "prettier": "^1.14.3",
     "watch": "^1.0.2",
-    "webpack": "^4.41.5",
+    "webpack": "^4.41.6",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.10.1",
     "webpack-filter-warnings-plugin": "^1.2.1"
