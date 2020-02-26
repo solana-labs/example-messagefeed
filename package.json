@@ -68,7 +68,7 @@
   },
   "dependencies": {
     "@material-ui/core": "^4.9.4",
-    "@material-ui/icons": "^4.5.1",
+    "@material-ui/icons": "^4.9.1",
     "@solana/web3.js": "^0.30.11",
     "buffer-layout": "^1.2.0",
     "cors": "^2.8.5",
