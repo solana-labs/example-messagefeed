@@ -16,7 +16,7 @@ num-derive = "0.2"
 num-traits = "0.2"
 prediction-poll-data = { path = "../program_data" }
 solana-sdk = { git = "https://github.com/solana-labs/solana", default-features = false }
-solana-sdk-bpf-test = { git = "https://github.com/solana-labs/solana", default-features = false }
+solana-sdk-bpf-test = { path = "../../../node_modules/@solana/web3.js/bpf-sdk/rust/test" }
 thiserror = "1.0"
 
 [features]
