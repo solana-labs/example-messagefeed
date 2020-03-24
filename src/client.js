@@ -1,5 +1,6 @@
 // @flow
-import {Account, Commitment, PublicKey} from '@solana/web3.js';
+import {Account, PublicKey} from '@solana/web3.js';
+import type {Commitment} from '@solana/web3.js';
 import fetch from 'node-fetch';
 
 import {sleep} from './util/sleep';

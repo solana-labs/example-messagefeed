@@ -93,13 +93,13 @@ export default class PollController {
     const collectionAccount = new Account();
     const transaction = new Transaction();
     transaction.add(
-      SystemProgram.createAccount(
-        payerAccount.publicKey,
-        collectionAccount.publicKey,
-        minimumBalance,
-        dataSize,
+      SystemProgram.createAccount({
+        fromPubkey: payerAccount.publicKey,
+        newAccountPubkey: collectionAccount.publicKey,
+        lamports: minimumBalance,
+        space: dataSize,
         programId,
-      ),
+      }),
     );
 
     transaction.add({

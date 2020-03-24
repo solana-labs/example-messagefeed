@@ -47,13 +47,15 @@ async function createUserAccount(
 
   // Allocate the user account
   transaction.add(
-    SystemProgram.createAccount(
-      payerAccount.publicKey,
-      userAccount.publicKey,
-      await connection.getMinimumBalanceForRentExemption(userAccountSize),
-      userAccountSize,
+    SystemProgram.createAccount({
+      fromPubkey: payerAccount.publicKey,
+      newAccountPubkey: userAccount.publicKey,
+      lamports: await connection.getMinimumBalanceForRentExemption(
+        userAccountSize,
+      ),
+      space: userAccountSize,
       programId,
-    ),
+    }),
   );
 
   // Initialize the user account
@@ -216,13 +218,13 @@ export async function postMessageWithProgramId(
 
   // Allocate the message account
   transaction.add(
-    SystemProgram.createAccount(
-      payerAccount.publicKey,
-      messageAccount.publicKey,
-      await connection.getMinimumBalanceForRentExemption(dataSize),
-      dataSize,
+    SystemProgram.createAccount({
+      fromPubkey: payerAccount.publicKey,
+      newAccountPubkey: messageAccount.publicKey,
+      lamports: await connection.getMinimumBalanceForRentExemption(dataSize),
+      space: dataSize,
       programId,
-    ),
+    }),
   );
 
   let userAccount = userAccountArg;

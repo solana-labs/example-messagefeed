@@ -68,25 +68,25 @@ export async function createPoll(
 
   const pollAccount = new Account();
   transaction.add(
-    SystemProgram.createAccount(
-      payerAccount.publicKey,
-      pollAccount.publicKey,
-      2000,
-      1000, // 150 for keys and numbers + 850 for text
+    SystemProgram.createAccount({
+      fromPubkey: payerAccount.publicKey,
+      newAccountPubkey: pollAccount.publicKey,
+      lamports: 2000,
+      space: 1000, // 150 for keys and numbers + 850 for text
       programId,
-    ),
+    }),
   );
 
   const tallyAccounts = [new Account(), new Account()];
   for (const tallyAccount of tallyAccounts) {
     transaction.add(
-      SystemProgram.createAccount(
-        payerAccount.publicKey,
-        tallyAccount.publicKey,
-        2000,
-        1000, // 30+ votes
+      SystemProgram.createAccount({
+        fromPubkey: payerAccount.publicKey,
+        newAccountPubkey: tallyAccount.publicKey,
+        lamports: 2000,
+        space: 1000, // 30+ votes
         programId,
-      ),
+      }),
     );
   }
 
@@ -135,13 +135,13 @@ export async function vote(
 
   const userAccount = new Account();
   transaction.add(
-    SystemProgram.createAccount(
-      payerAccount.publicKey,
-      userAccount.publicKey,
-      wager,
-      2000,
+    SystemProgram.createAccount({
+      fromPubkey: payerAccount.publicKey,
+      newAccountPubkey: userAccount.publicKey,
+      lamports: wager,
+      space: 2000,
       programId,
-    ),
+    }),
   );
 
   transaction.add({
