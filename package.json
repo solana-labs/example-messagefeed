@@ -2,7 +2,7 @@
   "name": "messagefeed",
   "version": "0.0.1",
   "description": "",
-  "testnetDefaultChannel": "v1.0.9",
+  "testnetDefaultChannel": "v1.0.11",
   "scripts": {
     "message-cli": "babel-node src/cli/message-feed.js",
     "poll-cli": "npm run build:poll-cli && node dist/cli/prediction-poll.js",
@@ -69,7 +69,7 @@
   "dependencies": {
     "@material-ui/core": "^4.9.5",
     "@material-ui/icons": "^4.9.1",
-    "@solana/web3.js": "^0.36.0",
+    "@solana/web3.js": "^0.38.0",
     "buffer-layout": "^1.2.0",
     "cors": "^2.8.5",
     "event-emitter": "^0.3.5",
