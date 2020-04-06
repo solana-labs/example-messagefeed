@@ -46,7 +46,7 @@ pub enum PollError {
 }
 impl From<PollError> for ProgramError {
     fn from(e: PollError) -> Self {
-        ProgramError::Custom(e as u32)
+        ProgramError::CustomError(e as u32)
     }
 }
 impl<T> DecodeError<T> for PollError {
