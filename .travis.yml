@@ -46,4 +46,4 @@ deploy:
     strategy: git
     on:
       repo: solana-labs/example-messagefeed
-      branch: v1.0
+      branch: v1.1
