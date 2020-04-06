@@ -481,15 +481,17 @@ class App extends React.Component {
   };
 
   blockExplorerTransactionsByProgramUrl = (): string | null => {
-    if (!this.state.explorerUrl) return;
+    if (!this.state.explorerUrlBuilder) return;
     if (!this.state.programId) return;
-    return `${this.state.explorerUrl}/txns-by-prgid/${this.state.programId}`;
+    return this.state.explorerUrlBuilder(`account/${this.state.programId}`);
   };
 
   blockExplorerLatestTransactionUrl = () => {
-    if (!this.state.explorerUrl) return;
-    if (this.state.transactionSignature === null) return;
-    return `${this.state.explorerUrl}/txn/${this.state.transactionSignature}`;
+    if (!this.state.explorerUrlBuilder) return;
+    if (!this.state.transactionSignature) return;
+    return this.state.explorerUrlBuilder(
+      `txn/${this.state.transactionSignature}`,
+    );
   };
 }
 App.propTypes = {

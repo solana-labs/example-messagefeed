@@ -105,13 +105,13 @@ class CreatePollDialog extends React.Component {
             <TextField
               required
               label="Slot Timeout"
-              placeholder="How many slots woud you like to run your poll for?"
+              placeholder="How many slots would you like to run your poll for?"
               className={classes.field}
               type="number"
               fullWidth
               value={this.state.timeout}
               onChange={e => this.setState({timeout: e.target.value})}
-              helperText="Testnet runs at approx. 3600 slots per hour"
+              helperText="Cluster processes approx. 3600 slots per hour"
             />
           </DialogContent>
           <DialogActions>
