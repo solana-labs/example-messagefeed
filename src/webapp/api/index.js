@@ -1,4 +1,5 @@
 import {Account, Connection} from '@solana/web3.js';
+import type {Cluster} from '@solana/web3.js';
 import localforage from 'localforage';
 
 import {getConfig, userLogin} from '../../client';
@@ -54,14 +55,17 @@ export default class Api {
     this.predictionPoll.unsubscribe();
   }
 
-  explorerUrl() {
-    let explorerUrl = 'http://localhost:3000';
-    const matches = this.connectionUrl.match('https://(.*)testnet.solana.com');
-    if (matches) {
-      const testnet = matches[1];
-      explorerUrl = `https://${testnet}explorer.solana.com/v1`;
-    }
-    return explorerUrl;
+  explorerUrlBuilder(cluster: ?Cluster) {
+    return path => {
+      let params;
+      if (cluster) {
+        params = `?cluster=${cluster}`;
+      } else {
+        params = `?clusterUrl=${this.connectionUrl}`;
+      }
+
+      return `https://explorer.solana.com/${path}${params}`;
+    };
   }
 
   // Periodically polls for a new program id, which indicates either a cluster reset
@@ -73,6 +77,7 @@ export default class Api {
         loginMethod,
         messageFeed,
         predictionPoll,
+        cluster,
         urlTls,
         walletUrl,
         commitment,
@@ -92,8 +97,8 @@ export default class Api {
           this.minimumBalanceForRentExemption = minimumBalanceForRentExemption;
         });
 
-      const explorerUrl = this.explorerUrl(this.connectionUrl);
-      const response = {explorerUrl, loginMethod, walletUrl};
+      const explorerUrlBuilder = this.explorerUrlBuilder(cluster);
+      const response = {explorerUrlBuilder, loginMethod, walletUrl};
 
       try {
         Object.assign(

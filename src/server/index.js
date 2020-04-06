@@ -4,7 +4,7 @@ import path from 'path';
 import gte from 'semver/functions/gte';
 import {Connection} from '@solana/web3.js';
 
-import {url, urlTls, walletUrl} from '../../urls';
+import {cluster, url, urlTls, walletUrl} from '../../urls';
 import {newSystemAccountWithAirdrop} from '../util/new-system-account-with-airdrop';
 import MessageController from './message-feed';
 import PollController from './prediction-poll';
@@ -51,6 +51,7 @@ const port = process.env.PORT || 8081;
       url,
       urlTls,
       walletUrl,
+      cluster,
     };
 
     if (commitment) {

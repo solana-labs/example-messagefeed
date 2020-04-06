@@ -1,6 +1,6 @@
 // @flow
 import {Account, PublicKey} from '@solana/web3.js';
-import type {Commitment} from '@solana/web3.js';
+import type {Commitment, Cluster} from '@solana/web3.js';
 import fetch from 'node-fetch';
 
 import {sleep} from './util/sleep';
@@ -11,6 +11,7 @@ export type Config = {
   loginMethod: string,
   url: string,
   urlTls: string,
+  cluster: ?Cluster,
   walletUrl: string,
   commitment: ?Commitment,
 };
@@ -43,6 +44,7 @@ export async function getConfig(configUrl: string): Promise<Config> {
           loginMethod: config.loginMethod,
           url: config.url,
           urlTls: config.urlTls,
+          cluster: config.cluster,
           walletUrl: config.walletUrl,
           commitment: config.commitment,
         };
