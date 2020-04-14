@@ -86,7 +86,7 @@
     "react-idle-timer": "^4.2.12",
     "react-router-dom": "^5.1.2",
     "readline-promise": "^1.0.3",
-    "semver": "^7.2.3",
+    "semver": "^7.3.0",
     "superstruct": "^0.8.3"
   },
   "engines": {
