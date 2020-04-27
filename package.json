@@ -75,7 +75,7 @@
     "event-emitter": "^0.3.5",
     "express": "^4.17.1",
     "haikunator": "^2.1.2",
-    "http-server": "^0.12.1",
+    "http-server": "^0.12.2",
     "localforage": "^1.7.3",
     "mkdirp-promise": "^5.0.1",
     "moment": "^2.22.2",
