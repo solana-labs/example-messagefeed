@@ -78,7 +78,7 @@
     "http-server": "^0.12.3",
     "localforage": "^1.7.3",
     "mkdirp-promise": "^5.0.1",
-    "moment": "^2.25.2",
+    "moment": "^2.25.3",
     "mz": "^2.7.0",
     "node-fetch": "^2.6.0",
     "react": "^16.13.1",
