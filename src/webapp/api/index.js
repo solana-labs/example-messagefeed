@@ -6,6 +6,7 @@ import {getConfig, userLogin} from '../../client';
 import ClockApi from './clock';
 import MessageFeedApi from './message-feed';
 import PredictionPollApi from './prediction-poll';
+import {balanceInSOL} from '../../util/display-sol';
 
 export default class Api {
   constructor() {
@@ -218,7 +219,9 @@ export default class Api {
           const response = {snackMessage: 'Unexpected wallet response'};
           if (params.amount && params.signature) {
             Object.assign(response, {
-              snackMessage: `Received ${params.amount} from wallet`,
+              snackMessage: `Received ${balanceInSOL(
+                params.amount,
+              )} SOL from wallet`,
               transactionSignature: params.signature,
             });
           } else if (params.err) {
